@@ -25,6 +25,8 @@ Open [http://localhost:3000](http://localhost:3000).
 
 These commands run locally. They do not need PostgreSQL, object storage, or external credentials.
 
+GitHub Actions runs `format:check`, `lint`, `typecheck`, `test`, and `build` on pull requests and on pushes to `master`.
+
 ```bash
 pnpm format
 pnpm format:check

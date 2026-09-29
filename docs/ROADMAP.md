@@ -168,7 +168,7 @@ instructions/
 
 ## FND-03 — Establish Quality Commands
 
-**Status:** READY_FOR_REVIEW
+**Status:** DONE
 
 ### Depends On
 
@@ -202,7 +202,7 @@ build
 
 ## FND-04 — Establish CI
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 
 ### Depends On
 
