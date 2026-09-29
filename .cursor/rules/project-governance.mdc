@@ -1,0 +1,26 @@
+---
+description: Canonical project governance for all implementation and review work in this repository.
+alwaysApply: true
+---
+
+Follow the repository's canonical engineering rules.
+
+Primary entry point:
+
+@AGENTS.md
+
+Do not duplicate or replace project policy inside Cursor rules.
+
+For implementation and review workflows, use the canonical project skills under:
+
+@.agents/skills/
+
+Before making code changes:
+
+- follow `AGENTS.md`;
+- follow the relevant roadmap task;
+- read only the ADRs and instructions relevant to the task;
+- do not invent missing product behavior;
+- do not introduce architecture outside approved ADRs.
+
+If Cursor-specific guidance conflicts with canonical repository documentation, stop and report the conflict.

@@ -24,6 +24,7 @@ Open [http://localhost:3000](http://localhost:3000).
 ## Quality checks
 
 ```bash
+pnpm check:agent-tooling
 pnpm format:check
 pnpm lint
 pnpm typecheck
