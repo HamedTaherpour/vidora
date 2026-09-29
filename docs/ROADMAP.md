@@ -81,7 +81,7 @@ Goal:
 
 ## FND-01 — Bootstrap Next.js Application
 
-**Status:** TODO
+**Status:** DONE
 
 ### Depends On
 
@@ -235,7 +235,7 @@ build
 
 ## FND-05 — Environment Configuration
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 
 ### Depends On
 

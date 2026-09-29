@@ -13,6 +13,21 @@ Minimal Next.js App Router foundation for local development.
 pnpm install
 ```
 
+## Environment
+
+Copy `.env.example` to `.env.local` when you need local overrides. `.env.local` stays untracked, and `.env.example` contains no real credentials.
+
+This foundation does not require application-specific environment variables yet.
+
+Validated configuration lives in:
+
+- `src/lib/env/server.ts` for server-only variables
+- `src/lib/env/client.ts` for browser-safe `NEXT_PUBLIC_*` variables
+
+Server-only secrets must not use the `NEXT_PUBLIC_` prefix. Values with that prefix are inlined into the browser bundle and are visible to visitors.
+
+When a feature introduces configuration, add it to the matching schema in the same change. Application code should read `serverEnv` or `clientEnv` instead of using `process.env` directly.
+
 ## Local development
 
 ```bash
