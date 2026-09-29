@@ -168,7 +168,7 @@ instructions/
 
 ## FND-03 — Establish Quality Commands
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 
 ### Depends On
 

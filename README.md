@@ -23,16 +23,21 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Quality checks
 
+These commands run locally. They do not need PostgreSQL, object storage, or external credentials.
+
 ```bash
-pnpm check:agent-tooling
+pnpm format
 pnpm format:check
 pnpm lint
 pnpm typecheck
 pnpm test
+pnpm build
 ```
 
-## Production build
+`pnpm format` rewrites files. The other commands only check or build, and each exits non-zero when its check fails.
+
+Canonical agent files can be checked separately:
 
 ```bash
-pnpm build
+pnpm check:agent-tooling
 ```
