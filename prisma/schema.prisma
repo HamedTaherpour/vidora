@@ -1,5 +1,8 @@
-// No application models yet. Later roadmap tasks add tables through migrations.
-// An empty schema keeps this task from inventing product tables.
+// Customer authentication persistence only.
+// Internal IDs are PostgreSQL gen_random_uuid() values. They are not customer-facing.
+// Administrative identity is deferred. V1 has one administrator, but no approved
+// Admin authentication persistence contract exists yet. Do not add a role on User
+// to stand in for that contract.
 
 generator client {
   provider = "prisma-client"
@@ -8,4 +11,52 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+/// Customer identity. `phone` is the canonical Iranian mobile `+989XXXXXXXXX`.
+/// The unique constraint is the identity invariant under concurrent creation.
+/// The format CHECK is in the `init_auth_core` migration: Prisma schema cannot
+/// represent CHECK constraints.
+model User {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phone     String   @unique @db.VarChar(13)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  sessions Session[]
+}
+
+/// An OTP challenge may exist before the customer User row does, so this model
+/// has no user foreign key. `codeHash` is a one-way hash, never the plaintext OTP.
+/// A non-null `consumedAt` records successful use and invalidates the challenge.
+/// `@@index([phone, createdAt])` supports lookup of a phone's challenges in
+/// creation order. OTP lifetime and attempt limits are not stored here.
+model OtpChallenge {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phone              String    @db.VarChar(13)
+  codeHash           String
+  expiresAt          DateTime  @db.Timestamptz(3)
+  failedAttemptCount Int       @default(0)
+  consumedAt         DateTime? @db.Timestamptz(3)
+  createdAt          DateTime  @default(now()) @db.Timestamptz(3)
+
+  @@index([phone, createdAt])
+}
+
+/// Server-side customer session. `secretHash` is a hash of the cookie secret.
+/// The raw secret is not stored. Lookup uses that unique hash.
+/// Expiry is the persisted lifetime. Explicit revocation is not part of the
+/// approved session model.
+/// `onDelete: Cascade` removes sessions with their user. A session has no
+/// meaning without that user, and sessions are not purchase or invoice history.
+model Session {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @db.Uuid
+  secretHash String   @unique
+  expiresAt  DateTime @db.Timestamptz(3)
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId])
 }

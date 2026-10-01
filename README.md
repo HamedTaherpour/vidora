@@ -53,7 +53,7 @@ If Prisma asks to reset the database, stop and get human approval before continu
 
 `pnpm db:studio` opens Prisma Studio against the same `DATABASE_URL`.
 
-The schema does not define application tables yet. Prisma cannot create a meaningful initial migration from that empty schema, so no migration is committed in this step. The first versioned migration is created with the first approved model in DATA-02.
+The first versioned migration is `20261001171654_init_auth_core`. It creates the customer authentication tables. The phone format checks in that migration are hand-written SQL because Prisma schema cannot represent `CHECK` constraints. See `instructions/database.md`.
 
 ## Local development
 

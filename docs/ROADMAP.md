@@ -294,7 +294,7 @@ Connect the application to PostgreSQL using the approved Prisma version.
 
 ## DATA-02 — Create Initial Core Schema
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 
 ### Depends On
 

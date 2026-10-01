@@ -105,6 +105,8 @@ OTP values must:
 - not be returned in production API responses;
 - become invalid after successful use as required by the authentication design.
 
+`OtpChallenge` persists the code only as a one-way hash in `codeHash`. There is no plaintext OTP column. `consumedAt` records successful use; a non-null value invalidates that challenge. A challenge can exist before the customer `User` row, so it has no user foreign key. Lifetime, resend, and attempt-limit numbers are still undefined and are not stored as policy on this table.
+
 OTP request flows must consider:
 
 - resend abuse;
@@ -154,6 +156,8 @@ Rejected input includes:
 
 `normalizeIranianMobile` returns only `+989XXXXXXXXX`. Invalid input fails and does not produce a best-effort string. The failure does not echo the submitted number.
 
+Persist that canonical value on `User.phone` and `OtpChallenge.phone`. `User.phone` is unique, and that unique constraint is the customer identity invariant under concurrent creation. Both columns are `varchar(13)` and have a PostgreSQL `CHECK` so the stored value matches `^\+989[0-9]{9}$`. Normalization remains required before insert. The database constraints reject a phone that was not stored in the canonical form.
+
 OTP lifetime, resend cooldown, and rate limits remain undefined. This section does not set them.
 
 ---
@@ -163,6 +167,8 @@ OTP lifetime, resend cooldown, and rate limits remain undefined. This section do
 Customer sessions should use secure browser-oriented session handling.
 
 Session credentials must not be stored in `localStorage`.
+
+`Session.secretHash` stores a hash of the browser session secret. The raw secret is not a database column. Session lookup uses that hash. `expiresAt` is the persisted lifetime. This schema has no separate revocation column. A session references `User` and is deleted with that user.
 
 Production cookies should use appropriate security attributes based on the selected authentication implementation and deployment environment.
 

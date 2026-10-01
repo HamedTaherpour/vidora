@@ -96,6 +96,8 @@ Do not rely only on application checks when a database constraint can safely enf
 
 Use the project's chosen consistent ID strategy.
 
+Customer authentication rows use PostgreSQL `gen_random_uuid()` for `User`, `OtpChallenge`, and `Session`. Those IDs are internal. The customer-facing identity is the canonical phone number, not the UUID.
+
 Do not expose assumptions about database row ordering through public identifiers.
 
 Customer-facing identifiers such as invoice numbers may require a separate format from internal primary keys.
@@ -160,7 +162,7 @@ pnpm db:studio
 
 Docker is not required. Point `DATABASE_URL` at a local or hosted PostgreSQL instance.
 
-The current schema intentionally has no application models. Prisma cannot create a meaningful initial migration from that schema: the diff is an empty migration with no SQL. Do not add a placeholder model or an empty migration to exercise `migrate dev`. The first versioned migration is created with the first approved model in DATA-02.
+The first versioned migration is `prisma/migrations/20261001171654_init_auth_core`. It creates only the customer authentication tables in section 21. Prisma ORM 7.10 cannot represent `CHECK` constraints in `schema.prisma`, so that migration's phone `CHECK` constraints were added to the generated SQL before it was applied. Do not drop those statements when editing the migration. Do not use an empty placeholder migration.
 
 Never:
 
@@ -329,6 +331,8 @@ Use consistent server/database timestamps.
 
 Store timestamps in an unambiguous representation.
 
+Customer authentication timestamps use PostgreSQL `timestamptz(3)`. `createdAt` defaults to `CURRENT_TIMESTAMP`. `User.updatedAt` is maintained by Prisma Client.
+
 Localization and Persian/Jalali display concerns belong to presentation, not canonical persistence.
 
 ---
@@ -360,3 +364,60 @@ Before any production-sensitive database operation, consider:
 If the risk is meaningful, report it before execution.
 
 Correctness is more important than completing a migration automatically.
+
+---
+
+# 21. Customer Authentication Persistence
+
+The first applied migration, `20261001171654_init_auth_core`, creates only the customer authentication tables. Footage, commerce, media, and blog models are not part of it.
+
+Administrative identity is deferred. V1 has one administrator, but no approved Admin authentication persistence contract exists yet. `User` has no role column, and customers and Admin do not share an identity model by assumption.
+
+## User
+
+`User` is the customer identity.
+
+- `id`: PostgreSQL `gen_random_uuid()`.
+- `phone`: required, unique, `varchar(13)`, canonical `+989XXXXXXXXX`.
+- `createdAt` and `updatedAt`: `timestamptz(3)`.
+
+`User_phone_key` is the unique index. Concurrent creation of the same phone fails in PostgreSQL. Application code must not treat select-then-insert as the identity guarantee.
+
+`User_phone_canonical_check` requires:
+
+```text
+^\+989[0-9]{9}$
+```
+
+`varchar(13)` also rejects a longer value before that check runs. The check rejects a value that fits the column but is not the canonical form, including `0912...` and `98912...` stored without normalization.
+
+There is no email, name, or profile column.
+
+## OtpChallenge
+
+`OtpChallenge` stores one OTP attempt for a canonical phone.
+
+- `phone`: same `varchar(13)` column and the same canonical-phone `CHECK` as `User.phone`.
+- `codeHash`: one-way hash of the OTP. The plaintext code is never stored.
+- `expiresAt`: challenge expiry. The lifetime value is not defined here.
+- `failedAttemptCount`: failed verification attempts, starting at 0. The limit is not defined here.
+- `consumedAt`: null until successful use. A non-null value invalidates the challenge.
+- `createdAt`.
+
+A challenge does not reference `User`. The row can exist before the customer does.
+
+`OtpChallenge_phone_createdAt_idx` supports lookup of a phone's challenges in creation order. Other columns are not indexed.
+
+## Session
+
+`Session` is the server-side customer session.
+
+- `userId`: required foreign key to `User`.
+- `secretHash`: unique hash of the browser session secret. The raw secret is not stored. Lookup uses this hash.
+- `expiresAt` and `createdAt`.
+
+`Session_userId_fkey` uses `ON DELETE CASCADE` and `ON UPDATE CASCADE`. Deleting a user deletes that user's sessions. A session has no meaning without its user, and sessions are not purchase, payment, invoice, or entitlement history. User deletion itself is not a product flow.
+
+There is no revocation column. Explicit logout behavior belongs to a later authentication task. There is no refresh token or JWT table.
+
+`Session_userId_idx` supports the foreign key. `Session_secretHash_key` is the session lookup index.
