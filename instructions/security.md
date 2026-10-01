@@ -116,7 +116,49 @@ Exact rate limits and expiration values must be documented before implementation
 
 ---
 
-# 6. Sessions
+# 6. Iranian Mobile Number Normalization
+
+Customer identity uses one canonical Iranian mobile number.
+
+The canonical persisted representation is:
+
+```text
++989XXXXXXXXX
+```
+
+`X` is an ASCII digit. The value is E.164-style: `+`, country code `98`, and the ten-digit national number beginning with `9`.
+
+`normalizeIranianMobile` in `src/modules/auth` is the only conversion into this form. Persist and compare customer phone identity only after normalization.
+
+These inputs, and only these inputs, resolve to that canonical value:
+
+```text
+09XXXXXXXXX
+989XXXXXXXXX
++989XXXXXXXXX
+```
+
+For example, `09121234567`, `989121234567`, and `+989121234567` all become `+989121234567`.
+
+Any national number whose first digit after country code `98` is `9` is a mobile number for this rule. Operator prefixes beyond that leading `9` are not further restricted.
+
+Reject every other value. Accepted input is matched exactly. Characters are not stripped, digits are not translated, and a missing prefix is not invented.
+
+Rejected input includes:
+
+- wrong length;
+- a non-Iranian country code;
+- an Iranian number that is not a mobile number, including numbers that do not begin with `9` after country code `98`;
+- letters, spaces, punctuation, or other malformed characters;
+- unsupported spellings, including a national number without the leading `0`, a `00` international prefix, a trunk `0` after `+98`, and non-ASCII digits.
+
+`normalizeIranianMobile` returns only `+989XXXXXXXXX`. Invalid input fails and does not produce a best-effort string. The failure does not echo the submitted number.
+
+OTP lifetime, resend cooldown, and rate limits remain undefined. This section does not set them.
+
+---
+
+# 7. Sessions
 
 Customer sessions should use secure browser-oriented session handling.
 
@@ -128,7 +170,7 @@ Do not invent a custom JWT architecture unless explicitly required.
 
 ---
 
-# 7. CSRF and Request Integrity
+# 8. CSRF and Request Integrity
 
 For state-changing browser requests, use the protections provided by the selected framework/auth architecture and evaluate whether additional CSRF protection is required.
 
@@ -138,7 +180,7 @@ External callbacks such as payment-provider callbacks must be validated using pr
 
 ---
 
-# 8. Payment Security
+# 9. Payment Security
 
 Never trust:
 
@@ -159,7 +201,7 @@ Payment secrets remain server-side.
 
 ---
 
-# 9. Download Security
+# 10. Download Security
 
 Original Footage files are private.
 
@@ -180,7 +222,7 @@ Never authorize based only on:
 
 ---
 
-# 10. Signed URLs
+# 11. Signed URLs
 
 Signed URLs for private originals must be short-lived.
 
@@ -195,7 +237,7 @@ Exact expiration is defined by media/security configuration.
 
 ---
 
-# 11. Upload Security
+# 12. Upload Security
 
 Only the administrator may initiate protected media uploads.
 
@@ -212,7 +254,7 @@ A signed upload authorization is not permission to upload arbitrary objects anyw
 
 ---
 
-# 12. File Validation
+# 13. File Validation
 
 Do not trust:
 
@@ -228,7 +270,7 @@ Do not build an unnecessary malware-scanning infrastructure unless required, but
 
 ---
 
-# 13. Secrets
+# 14. Secrets
 
 Secrets must come from environment or approved secret management.
 
@@ -247,7 +289,7 @@ Never place server secrets in variables intentionally exposed to client bundles.
 
 ---
 
-# 14. Logging
+# 15. Logging
 
 Never intentionally log:
 
@@ -265,7 +307,7 @@ Logs should still contain safe identifiers needed for diagnosis.
 
 ---
 
-# 15. Error Responses
+# 16. Error Responses
 
 Public error responses must not expose:
 
@@ -280,7 +322,7 @@ Keep detailed diagnostics server-side.
 
 ---
 
-# 16. Input Validation
+# 17. Input Validation
 
 Validate untrusted inputs before using them.
 
@@ -298,7 +340,7 @@ Validation does not replace authorization.
 
 ---
 
-# 17. Database Safety
+# 18. Database Safety
 
 Use parameterized database access.
 
@@ -308,7 +350,7 @@ Database constraints should reinforce important invariants where appropriate.
 
 ---
 
-# 18. Sensitive Product Behavior
+# 19. Sensitive Product Behavior
 
 Do not invent security-sensitive recovery flows.
 
@@ -324,7 +366,7 @@ Such flows require explicit product and security decisions.
 
 ---
 
-# 19. Security Tests
+# 20. Security Tests
 
 Security-sensitive features should include negative-path tests where practical.
 
@@ -344,7 +386,7 @@ Repeated payment callback → no duplicate entitlement
 
 ---
 
-# 20. Security Review Trigger
+# 21. Security Review Trigger
 
 Stop and report before implementation when a task appears to require:
 

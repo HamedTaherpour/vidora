@@ -69,7 +69,7 @@ In particular, the project must avoid introducing fake or meaningless customer e
 
 If Better Auth creates unnecessary complexity for the required phone-only model, a smaller alternative may be selected through an implementation decision or follow-up ADR.
 
-The product contract defined by this ADR remains unchanged regardless of the chosen auth library.
+AUTH-01 completed that check against Better Auth 1.7.7. The library does not support this phone-only model without a required email and name. ADR-0006 rejects Better Auth and selects the smaller application-owned OTP and session approach. The product contract defined by this ADR remains unchanged.
 
 ## OTP Requirements
 
@@ -124,7 +124,9 @@ Possible user input may include forms such as:
 
 The application must convert supported input into one canonical representation before persistence or identity comparison.
 
-The exact canonical representation and validation rules must be documented in the authentication implementation instructions.
+The canonical persisted representation is `+989XXXXXXXXX`.
+
+Supported input is `09XXXXXXXXX`, `989XXXXXXXXX`, or `+989XXXXXXXXX`. Any other value is rejected. Validation rules are documented in `instructions/security.md`.
 
 There must not be multiple user accounts representing the same mobile number in different textual formats.
 

@@ -298,7 +298,7 @@ Connect the application to PostgreSQL using the approved Prisma version.
 
 ### Depends On
 
-DATA-01.
+DATA-01, AUTH-01, AUTH-02.
 
 ### Objective
 
@@ -325,7 +325,11 @@ Footage and commerce models should be added in their respective phases unless re
 
 ## AUTH-01 — Resolve Authentication Implementation
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
+
+### Decision
+
+Better Auth is rejected. The selected approach is ADR-0006.
 
 ### Depends On
 
@@ -359,7 +363,7 @@ The implementation must not proceed based on assumption.
 
 ## AUTH-02 — Implement Phone Normalization
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 
 ### Depends On
 
