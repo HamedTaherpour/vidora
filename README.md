@@ -6,6 +6,9 @@ Minimal Next.js App Router foundation for local development.
 
 - Node.js 20.9 or later
 - [pnpm](https://pnpm.io) 10
+- PostgreSQL
+
+Docker is not required. Use a local PostgreSQL install or any hosted PostgreSQL database.
 
 ## Setup
 
@@ -13,20 +16,44 @@ Minimal Next.js App Router foundation for local development.
 pnpm install
 ```
 
+`pnpm install` generates the Prisma Client. You can also run `pnpm db:generate`.
+
 ## Environment
 
-Copy `.env.example` to `.env.local` when you need local overrides. `.env.local` stays untracked, and `.env.example` contains no real credentials.
-
-This foundation does not require application-specific environment variables yet.
+Copy `.env.example` to `.env.local` and set `DATABASE_URL` to your PostgreSQL connection string. `.env.local` stays untracked, and `.env.example` contains a placeholder, not a real credential.
 
 Validated configuration lives in:
 
 - `src/lib/env/server.ts` for server-only variables
 - `src/lib/env/client.ts` for browser-safe `NEXT_PUBLIC_*` variables
 
-Server-only secrets must not use the `NEXT_PUBLIC_` prefix. Values with that prefix are inlined into the browser bundle and are visible to visitors.
+`DATABASE_URL` is server-only. It must not use the `NEXT_PUBLIC_` prefix. Values with that prefix are inlined into the browser bundle and are visible to visitors.
 
 When a feature introduces configuration, add it to the matching schema in the same change. Application code should read `serverEnv` or `clientEnv` instead of using `process.env` directly.
+
+## Database
+
+Generate the Prisma Client:
+
+```bash
+pnpm db:generate
+```
+
+Generated output is written to `src/generated/prisma`. Do not edit those files by hand. They are not committed.
+
+Create and apply a local development migration:
+
+```bash
+pnpm prisma migrate dev --name <migration-name>
+```
+
+That command needs a reachable database at `DATABASE_URL`. Generating the client does not.
+
+If Prisma asks to reset the database, stop and get human approval before continuing.
+
+`pnpm db:studio` opens Prisma Studio against the same `DATABASE_URL`.
+
+The schema does not define application tables yet. Prisma cannot create a meaningful initial migration from that empty schema, so no migration is committed in this step. The first versioned migration is created with the first approved model in DATA-02.
 
 ## Local development
 
@@ -38,7 +65,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Quality checks
 
-These commands run locally. They do not need PostgreSQL, object storage, or external credentials.
+These commands do not need a reachable PostgreSQL server, object storage, or external credentials. `pnpm build` still requires `DATABASE_URL` to be a PostgreSQL URL because server configuration is validated during the build. The placeholder in `.env.example` is enough when you are not connecting. `pnpm typecheck`, `pnpm test`, and `pnpm build` run `prisma generate` first. Generation does not connect to a database.
 
 GitHub Actions runs `format:check`, `lint`, `typecheck`, `test`, and `build` on pull requests and on pushes to `master`.
 

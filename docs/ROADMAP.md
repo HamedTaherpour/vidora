@@ -271,7 +271,7 @@ Goal:
 
 ## DATA-01 — Configure PostgreSQL and Prisma
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 
 ### Depends On
 

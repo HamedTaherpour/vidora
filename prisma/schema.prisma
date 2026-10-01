@@ -1,0 +1,11 @@
+// No application models yet. Later roadmap tasks add tables through migrations.
+// An empty schema keeps this task from inventing product tables.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}

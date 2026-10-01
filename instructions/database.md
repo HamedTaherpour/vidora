@@ -134,24 +134,57 @@ Invoices must use historical purchase data rather than current catalog data.
 
 # 8. Migrations
 
-All schema changes use version-controlled migrations.
+All schema changes use version-controlled Prisma migrations.
+
+Prisma ORM 7 in this repository:
+
+- schema: `prisma/schema.prisma`;
+- CLI config: `prisma.config.ts`, including the PostgreSQL URL from `DATABASE_URL`;
+- migration directory: `prisma/migrations`;
+- generated client: `src/generated/prisma` (generated, not hand-edited, not committed);
+- server entry point: `src/lib/db/client.ts`, using the PostgreSQL driver adapter.
+
+The datasource block in the schema does not contain the database URL.
+
+Local commands:
+
+```text
+pnpm db:generate
+pnpm prisma migrate dev --name <migration-name>
+pnpm db:studio
+```
+
+`pnpm db:migrate` is `prisma migrate dev`. Pass a migration name explicitly when creating one.
+
+`pnpm db:generate` does not connect to PostgreSQL and must keep working without production credentials.
+
+Docker is not required. Point `DATABASE_URL` at a local or hosted PostgreSQL instance.
+
+The current schema intentionally has no application models. Prisma cannot create a meaningful initial migration from that schema: the diff is an empty migration with no SQL. Do not add a placeholder model or an empty migration to exercise `migrate dev`. The first versioned migration is created with the first approved model in DATA-02.
 
 Never:
 
 - manually patch production schema as normal workflow;
-- rewrite an already-applied production migration;
+- rewrite an already-applied shared or production migration;
 - hide destructive changes;
-- delete data merely to make a migration succeed.
+- delete data merely to make a migration succeed;
+- accept a destructive database reset automatically;
+- run destructive migrations against production casually;
+- use `prisma db push` as a substitute for versioned migrations in shared or production workflows.
+
+`prisma db push` is not the project migration workflow.
 
 If a migration may cause data loss, stop and report it.
+
+If `prisma migrate dev` asks to reset the database, stop and require human approval. Do not pass flags that accept data loss.
 
 ---
 
 # 9. Development Migrations
 
-During very early local development, migration history may sometimes be reset before any shared/production deployment if explicitly approved.
+During very early local development, migration history may sometimes be reset before any shared or production deployment if a human explicitly approves that reset.
 
-Once a migration has been shared/applied in an environment that matters, treat it as immutable history.
+Once a migration has been shared or applied in an environment that matters, treat it as immutable history.
 
 Do not assume a migration can be rewritten merely because doing so is easier.
 
