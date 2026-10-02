@@ -27,10 +27,17 @@ model User {
 }
 
 /// An OTP challenge may exist before the customer User row does, so this model
-/// has no user foreign key. `codeHash` is a one-way hash, never the plaintext OTP.
-/// A non-null `consumedAt` records successful use and invalidates the challenge.
+/// has no user foreign key. `codeHash` is an HMAC-SHA256 digest, never the
+/// plaintext OTP. `sentAt` stays null while the row is only reserved. An
+/// unexpired reserved row blocks older challenges for the same phone. A
+/// non-null `sentAt` records that the SMS provider accepted this send. A
+/// non-null `consumedAt` records successful use and invalidates the challenge.
+/// A non-null `supersededAt` records that a newer OTP for the same phone was
+/// successfully sent. Neither timestamp means the other, and `expiresAt` stays
+/// the original lifetime. Eligibility is `instructions/security.md`.
 /// `@@index([phone, createdAt])` supports lookup of a phone's challenges in
-/// creation order. OTP lifetime and attempt limits are not stored here.
+/// creation order. Lifetime, resend cooldown, and the verification attempt
+/// limit are policy in `instructions/security.md`, not columns here.
 model OtpChallenge {
   id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   phone              String    @db.VarChar(13)
@@ -38,9 +45,29 @@ model OtpChallenge {
   expiresAt          DateTime  @db.Timestamptz(3)
   failedAttemptCount Int       @default(0)
   consumedAt         DateTime? @db.Timestamptz(3)
+  sentAt             DateTime? @db.Timestamptz(3)
+  supersededAt       DateTime? @db.Timestamptz(3)
   createdAt          DateTime  @default(now()) @db.Timestamptz(3)
 
   @@index([phone, createdAt])
+}
+
+/// One OTP send attempt that passed cooldown and hourly-limit checks.
+/// Phone and IP limits count these rows so the limits hold across application
+/// instances. The row stays if SMS sending fails. The reserved `OtpChallenge`
+/// is removed only while `sentAt` is null, so a failed send does not start the
+/// resend cooldown. A delivered challenge is not deleted.
+/// `clientIp` is the bounded address from the request boundary, not a forwarded
+/// header. There is no user foreign key. The phone CHECK is in the migration
+/// SQL because Prisma schema cannot represent CHECK constraints.
+model OtpRequestEvent {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phone     String   @db.VarChar(13)
+  clientIp  String   @db.VarChar(45)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([phone, createdAt])
+  @@index([clientIp, createdAt])
 }
 
 /// Server-side customer session. `secretHash` is a hash of the cookie secret.

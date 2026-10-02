@@ -18,9 +18,11 @@ jobs:
     name: Quality gates
     runs-on: ubuntu-latest
     env:
-      # Placeholder only. Server env validation checks the URL shape.
-      # These jobs do not connect to PostgreSQL.
+      # Placeholders only. Server env validation checks shape.
+      # These jobs do not connect to PostgreSQL and do not send SMS.
+      # OTP_HASH_SECRET is not a production hashing key.
       DATABASE_URL: postgresql://USER:PASSWORD@HOST:5432/DATABASE
+      OTP_HASH_SECRET: ci-placeholder-otp-hash-secret-32ch
     steps:
       - name: Checkout
         uses: actions/checkout@v7

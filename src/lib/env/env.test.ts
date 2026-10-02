@@ -4,6 +4,7 @@ import { clientEnv, parseClientEnv } from "@/lib/env/client";
 import { EnvironmentConfigError, parseEnv } from "@/lib/env/parse-env";
 import {
   databaseUrlForPrismaCli,
+  kavenegarEnvSchema,
   serverEnvSchema,
 } from "@/lib/env/server-schema";
 
@@ -68,15 +69,19 @@ describe("parseEnv", () => {
 
 describe("server environment schema", () => {
   const validUrl = "postgresql://USER:PASSWORD@HOST:5432/DATABASE";
+  const otpHashSecret = "a".repeat(32);
 
-  it("accepts a postgresql connection URL", () => {
+  it("accepts a postgresql connection URL and the OTP hash secret", () => {
     expect(
       parseEnv(serverEnvSchema, {
         DATABASE_URL: validUrl,
+        OTP_HASH_SECRET: otpHashSecret,
         SERVER_ONLY_SECRET: "super-secret-value",
+        KAVENEGAR_API_KEY: "live-provider-key",
       }),
     ).toEqual({
       DATABASE_URL: validUrl,
+      OTP_HASH_SECRET: otpHashSecret,
     });
   });
 
@@ -86,8 +91,28 @@ describe("server environment schema", () => {
     expect(
       parseEnv(serverEnvSchema, {
         DATABASE_URL: postgresUrl,
+        OTP_HASH_SECRET: otpHashSecret,
       }).DATABASE_URL,
     ).toBe(postgresUrl);
+  });
+
+  it("requires an OTP hash secret of at least 32 characters", () => {
+    const shortSecret = "short-secret-value";
+    const error = captureConfigError(() =>
+      parseEnv(serverEnvSchema, {
+        DATABASE_URL: validUrl,
+        OTP_HASH_SECRET: shortSecret,
+      }),
+    );
+
+    expect(error.message).toContain("OTP_HASH_SECRET");
+    expect(error.message).not.toContain(shortSecret);
+    expect(Object.keys(serverEnvSchema.shape)).not.toContain(
+      "KAVENEGAR_API_KEY",
+    );
+    expect(Object.keys(serverEnvSchema.shape)).not.toContain(
+      "KAVENEGAR_OTP_TEMPLATE",
+    );
   });
 
   it("fails clearly when DATABASE_URL is missing", () => {
@@ -122,12 +147,47 @@ describe("server environment schema", () => {
   });
 });
 
+describe("kavenegar environment schema", () => {
+  it("accepts the lookup credentials without exposing them through boot config", () => {
+    expect(
+      parseEnv(kavenegarEnvSchema, {
+        KAVENEGAR_API_KEY: "test-api-key",
+        KAVENEGAR_OTP_TEMPLATE: "myverification",
+        OTP_HASH_SECRET: "a".repeat(32),
+      }),
+    ).toEqual({
+      KAVENEGAR_API_KEY: "test-api-key",
+      KAVENEGAR_OTP_TEMPLATE: "myverification",
+    });
+  });
+
+  it("rejects a missing API key and an underscored template without printing them", () => {
+    const apiKey = "live-provider-key";
+    const missingKey = captureConfigError(() =>
+      parseEnv(kavenegarEnvSchema, {
+        KAVENEGAR_OTP_TEMPLATE: "myverification",
+      }),
+    );
+    const badTemplate = captureConfigError(() =>
+      parseEnv(kavenegarEnvSchema, {
+        KAVENEGAR_API_KEY: apiKey,
+        KAVENEGAR_OTP_TEMPLATE: "my_verification",
+      }),
+    );
+
+    expect(missingKey.message).toContain("KAVENEGAR_API_KEY");
+    expect(badTemplate.message).toContain("KAVENEGAR_OTP_TEMPLATE");
+    expect(badTemplate.message).not.toContain(apiKey);
+    expect(badTemplate.message).not.toContain("my_verification");
+  });
+});
+
 describe("databaseUrlForPrismaCli", () => {
   it("allows Prisma Client generation when DATABASE_URL is absent", () => {
     expect(databaseUrlForPrismaCli({})).toBe("");
   });
 
-  it("returns a valid URL unchanged", () => {
+  it("returns a valid URL unchanged without requiring the OTP hash secret", () => {
     const databaseUrl = "postgresql://USER:PASSWORD@HOST:5432/DATABASE";
 
     expect(
@@ -160,6 +220,8 @@ describe("client environment", () => {
       {
         NEXT_PUBLIC_SITE_NAME: "Vidora",
         SERVER_ONLY_SECRET: secret,
+        OTP_HASH_SECRET: "a".repeat(32),
+        KAVENEGAR_API_KEY: secret,
       },
     );
 
@@ -167,6 +229,8 @@ describe("client environment", () => {
       NEXT_PUBLIC_SITE_NAME: "Vidora",
     });
     expect(parsed).not.toHaveProperty("SERVER_ONLY_SECRET");
+    expect(parsed).not.toHaveProperty("OTP_HASH_SECRET");
+    expect(parsed).not.toHaveProperty("KAVENEGAR_API_KEY");
     expect(JSON.stringify(parsed)).not.toContain(secret);
     expect(clientEnv).toEqual({});
   });

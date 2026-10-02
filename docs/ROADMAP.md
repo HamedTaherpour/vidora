@@ -393,7 +393,7 @@ The canonical stored representation is documented.
 
 ## AUTH-03 — Implement OTP Request Flow
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 
 ### Depends On
 

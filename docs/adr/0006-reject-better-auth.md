@@ -172,6 +172,8 @@ Constraints:
 - Use one ID strategy for these rows. Do not introduce a second identifier scheme for authentication.
 - Do not add a customer role column as a substitute for the admin boundary.
 
+AUTH-03 adds `OtpRequestEvent` for the rolling phone and IP request limits. `OtpChallenge` does not store a client IP, and an in-memory counter would not hold across application instances. The table is only that OTP request-rate record. It is not a generic rate-limit framework and it is not a Better Auth model.
+
 Footage, commerce, and other product models stay in their own roadmap phases.
 
 ### Browser session
@@ -182,7 +184,7 @@ Footage, commerce, and other product models stay in their own roadmap phases.
 - The secret is not stored in `localStorage` and is not a JWT or refresh-token pair.
 - The session survives normal navigation and reload because the server resolves the cookie to a stored session.
 
-Session lifetime, OTP lifetime, resend cooldown, request limits, and verification-attempt limits are still undefined. ADR-0003 forbids inventing them. They must be written into the authentication/security instructions before AUTH-03 and AUTH-04 implement them. Do not copy Better Auth's 300-second OTP, 3-attempt, or 7-day session defaults as Vidora policy.
+OTP request policy is defined in `instructions/security.md`: a 6-digit code, a 5-minute lifetime, a 60-second resend cooldown, 5 verification attempts per challenge, 5 requests per canonical phone per rolling hour, and 20 requests per client IP per rolling hour. Codes are stored as HMAC-SHA256 digests keyed by `OTP_HASH_SECRET`. A successful send supersedes older unconsumed, unexpired challenges for that phone. AUTH-04 must select the active challenge with the rule in `instructions/security.md` and must not accept an older code after that supersession. Session lifetime remains undefined and must be decided before AUTH-04 implements sessions. Do not copy Better Auth's 7-day session default as Vidora policy.
 
 ### Boundaries
 
@@ -198,7 +200,7 @@ Session lifetime, OTP lifetime, resend cooldown, request limits, and verificatio
 
 - Customer identity is the canonical phone number, with a database unique constraint.
 - No synthetic email or name is stored.
-- The schema stays limited to user, OTP challenge, and session.
+- The schema does not add Better Auth's `Account` or `verification` models. Customer authentication persistence is `User`, `OtpChallenge`, `Session`, and the narrow `OtpRequestEvent` rate record added for OTP request limits.
 - OTP codes and session secrets are not stored in recoverable form.
 - Password, phone-change, and OAuth routes are not exposed.
 - Later domain tables can reference `User` without coupling to a generated auth schema.
@@ -206,7 +208,7 @@ Session lifetime, OTP lifetime, resend cooldown, request limits, and verificatio
 ### Negative
 
 - Session creation, cookie attributes, OTP storage, and abuse limits are application code rather than a maintained auth framework.
-- Those numeric limits still need an explicit decision before implementation.
+- OTP request limits are defined in `instructions/security.md`. Session lifetime is still undefined and must be decided before AUTH-04 implements sessions.
 - The canonical phone string is `+989XXXXXXXXX`. AUTH-02 defines it, and `instructions/security.md` documents the validation rules. DATA-02 must store that format and must not choose a competing representation.
 
 ## AI Agent Constraints

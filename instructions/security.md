@@ -97,15 +97,68 @@ Do not weaken the boundary because there is only one Admin.
 
 # 5. OTP Security
 
+Approved OTP request policy:
+
+- OTP code length: 6 digits.
+- OTP lifetime: 5 minutes.
+- Resend cooldown per canonical phone: 60 seconds.
+- Maximum verification attempts per challenge: 5.
+- Request limit per canonical phone: 5 requests per rolling hour.
+- Request limit per client IP: 20 requests per rolling hour.
+
+These numbers are application policy. They are not columns on `OtpChallenge`, and they are not copied from an authentication library. `failedAttemptCount` starts at 0. AUTH-04 enforces the 5-attempt limit. AUTH-03 does not verify codes or create sessions.
+
+`OtpChallenge` persists the code only as an HMAC-SHA256 hex digest in `codeHash`. The key is `OTP_HASH_SECRET`, a required server-only environment variable of at least 32 characters. There is no plaintext OTP column. The digest is `HMAC-SHA256(OTP_HASH_SECRET, UTF-8 OTP code)`. Later verification must use that same function. Do not store or compare the plaintext code.
+
+`consumedAt` records successful use; a non-null value invalidates that challenge. It is not how a replaced OTP is invalidated. A challenge can exist before the customer `User` row, so it has no user foreign key. An OTP request does not create a `User`.
+
+A resend inside the 60-second cooldown, while an unconsumed, unexpired, non-superseded challenge exists, does not generate another OTP and does not send another SMS. Expired, consumed, and superseded challenges do not keep that cooldown. A reserved challenge (`sentAt` null) still keeps that cooldown. After 60 seconds a new challenge may be reserved even if an older unconsumed challenge has not expired. That reservation transaction commits before the SMS provider is called. Do not hold a database transaction open during the external SMS request.
+
+`sentAt` is null on the reserved row. That pending row is not eligible for verification. It is still a non-failed challenge. While `expiresAt` is strictly after the verification time, it blocks every older challenge for that phone, including a previous delivered challenge. The block starts when the reservation commits, before the SMS provider is called. When the provider accepts the send, a later short write sets `sentAt` on that challenge and commits before any older challenge is changed. That write does not run while the SMS request is open. `sentAt` means the provider accepted this send. It does not mean the code was verified.
+
+A following short transaction takes the same phone advisory lock as reservation and sets `supersededAt` on every previous unconsumed, unexpired challenge for that canonical phone whose `createdAt` is less than or equal to the delivered challenge. It does not run while the SMS request is open. The delivered challenge is not superseded. `supersededAt` is not cleared when the newer challenge is later consumed or expires. A challenge created after the one just sent is left unchanged. Historical rows are retained. There is no cleanup policy.
+
+If that supersede write fails after `sentAt` is stored, the request still counts as accepted. The newer challenge stays delivered. Every earlier challenge for that phone stays permanently ineligible because a newer row with `sentAt` set blocks it, including when `supersededAt` was not written and after the newer row is consumed or expires.
+
+When the provider fails, delete the reserved challenge and do not set `sentAt` or `supersededAt`. Deletion matches only `sentAt` null, so a delivered challenge is not removed. After that delete, the previous delivered challenge may become eligible again. The `OtpRequestEvent` row is kept and still counts toward the hourly limits. If deleting the reserved challenge fails, that row can still impose cooldown and stays ineligible for verification, and it keeps blocking older challenges until it expires. Cooldown rejections and rate-limit rejections do not insert an event.
+
+If the process stops after the provider may have accepted the SMS, or if `sentAt` cannot be stored, keep the pending row. Do not delete it and do not supersede previous challenges. The pending row stays ineligible until `sentAt` is committed. Every older challenge for that phone stays ineligible while that pending row is unexpired. The `sentAt` write failure fails the request. The event row remains. This prefers a period with no verifiable OTP over accepting an older OTP after a newer OTP may have been sent.
+
+A pending row stops blocking when its `expiresAt` is at or before the verification time. Selection then uses the rest of this rule. The pending row does not become eligible on expiry. With the 5-minute lifetime, a pending resend created after the 60-second cooldown expires after the previous challenge, so that previous challenge is usually already expired when the pending row expires. A later successful request is how the customer obtains a new eligible challenge.
+
+AUTH-04 must use this selection rule and must not invent another. `selectActiveOtpChallenge` in `src/modules/auth` implements it. A challenge is eligible only when all of these are true:
+
+- `phone` is the canonical phone being verified;
+- `sentAt` is set;
+- `supersededAt` is null;
+- `consumedAt` is null;
+- `expiresAt` is strictly after the verification time;
+- no newer non-failed challenge blocks it.
+
+A newer challenge has a later `createdAt`, or the same `createdAt` and the greater id. A row that still exists is non-failed. Explicit provider failure deletes the reserved row, so that attempt is absent and does not block.
+
+A newer non-failed challenge blocks an older challenge in these cases:
+
+- The newer row has `sentAt` set. That block remains after the newer row is consumed, expires, or has `supersededAt` set.
+- The newer row has `sentAt` null and `expiresAt` strictly after the verification time. The pending row is never eligible. `consumedAt` and `supersededAt` on that pending row do not lift the block before expiry and do not make the pending row eligible. When its `expiresAt` is at or before the verification time, it no longer blocks.
+
+If more than one eligible row exists, select the one with the latest `createdAt`. If `createdAt` ties, select the greater id and do not fall back to an earlier row. Compare the submitted code only with the selected challenge. Do not try an older code when that challenge does not match, is missing, is reserved, is consumed, is expired, or is superseded. A reserved row is never eligible. A row with `supersededAt` set is never eligible again. A block from a newer delivered row does not end. A block from a newer pending row ends when that pending row expires.
+
+`OtpRequestEvent` records each OTP send attempt that passed cooldown and rate checks: canonical phone, bounded client IP, and `createdAt`. The hourly phone and IP limits count these rows, so the limits hold across application instances. Phone and IP reservations take a PostgreSQL transaction advisory lock, in a stable key order, so concurrent requests cannot pass the same limit check before either insert is visible. The event row is kept when SMS sending fails. The reserved `OtpChallenge` (`sentAt` null) is removed so a failed send does not impose the resend cooldown. The failed attempt still consumes hourly quota.
+
+Client IP is an explicit argument at the auth request boundary. The auth module does not read `Forwarded`, `X-Forwarded-For`, or `X-Real-IP`. The application is not deployed behind a documented trusted proxy, so those headers are untrusted. A missing or malformed address fails the request. The IP limit is only as strong as the address that boundary supplies.
+
 OTP values must:
 
 - expire;
 - have attempt limits;
 - not be logged in plaintext;
-- not be returned in production API responses;
+- not be returned in API responses;
 - become invalid after successful use as required by the authentication design.
 
-`OtpChallenge` persists the code only as a one-way hash in `codeHash`. There is no plaintext OTP column. `consumedAt` records successful use; a non-null value invalidates that challenge. A challenge can exist before the customer `User` row, so it has no user foreign key. Lifetime, resend, and attempt-limit numbers are still undefined and are not stored as policy on this table.
+Do not log `codeHash`, `OTP_HASH_SECRET`, SMS credentials, or a provider body that echoes the message text. An OTP request must not reveal whether the phone already belongs to a `User`.
+
+SMS delivery goes through `SmsProvider.sendOtp`. The initial provider is Kavenegar verify/lookup (`receptor`, `token`, `template`). `KAVENEGAR_API_KEY` and `KAVENEGAR_OTP_TEMPLATE` are server-only and are validated when that provider is constructed. Application boot does not require them. Do not log the lookup URL: the API key is in the path, and the provider response message can contain the OTP.
 
 OTP request flows must consider:
 
@@ -113,8 +166,6 @@ OTP request flows must consider:
 - SMS cost abuse;
 - brute-force verification;
 - phone enumeration.
-
-Exact rate limits and expiration values must be documented before implementation.
 
 ---
 
@@ -156,9 +207,9 @@ Rejected input includes:
 
 `normalizeIranianMobile` returns only `+989XXXXXXXXX`. Invalid input fails and does not produce a best-effort string. The failure does not echo the submitted number.
 
-Persist that canonical value on `User.phone` and `OtpChallenge.phone`. `User.phone` is unique, and that unique constraint is the customer identity invariant under concurrent creation. Both columns are `varchar(13)` and have a PostgreSQL `CHECK` so the stored value matches `^\+989[0-9]{9}$`. Normalization remains required before insert. The database constraints reject a phone that was not stored in the canonical form.
+Persist that canonical value on `User.phone`, `OtpChallenge.phone`, and `OtpRequestEvent.phone`. `User.phone` is unique, and that unique constraint is the customer identity invariant under concurrent creation. Those phone columns are `varchar(13)` and have a PostgreSQL `CHECK` so the stored value matches `^\+989[0-9]{9}$`. Normalization remains required before insert. The database constraints reject a phone that was not stored in the canonical form.
 
-OTP lifetime, resend cooldown, and rate limits remain undefined. This section does not set them.
+OTP request limits, lifetime, cooldown, and hashing are defined in section 5. This section does not set a second policy.
 
 ---
 
@@ -300,6 +351,9 @@ Never place server secrets in variables intentionally exposed to client bundles.
 Never intentionally log:
 
 - OTP plaintext;
+- OTP code hashes;
+- `OTP_HASH_SECRET`;
+- SMS provider credentials or lookup URLs;
 - passwords if any ever exist;
 - full authentication credentials;
 - storage secrets;

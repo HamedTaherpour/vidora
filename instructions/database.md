@@ -96,7 +96,7 @@ Do not rely only on application checks when a database constraint can safely enf
 
 Use the project's chosen consistent ID strategy.
 
-Customer authentication rows use PostgreSQL `gen_random_uuid()` for `User`, `OtpChallenge`, and `Session`. Those IDs are internal. The customer-facing identity is the canonical phone number, not the UUID.
+Customer authentication rows use PostgreSQL `gen_random_uuid()` for `User`, `OtpChallenge`, `OtpRequestEvent`, and `Session`. Those IDs are internal. The customer-facing identity is the canonical phone number, not the UUID.
 
 Do not expose assumptions about database row ordering through public identifiers.
 
@@ -369,7 +369,7 @@ Correctness is more important than completing a migration automatically.
 
 # 21. Customer Authentication Persistence
 
-The first applied migration, `20261001171654_init_auth_core`, creates only the customer authentication tables. Footage, commerce, media, and blog models are not part of it.
+The first applied migration, `20261001171654_init_auth_core`, creates the customer authentication tables `User`, `OtpChallenge`, and `Session`. `20261001174721_otp_request_event` adds `OtpRequestEvent`. `20261002110000_otp_challenge_superseded_at` adds `OtpChallenge.supersededAt`. `20261002133000_otp_challenge_sent_at` adds `OtpChallenge.sentAt` and sets it to `createdAt` on rows that already existed. Those rows were removed on provider failure before delivery was stored, so a surviving row was treated as active. The update does not delete rows. Footage, commerce, media, and blog models are not part of these migrations.
 
 Administrative identity is deferred. V1 has one administrator, but no approved Admin authentication persistence contract exists yet. `User` has no role column, and customers and Admin do not share an identity model by assumption.
 
@@ -398,15 +398,32 @@ There is no email, name, or profile column.
 `OtpChallenge` stores one OTP attempt for a canonical phone.
 
 - `phone`: same `varchar(13)` column and the same canonical-phone `CHECK` as `User.phone`.
-- `codeHash`: one-way hash of the OTP. The plaintext code is never stored.
-- `expiresAt`: challenge expiry. The lifetime value is not defined here.
-- `failedAttemptCount`: failed verification attempts, starting at 0. The limit is not defined here.
-- `consumedAt`: null until successful use. A non-null value invalidates the challenge.
+- `codeHash`: HMAC-SHA256 hex digest of the OTP, keyed with `OTP_HASH_SECRET`. The plaintext code is never stored. The lifetime value is the 5-minute policy in `instructions/security.md`.
+- `expiresAt`: challenge expiry.
+- `failedAttemptCount`: failed verification attempts, starting at 0. The limit of 5 is policy in `instructions/security.md`, not a column.
+- `consumedAt`: null until successful use. A non-null value invalidates the challenge. Successful use is the only meaning of this column.
+- `sentAt`: null while the challenge is only reserved. The post-send write sets it after the provider accepts the SMS and before older challenges are superseded. A null value is not eligible for verification. While that reserved row is unexpired, it blocks every older challenge for the same phone. A non-null value means that send was accepted. It does not mean the code was verified. An explicit provider failure deletes the reserved row. A crash or a failed `sentAt` write keeps it.
+- `supersededAt`: null until a newer OTP for this canonical phone is successfully sent. The transaction after `sentAt` commits sets it on each previous unconsumed, unexpired challenge. A non-null value invalidates the challenge. It does not mean the code was verified. `expiresAt` stays the original lifetime. A missing `supersededAt` does not make an earlier challenge eligible again while a newer non-failed row for that phone still blocks it. A newer row with `sentAt` set blocks permanently. A newer row with `sentAt` null blocks until that row expires. The full selection rule is in `instructions/security.md`.
 - `createdAt`.
 
-A challenge does not reference `User`. The row can exist before the customer does.
+A challenge does not reference `User`. The row can exist before the customer does. OTP request does not create a `User`.
 
 `OtpChallenge_phone_createdAt_idx` supports lookup of a phone's challenges in creation order. Other columns are not indexed.
+
+## OtpRequestEvent
+
+`OtpRequestEvent` is the durable count for OTP request limits. `OtpChallenge` has no client IP column. An in-memory counter would not hold across application instances, and Redis is not an approved dependency. This table is only the OTP request-rate record. It is not a generic rate-limit framework.
+
+- `id`: PostgreSQL `gen_random_uuid()`.
+- `phone`: same `varchar(13)` canonical-phone `CHECK` as `OtpChallenge.phone`.
+- `clientIp`: `varchar(45)`, the single bounded address supplied at the request boundary. It is not a forwarded-header list.
+- `createdAt`: `timestamptz(3)`.
+
+One row is inserted when an OTP send is allowed. Phone limits count rows for that canonical phone in the rolling hour. IP limits count rows for that `clientIp` in the rolling hour. Indexes are `OtpRequestEvent_phone_createdAt_idx` and `OtpRequestEvent_clientIp_createdAt_idx`.
+
+A failed SMS send keeps the event row and deletes the reserved challenge (`sentAt` null). A delivered challenge is not deleted. Cooldown and rate-limit rejections do not insert a row. Rows are retained. No cleanup policy is defined.
+
+The event does not reference `User`.
 
 ## Session
 
