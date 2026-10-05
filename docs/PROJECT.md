@@ -227,6 +227,8 @@ Original downloadable files must not be publicly accessible without authorizatio
 
 Every Footage has one administrator-defined price.
 
+Prices are stored and displayed in integer Toman. Example: `450000` means 450,000 Toman. Floating-point money is forbidden. If a payment provider requires another unit, conversion belongs at the payment-provider boundary only.
+
 V1 uses a single-item `Buy Now` flow.
 
 There is:

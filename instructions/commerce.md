@@ -56,20 +56,21 @@ The server must resolve the authoritative Footage price when creating an Order.
 
 Never use floating-point values for persisted monetary amounts.
 
-Before commerce schema implementation, the project must explicitly define:
+The approved durable money convention is:
 
-- canonical database monetary unit;
-- storefront display unit;
-- payment-provider monetary unit;
-- conversion boundary if conversion is required.
+- canonical business and storage unit: **Toman**;
+- monetary values are stored as **integers**;
+- floating-point money is forbidden.
 
-The storefront is expected to display prices in Toman.
+Example: `120000` means 120,000 Toman.
 
-Do not infer Rial/Toman conversion behavior.
+Storefront display uses Toman and matches the stored unit in V1.
 
-Do not scatter monetary conversion across UI and payment code.
+Do not convert catalog or order money to Rial in persistence.
 
-If conversion is required, define one deliberate boundary.
+If a payment provider requires another unit, convert explicitly at the payment-provider boundary only. Do not scatter Rial/Toman conversion across UI, catalog, or order code.
+
+COM-01 may still document provider-facing unit details for the selected gateway; it must not redefine the Toman storage convention.
 
 ---
 

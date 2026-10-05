@@ -118,11 +118,18 @@ Monetary values must use integer-safe storage.
 
 Floating-point monetary storage is prohibited.
 
-The application UI is intended to display prices in Toman.
+The approved durable money convention is:
 
-The exact canonical database/payment-provider unit and any required Rial/Toman conversion must be explicitly documented before the payment schema is finalized.
+- canonical business and storage unit: **Toman**;
+- monetary values are stored as **integers**.
 
-AI agents must not infer or silently implement a Rial/Toman conversion rule.
+Example: `120000` means 120,000 Toman.
+
+The application UI displays prices in Toman and matches the stored unit in V1.
+
+If a payment provider requires another unit, convert explicitly at the payment-provider boundary only. Do not convert catalog or order money to Rial in persistence.
+
+AI agents must not infer or silently implement a Rial/Toman conversion rule outside that provider boundary.
 
 ## Payment Provider Boundary
 

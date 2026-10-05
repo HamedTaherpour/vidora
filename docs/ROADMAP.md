@@ -478,7 +478,7 @@ Goal:
 
 ## CAT-01 — Implement Footage Schema
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 
 ### Depends On
 

@@ -110,13 +110,19 @@ Do not invent multiple ID systems without a requirement.
 
 Never use floating-point database types for monetary values.
 
-Use the approved integer monetary representation.
+The approved durable money convention is:
 
-The canonical database unit must be explicitly defined before commerce schema is finalized.
+- canonical business and storage unit: **Toman**;
+- monetary values are stored as **integers**;
+- floating-point money is forbidden.
 
-Do not infer Rial/Toman conversion.
+Example: `120000` means 120,000 Toman.
 
-Price displayed to users may differ in representation from the canonical stored/payment unit, but the conversion boundary must be explicit.
+Do not convert Footage prices (or other catalog money) to Rial in persistence.
+
+If a payment provider requires another unit, convert explicitly at the payment-provider boundary only. Do not scatter Rial/Toman conversion across UI, catalog, or order code.
+
+Storefront display uses Toman and matches the stored unit in V1.
 
 ---
 
@@ -369,7 +375,7 @@ Correctness is more important than completing a migration automatically.
 
 # 21. Customer and Admin Authentication Persistence
 
-The first applied migration, `20261001171654_init_auth_core`, creates the customer authentication tables `User`, `OtpChallenge`, and `Session`. `20261001174721_otp_request_event` adds `OtpRequestEvent`. `20261002110000_otp_challenge_superseded_at` adds `OtpChallenge.supersededAt`. `20261002133000_otp_challenge_sent_at` adds `OtpChallenge.sentAt` and sets it to `createdAt` on rows that already existed. Those rows were removed on provider failure before delivery was stored, so a surviving row was treated as active. The update does not delete rows. `20261005183000_admin_auth_boundaries` adds `OtpChallenge.purpose`, `Admin`, and `AdminSession`. Footage, commerce, media, and blog models are not part of these migrations.
+The first applied migration, `20261001171654_init_auth_core`, creates the customer authentication tables `User`, `OtpChallenge`, and `Session`. `20261001174721_otp_request_event` adds `OtpRequestEvent`. `20261002110000_otp_challenge_superseded_at` adds `OtpChallenge.supersededAt`. `20261002133000_otp_challenge_sent_at` adds `OtpChallenge.sentAt` and sets it to `createdAt` on rows that already existed. Those rows were removed on provider failure before delivery was stored, so a surviving row was treated as active. The update does not delete rows. `20261005183000_admin_auth_boundaries` adds `OtpChallenge.purpose`, `Admin`, and `AdminSession`. Footage, commerce, media, and blog models are not part of these authentication migrations. `Footage` is added later by `20261005214800_add_footage`.
 
 Admin identity is separate from Customer `User`. V1 has one administrator, but the `Admin` table may hold more than one row without introducing permissions or RBAC. `User` has no role column.
 
@@ -473,3 +479,18 @@ There is no public Admin signup. Rows are manually provisioned. There is no emai
 There is no revocation column. Explicit logout behavior belongs to a later authentication task. There is no refresh token or JWT table.
 
 `AdminSession_adminId_idx` supports the foreign key. `AdminSession_secretHash_key` is the Admin session lookup index.
+
+## Footage
+
+`Footage` is the V1 purchasable catalog entity. Migration `20261005214800_add_footage` creates only this model. Media files, categories, tags, search, orders, payments, entitlements, invoices, and blog models are not part of it.
+
+- `id`: PostgreSQL `gen_random_uuid()`.
+- `titleFa`: required Persian title, `varchar(200)`.
+- `slug`: required, unique, `varchar(120)`. Uniqueness is the durable lookup invariant. Automatic slug generation and slug-history/redirect tables are not part of this model.
+- `descriptionFa`: required Persian description, `text`.
+- `priceToman`: required integer Toman amount. Floating-point money is forbidden. Zero is allowed at the persistence layer. Negative values are rejected by `Footage_priceToman_non_negative_check`. No commercial minimum or maximum is invented here.
+- `status`: `DRAFT` or `PUBLISHED`. Speculative states such as `ARCHIVED` or `SCHEDULED` are not modeled.
+- `createdAt` and `updatedAt`: `timestamptz(3)`. Jalali dates are not persisted.
+- `publishedAt`: `timestamptz(3)`, nullable. Must be null when `status` is `DRAFT`, and must be non-null when `status` is `PUBLISHED`. `Footage_published_state_check` enforces that pairing. Scheduled publishing is not supported.
+
+`Footage_slug_key` is the unique slug index. `Footage_status_idx` supports the known published-footage storefront listing query.

@@ -118,11 +118,21 @@ Large data backfills or migrations with meaningful operational risk also require
 
 Monetary values must never use floating-point storage.
 
-The canonical stored monetary unit must be explicitly documented by the commerce implementation before monetary schema is finalized.
+The approved durable money convention is:
 
-The storefront may display prices in Toman, but display representation and stored representation must not be implicitly mixed.
+- canonical business and storage unit: **Toman**;
+- monetary values are stored as **integers**;
+- floating-point money is forbidden.
 
-AI agents must not invent Rial/Toman conversion behavior.
+Example: `120000` means 120,000 Toman.
+
+Catalog and order persistence store Toman. Do not convert prices to Rial in the database.
+
+If a payment provider requires another unit, convert explicitly at the payment-provider boundary only.
+
+The storefront displays prices in Toman and matches the stored unit in V1.
+
+AI agents must not invent Rial/Toman conversion behavior outside that provider boundary.
 
 ## Transactions
 

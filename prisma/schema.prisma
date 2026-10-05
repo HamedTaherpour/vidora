@@ -134,3 +134,34 @@ model AdminSession {
 
   @@index([adminId])
 }
+
+/// V1 publication lifecycle for Footage. Speculative states such as ARCHIVED
+/// or SCHEDULED are not part of the approved product model.
+enum FootageStatus {
+  DRAFT
+  PUBLISHED
+}
+
+/// Purchasable catalog Footage metadata only. Media files, categories, tags,
+/// search, and commerce relations belong to later tasks.
+/// `titleFa` and `descriptionFa` are Persian storefront content. Do not add
+/// speculative English/locale fields here.
+/// `priceToman` is integer Toman. Floating-point money is forbidden. The
+/// non-negative CHECK and published-state CHECK live in the migration SQL
+/// because Prisma schema cannot represent CHECK constraints.
+/// `publishedAt` is null for DRAFT and required for PUBLISHED. That pairing is
+/// the durable publication contract; scheduled publishing is not supported.
+/// `@@index([status])` supports the known published-footage storefront listing.
+model Footage {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  titleFa       String        @db.VarChar(200)
+  slug          String        @unique @db.VarChar(120)
+  descriptionFa String
+  priceToman    Int
+  status        FootageStatus @default(DRAFT)
+  createdAt     DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime      @updatedAt @db.Timestamptz(3)
+  publishedAt   DateTime?     @db.Timestamptz(3)
+
+  @@index([status])
+}
