@@ -11,5 +11,17 @@ describe("auth server boundaries", () => {
     await expect(
       import("@/modules/auth/prisma-otp-request-store"),
     ).rejects.toThrow(/Client Component/);
+    await expect(
+      import("@/modules/auth/prisma-otp-verification-store"),
+    ).rejects.toThrow(/Client Component/);
+    await expect(import("@/modules/auth/verify-customer-otp")).rejects.toThrow(
+      /Client Component/,
+    );
+    await expect(
+      import("@/modules/auth/resolve-current-customer"),
+    ).rejects.toThrow(/Client Component/);
+    await expect(
+      import("@/modules/auth/customer-session-cookie-store"),
+    ).rejects.toThrow(/Client Component/);
   });
 });

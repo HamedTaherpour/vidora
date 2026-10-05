@@ -102,7 +102,7 @@ Tests requiring external infrastructure should be clearly identified.
 
 Do not silently point automated tests at development or production databases.
 
-OTP phone and IP rate-limit concurrency depends on PostgreSQL advisory locks. That check is the opt-in test `src/modules/auth/otp-request-concurrency.pg.test.ts`, run with `pnpm test:pg` against the local non-production database. It is excluded from `pnpm test` and from CI. The test deletes only the rows it inserts. It must not reset, drop, or truncate the database.
+OTP phone and IP rate-limit concurrency depends on PostgreSQL advisory locks. OTP consumption and first-login races depend on PostgreSQL row locks and the unique phone constraint. Those checks are the opt-in tests `src/modules/auth/otp-request-concurrency.pg.test.ts` and `src/modules/auth/otp-verification-concurrency.pg.test.ts`, run with `pnpm test:pg` against the local non-production database. They are excluded from `pnpm test` and from CI. Each test deletes only the rows it inserts. It must not reset, drop, or truncate the database.
 
 ---
 

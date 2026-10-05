@@ -144,6 +144,10 @@ A newer non-failed challenge blocks an older challenge in these cases:
 
 If more than one eligible row exists, select the one with the latest `createdAt`. If `createdAt` ties, select the greater id and do not fall back to an earlier row. Compare the submitted code only with the selected challenge. Do not try an older code when that challenge does not match, is missing, is reserved, is consumed, is expired, or is superseded. A reserved row is never eligible. A row with `supersededAt` set is never eligible again. A block from a newer delivered row does not end. A block from a newer pending row ends when that pending row expires.
 
+Verification compares the submitted code with `otpCodeMatchesHash` against that selected challenge only. A wrong code increments `failedAttemptCount` by 1. The count is not reset. The 5th wrong attempt stores 5. A challenge with `failedAttemptCount` greater than or equal to 5 is permanently unusable. That count is the exhaustion record. `consumedAt` stays reserved for successful verification and is not set when attempts are exhausted. A later correct code does not consume an exhausted challenge, does not increment the count further, and does not fall back to an older challenge.
+
+Successful verification runs in one database transaction. It consumes the selected challenge by setting `consumedAt`, resolves the customer by canonical phone, and inserts a `Session`. The conditional consume requires the challenge to still be eligible and under the attempt limit, so two correct submissions cannot both consume it. The transaction takes the same phone advisory lock as OTP reservation before it reads challenges, and it locks that phone's challenge rows, so a resend cannot change eligibility during the check. `User.phone` remains unique. Creating the customer uses that constraint, not a read-then-insert alone. No external call runs inside the transaction. A verification response does not say whether the `User` row was newly created.
+
 `OtpRequestEvent` records each OTP send attempt that passed cooldown and rate checks: canonical phone, bounded client IP, and `createdAt`. The hourly phone and IP limits count these rows, so the limits hold across application instances. Phone and IP reservations take a PostgreSQL transaction advisory lock, in a stable key order, so concurrent requests cannot pass the same limit check before either insert is visible. The event row is kept when SMS sending fails. The reserved `OtpChallenge` (`sentAt` null) is removed so a failed send does not impose the resend cooldown. The failed attempt still consumes hourly quota.
 
 Client IP is an explicit argument at the auth request boundary. The auth module does not read `Forwarded`, `X-Forwarded-For`, or `X-Real-IP`. The application is not deployed behind a documented trusted proxy, so those headers are untrusted. A missing or malformed address fails the request. The IP limit is only as strong as the address that boundary supplies.
@@ -215,13 +219,26 @@ OTP request limits, lifetime, cooldown, and hashing are defined in section 5. Th
 
 # 7. Sessions
 
-Customer sessions should use secure browser-oriented session handling.
+Customer sessions are opaque server-side sessions. V1 does not use a JWT, a refresh token, or rolling renewal.
 
-Session credentials must not be stored in `localStorage`.
+The cookie name is `vidora_customer_session`. Its value is a base64url encoding of 32 cryptographically random bytes and nothing else. It does not contain the phone number or other customer data. PostgreSQL stores the SHA-256 hex digest of that UTF-8 token in `Session.secretHash`. The raw token is not a database column, is not logged, and is not returned in a normal JSON response. Lookup hashes the cookie and reads that unique hash.
 
-`Session.secretHash` stores a hash of the browser session secret. The raw secret is not a database column. Session lookup uses that hash. `expiresAt` is the persisted lifetime. This schema has no separate revocation column. A session references `User` and is deleted with that user.
+`expiresAt` is exactly 30 days after creation. A request does not extend it. A session whose `expiresAt` is at or before the current time is not authenticated. Expired rows may remain until a later cleanup policy. This schema has no revocation column. Logout is not part of this session foundation. A session references `User` and is deleted with that user.
 
-Production cookies should use appropriate security attributes based on the selected authentication implementation and deployment environment.
+Cookie attributes:
+
+- `HttpOnly`
+- `SameSite=Lax`
+- `Secure` in production, and not `Secure` in local development, where HTTPS is unavailable
+- `Path=/`
+- `Max-Age` of 30 days, the same lifetime as `expiresAt`
+- no `Domain` attribute
+
+Session credentials must not be stored in `localStorage` or `sessionStorage`.
+
+Reading the cookie is allowed in a Server Component. Setting it is allowed only in a Route Handler or Server Function. `POST /api/auth/otp/verify` verifies the code and sets the cookie. Later requests, including navigation and reload, restore the customer with `resolveCurrentCustomer()`. That read does not change `expiresAt`.
+
+`SameSite=Lax` stays on the cookie. Login CSRF for `POST /api/auth/otp/verify` is the Origin allowlist in section 8. That route is the only browser authentication mutation covered by this check. There is no CSRF token and no application-wide CSRF framework. Do not disable framework protections.
 
 Do not invent a custom JWT architecture unless explicitly required.
 
@@ -234,6 +251,43 @@ For state-changing browser requests, use the protections provided by the selecte
 Do not disable framework or auth-library protections merely because they interfere with implementation.
 
 External callbacks such as payment-provider callbacks must be validated using provider-specific verification rather than treated as trusted browser requests.
+
+## OTP verification login CSRF
+
+`POST /api/auth/otp/verify` creates the customer session cookie. A cross-site page can submit an attacker's phone and OTP. The browser can store the response `Set-Cookie` for this site even when the cookie is `SameSite=Lax`, because that attribute governs later sends, and this attack is about setting a new session. The route therefore checks `Origin` before it verifies the code and before it sets the cookie.
+
+This check is scoped to that route. Do not grow it into application-wide CSRF middleware, a double-submit cookie, or a token framework unless a later requirement says so.
+
+### Allowlist
+
+Expected origins are explicit configuration. The request does not choose them.
+
+- Outside production (`development` and `test`), `http://localhost:3000` is allowed. That is the documented local development origin (`next dev` and the README). It is a constant in `src/modules/auth/browser-auth-origin.ts`.
+- Outside production, `APP_ORIGIN` is an optional server environment variable. When it is set, it adds one origin. Omit it when the browser uses `http://localhost:3000`. Set it to another local origin such as a non-default port when the browser sends that origin.
+- In production, localhost is not implied. `APP_ORIGIN` is required, and it is the only accepted origin.
+- A set value must be a canonical absolute `http` or `https` origin: scheme and host, a port only when it is not the scheme default, and no path, query, userinfo, or fragment. Boot validation uses the same predicate as the request check. An invalid value fails configuration. It is not ignored. Production without `APP_ORIGIN` fails boot configuration clearly.
+
+`http://127.0.0.1:3000` is a different origin. Allow it only by setting `APP_ORIGIN` to that exact value. In production that means setting `APP_ORIGIN` to that value as the sole allowlisted origin.
+
+These request fields do not select or widen the allowlist. There is no trusted-proxy model, so they stay untrusted:
+
+- `Host`
+- `Forwarded`
+- `X-Forwarded-Host`
+- `X-Forwarded-Proto`
+- `Referer`
+
+### Browser contract
+
+The Fetch standard gives a request an origin when its method is not `GET` or `HEAD`, and serializes that origin in `Origin`. HTML form submission follows the same rule. A browser POST therefore includes one `Origin` value, or the literal `null` when the origin is opaque. Page script cannot set this header.
+
+The route accepts the POST only when `Origin` is exactly one allowlisted origin.
+
+It rejects the POST when `Origin` is missing, `null`, a list, not a canonical `http` or `https` origin, or any other origin. A lookalike such as `http://localhost:3000.example` is rejected. `Referer` is not a fallback when `Origin` is absent.
+
+Rejection is HTTP 403 with `{ "status": "rejected" }` and `Cache-Control: no-store`. The route does not call OTP verification, so the challenge is not consumed and the attempt counter does not change. It does not set a session cookie.
+
+A non-browser client can send an allowlisted `Origin`. The header is not a secret. The check stops another website from completing verification in the victim's browser.
 
 ---
 
@@ -359,6 +413,7 @@ Never intentionally log:
 - storage secrets;
 - payment secrets;
 - complete sensitive session tokens;
+- session token hashes;
 - long-lived private credentials.
 
 Be careful with logging complete request objects from sensitive endpoints.

@@ -5,6 +5,7 @@ import { EnvironmentConfigError, parseEnv } from "@/lib/env/parse-env";
 import {
   databaseUrlForPrismaCli,
   kavenegarEnvSchema,
+  parseServerEnv,
   serverEnvSchema,
 } from "@/lib/env/server-schema";
 
@@ -133,6 +134,61 @@ describe("server environment schema", () => {
     expect(error.message).toContain("DATABASE_URL");
     expect(error.message).toContain("postgresql://");
     expect(error.message).not.toContain(secret);
+  });
+
+  it("accepts an omitted APP_ORIGIN outside production and one canonical origin", () => {
+    expect(
+      parseServerEnv({
+        DATABASE_URL: validUrl,
+        OTP_HASH_SECRET: otpHashSecret,
+        NODE_ENV: "development",
+      }).APP_ORIGIN,
+    ).toBeUndefined();
+
+    expect(
+      parseServerEnv({
+        DATABASE_URL: validUrl,
+        OTP_HASH_SECRET: otpHashSecret,
+        NODE_ENV: "test",
+      }).APP_ORIGIN,
+    ).toBeUndefined();
+
+    expect(
+      parseServerEnv({
+        DATABASE_URL: validUrl,
+        OTP_HASH_SECRET: otpHashSecret,
+        NODE_ENV: "production",
+        APP_ORIGIN: "https://shop.example",
+      }).APP_ORIGIN,
+    ).toBe("https://shop.example");
+  });
+
+  it("requires APP_ORIGIN when NODE_ENV is production", () => {
+    const error = captureConfigError(() =>
+      parseServerEnv({
+        DATABASE_URL: validUrl,
+        OTP_HASH_SECRET: otpHashSecret,
+        NODE_ENV: "production",
+      }),
+    );
+
+    expect(error.message).toContain("APP_ORIGIN");
+    expect(error.message).toContain("required when NODE_ENV is production");
+    expect(error.message).toContain("Invalid environment configuration");
+  });
+
+  it("rejects an APP_ORIGIN that is not a canonical origin", () => {
+    const error = captureConfigError(() =>
+      parseServerEnv({
+        DATABASE_URL: validUrl,
+        OTP_HASH_SECRET: otpHashSecret,
+        APP_ORIGIN: "https://shop.example/login",
+      }),
+    );
+
+    expect(error.message).toContain("APP_ORIGIN");
+    expect(error.message).toContain("absolute http or https origin");
+    expect(error.message).not.toContain("https://shop.example/login");
   });
 
   it("rejects an empty DATABASE_URL without using it as a default", () => {

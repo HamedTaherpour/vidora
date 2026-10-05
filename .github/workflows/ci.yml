@@ -23,6 +23,8 @@ jobs:
       # OTP_HASH_SECRET is not a production hashing key.
       DATABASE_URL: postgresql://USER:PASSWORD@HOST:5432/DATABASE
       OTP_HASH_SECRET: ci-placeholder-otp-hash-secret-32ch
+      # Required for `next build` (NODE_ENV=production). Placeholder only.
+      APP_ORIGIN: https://ci.example
     steps:
       - name: Checkout
         uses: actions/checkout@v7

@@ -1,7 +1,8 @@
 import { z } from "zod";
-// Relative import so Prisma CLI can load this file from `prisma.config.ts`.
+// Relative imports so Prisma CLI can load this file from `prisma.config.ts`.
 // That process does not resolve the `@/` TypeScript path alias.
-import { parseEnv, type EnvSource } from "./parse-env";
+import { isAbsoluteHttpOrigin } from "../../modules/auth/browser-auth-origin";
+import { EnvironmentConfigError, parseEnv, type EnvSource } from "./parse-env";
 
 function isPostgreSqlConnectionUrl(value: string): boolean {
   try {
@@ -19,6 +20,9 @@ function isPostgreSqlConnectionUrl(value: string): boolean {
  * `OTP_HASH_SECRET` is required at boot because the root layout loads this schema.
  * Kavenegar credentials are intentionally absent: build and CI must not require
  * a live SMS account. `kavenegarEnvSchema` is parsed when that provider is constructed.
+ * `APP_ORIGIN` is required when `NODE_ENV` is `production`.
+ * Outside production it is optional: local OTP verification allows
+ * `http://localhost:3000`, and a set value adds one more exact origin.
  */
 const databaseUrlSchema = z.object({
   DATABASE_URL: z.string().refine(isPostgreSqlConnectionUrl, {
@@ -28,7 +32,30 @@ const databaseUrlSchema = z.object({
 
 export const serverEnvSchema = databaseUrlSchema.extend({
   OTP_HASH_SECRET: z.string().min(32),
+  APP_ORIGIN: z
+    .string()
+    .refine(isAbsoluteHttpOrigin, {
+      message:
+        "must be an absolute http or https origin with no path, query, or userinfo",
+    })
+    .optional(),
 });
+
+/**
+ * Parses server boot configuration.
+ * Production fails clearly when `APP_ORIGIN` is missing.
+ */
+export function parseServerEnv(source: EnvSource) {
+  const env = parseEnv(serverEnvSchema, source);
+
+  if (source.NODE_ENV === "production" && env.APP_ORIGIN === undefined) {
+    throw new EnvironmentConfigError([
+      "APP_ORIGIN: is required when NODE_ENV is production",
+    ]);
+  }
+
+  return env;
+}
 
 /**
  * Required only when the Kavenegar OTP provider is constructed.

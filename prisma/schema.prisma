@@ -32,12 +32,15 @@ model User {
 /// unexpired reserved row blocks older challenges for the same phone. A
 /// non-null `sentAt` records that the SMS provider accepted this send. A
 /// non-null `consumedAt` records successful use and invalidates the challenge.
-/// A non-null `supersededAt` records that a newer OTP for the same phone was
-/// successfully sent. Neither timestamp means the other, and `expiresAt` stays
-/// the original lifetime. Eligibility is `instructions/security.md`.
-/// `@@index([phone, createdAt])` supports lookup of a phone's challenges in
-/// creation order. Lifetime, resend cooldown, and the verification attempt
-/// limit are policy in `instructions/security.md`, not columns here.
+/// It is not set when verification attempts are exhausted. A non-null
+/// `supersededAt` records that a newer OTP for the same phone was successfully
+/// sent. Neither timestamp means the other, and `expiresAt` stays the original
+/// lifetime. `failedAttemptCount` starts at 0. The 5th wrong code stores 5 and
+/// that count makes the challenge permanently unusable. Eligibility is
+/// `instructions/security.md`. `@@index([phone, createdAt])` supports lookup
+/// of a phone's challenges in creation order. Lifetime, resend cooldown, and
+/// the verification attempt limit are policy in `instructions/security.md`,
+/// not columns here.
 model OtpChallenge {
   id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   phone              String    @db.VarChar(13)
@@ -70,10 +73,10 @@ model OtpRequestEvent {
   @@index([clientIp, createdAt])
 }
 
-/// Server-side customer session. `secretHash` is a hash of the cookie secret.
-/// The raw secret is not stored. Lookup uses that unique hash.
-/// Expiry is the persisted lifetime. Explicit revocation is not part of the
-/// approved session model.
+/// Server-side customer session. `secretHash` is the SHA-256 hex digest of the
+/// cookie token. The raw token is not stored. Lookup uses that unique hash.
+/// `expiresAt` is 30 days after creation and is not extended on use.
+/// Explicit revocation is not part of the approved session model.
 /// `onDelete: Cascade` removes sessions with their user. A session has no
 /// meaning without that user, and sessions are not purchase or invoice history.
 model Session {

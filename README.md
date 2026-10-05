@@ -20,7 +20,7 @@ pnpm install
 
 ## Environment
 
-Copy `.env.example` to `.env.local` and set `DATABASE_URL` to your PostgreSQL connection string. Also set `OTP_HASH_SECRET` to at least 32 random characters. Kavenegar variables are required only when the app sends an OTP SMS. `.env.local` stays untracked, and `.env.example` contains placeholders, not real credentials.
+Copy `.env.example` to `.env.local` and set `DATABASE_URL` to your PostgreSQL connection string. Also set `OTP_HASH_SECRET` to at least 32 random characters. Kavenegar variables are required only when the app sends an OTP SMS. Outside production, `APP_ORIGIN` is optional and OTP verification allows `http://localhost:3000`. Set `APP_ORIGIN` when the browser origin is different, or when running with `NODE_ENV=production`, where it is required and is the only accepted origin. `.env.local` stays untracked, and `.env.example` contains placeholders, not real credentials.
 
 Validated configuration lives in:
 
@@ -65,7 +65,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Quality checks
 
-These commands do not need a reachable PostgreSQL server, object storage, or external credentials. `pnpm build` still requires `DATABASE_URL` to be a PostgreSQL URL and `OTP_HASH_SECRET` to be at least 32 characters, because server configuration is validated during the build. It does not require Kavenegar credentials. The placeholders in `.env.example` are enough when you are not connecting or sending SMS. `pnpm typecheck`, `pnpm test`, and `pnpm build` run `prisma generate` first. Generation does not connect to a database and does not require `OTP_HASH_SECRET`.
+These commands do not need a reachable PostgreSQL server, object storage, or external credentials. `pnpm build` still requires `DATABASE_URL` to be a PostgreSQL URL, `OTP_HASH_SECRET` to be at least 32 characters, and `APP_ORIGIN` to be a canonical absolute http or https origin, because Next.js sets `NODE_ENV=production` during the build and server configuration is validated then. It does not require Kavenegar credentials. Outside production, `APP_ORIGIN` may be omitted. The placeholders in `.env.example` are enough when you are not connecting or sending SMS; for local production builds, set `APP_ORIGIN` as well. `pnpm typecheck`, `pnpm test`, and `pnpm build` run `prisma generate` first. Generation does not connect to a database and does not require `OTP_HASH_SECRET` or `APP_ORIGIN`.
 
 GitHub Actions runs `format:check`, `lint`, `typecheck`, `test`, and `build` on pull requests and on pushes to `master`.
 
@@ -80,7 +80,7 @@ pnpm build
 
 `pnpm format` rewrites files. The other commands only check or build, and each exits non-zero when its check fails.
 
-`pnpm test:pg` is optional. It checks OTP request locking against the local development database. `pnpm test` does not run it, and CI does not run it.
+`pnpm test:pg` is optional. It checks OTP request locking, OTP consumption, and first-login races against the local development database. `pnpm test` does not run it, and CI does not run it.
 
 Canonical agent files can be checked separately:
 

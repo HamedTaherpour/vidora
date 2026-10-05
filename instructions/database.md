@@ -400,8 +400,8 @@ There is no email, name, or profile column.
 - `phone`: same `varchar(13)` column and the same canonical-phone `CHECK` as `User.phone`.
 - `codeHash`: HMAC-SHA256 hex digest of the OTP, keyed with `OTP_HASH_SECRET`. The plaintext code is never stored. The lifetime value is the 5-minute policy in `instructions/security.md`.
 - `expiresAt`: challenge expiry.
-- `failedAttemptCount`: failed verification attempts, starting at 0. The limit of 5 is policy in `instructions/security.md`, not a column.
-- `consumedAt`: null until successful use. A non-null value invalidates the challenge. Successful use is the only meaning of this column.
+- `failedAttemptCount`: failed verification attempts, starting at 0. Each wrong code adds 1. The count is not reset. At 5 the challenge is permanently unusable. That count is the exhaustion record. The limit of 5 is policy in `instructions/security.md`, not a separate column. Verification does not invent `lockedAt` or `consumedAt` for this state.
+- `consumedAt`: null until successful use. A non-null value invalidates the challenge. Successful use is the only meaning of this column. Attempt exhaustion does not set it.
 - `sentAt`: null while the challenge is only reserved. The post-send write sets it after the provider accepts the SMS and before older challenges are superseded. A null value is not eligible for verification. While that reserved row is unexpired, it blocks every older challenge for the same phone. A non-null value means that send was accepted. It does not mean the code was verified. An explicit provider failure deletes the reserved row. A crash or a failed `sentAt` write keeps it.
 - `supersededAt`: null until a newer OTP for this canonical phone is successfully sent. The transaction after `sentAt` commits sets it on each previous unconsumed, unexpired challenge. A non-null value invalidates the challenge. It does not mean the code was verified. `expiresAt` stays the original lifetime. A missing `supersededAt` does not make an earlier challenge eligible again while a newer non-failed row for that phone still blocks it. A newer row with `sentAt` set blocks permanently. A newer row with `sentAt` null blocks until that row expires. The full selection rule is in `instructions/security.md`.
 - `createdAt`.
@@ -430,8 +430,9 @@ The event does not reference `User`.
 `Session` is the server-side customer session.
 
 - `userId`: required foreign key to `User`.
-- `secretHash`: unique hash of the browser session secret. The raw secret is not stored. Lookup uses this hash.
-- `expiresAt` and `createdAt`.
+- `secretHash`: unique SHA-256 hex digest of the UTF-8 cookie token. The token is 32 random bytes encoded as base64url. The raw token is not stored. Lookup hashes the cookie and reads this column.
+- `expiresAt`: exactly 30 days after `createdAt`. A request does not extend it. An expired session is not authenticated.
+- `createdAt`.
 
 `Session_userId_fkey` uses `ON DELETE CASCADE` and `ON UPDATE CASCADE`. Deleting a user deletes that user's sessions. A session has no meaning without its user, and sessions are not purchase, payment, invoice, or entitlement history. User deletion itself is not a product flow.
 

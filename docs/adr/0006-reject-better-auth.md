@@ -184,7 +184,7 @@ Footage, commerce, and other product models stay in their own roadmap phases.
 - The secret is not stored in `localStorage` and is not a JWT or refresh-token pair.
 - The session survives normal navigation and reload because the server resolves the cookie to a stored session.
 
-OTP request policy is defined in `instructions/security.md`: a 6-digit code, a 5-minute lifetime, a 60-second resend cooldown, 5 verification attempts per challenge, 5 requests per canonical phone per rolling hour, and 20 requests per client IP per rolling hour. Codes are stored as HMAC-SHA256 digests keyed by `OTP_HASH_SECRET`. A successful send supersedes older unconsumed, unexpired challenges for that phone. AUTH-04 must select the active challenge with the rule in `instructions/security.md` and must not accept an older code after that supersession. Session lifetime remains undefined and must be decided before AUTH-04 implements sessions. Do not copy Better Auth's 7-day session default as Vidora policy.
+OTP request policy is defined in `instructions/security.md`: a 6-digit code, a 5-minute lifetime, a 60-second resend cooldown, 5 verification attempts per challenge, 5 requests per canonical phone per rolling hour, and 20 requests per client IP per rolling hour. Codes are stored as HMAC-SHA256 digests keyed by `OTP_HASH_SECRET`. A successful send supersedes older unconsumed, unexpired challenges for that phone. AUTH-04 must select the active challenge with the rule in `instructions/security.md` and must not accept an older code after that supersession. Session lifetime is an absolute 30 days, defined in `instructions/security.md`. It is not Better Auth's 7-day default, and a request does not extend it.
 
 ### Boundaries
 
@@ -192,7 +192,7 @@ OTP request policy is defined in `instructions/security.md`: a 6-digit code, a 5
 - Customer session checks and admin authorization stay separate.
 - No phone-number change, account recovery, password sign-in, email sign-in, or social login.
 - No Redis, queue, or separate auth service.
-- CSRF protection for state-changing auth requests must be evaluated when those endpoints are implemented. Do not disable framework protections to make the flow easier.
+- Login CSRF for `POST /api/auth/otp/verify` is the Origin allowlist in `instructions/security.md`. `SameSite=Lax` remains on the session cookie. Do not disable framework protections, and do not replace this check with an application-wide CSRF framework unless a later requirement says so.
 
 ## Consequences
 
@@ -208,7 +208,7 @@ OTP request policy is defined in `instructions/security.md`: a 6-digit code, a 5
 ### Negative
 
 - Session creation, cookie attributes, OTP storage, and abuse limits are application code rather than a maintained auth framework.
-- OTP request limits are defined in `instructions/security.md`. Session lifetime is still undefined and must be decided before AUTH-04 implements sessions.
+- OTP request limits and the absolute 30-day session lifetime are defined in `instructions/security.md`. A request does not extend that lifetime.
 - The canonical phone string is `+989XXXXXXXXX`. AUTH-02 defines it, and `instructions/security.md` documents the validation rules. DATA-02 must store that format and must not choose a competing representation.
 
 ## AI Agent Constraints

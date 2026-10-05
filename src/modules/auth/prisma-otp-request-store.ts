@@ -2,6 +2,7 @@ import "server-only";
 
 import type { PrismaClient } from "@/generated/prisma/client";
 import { reservationFromRows } from "@/modules/auth/decide-otp-request";
+import { lockOtpPhone, lockOtpRequest } from "@/modules/auth/otp-advisory-lock";
 import {
   OTP_REQUEST_WINDOW_MS,
   OTP_RESEND_COOLDOWN_MS,
@@ -13,24 +14,6 @@ import type {
   ReserveOtpRequestResult,
   SupersedePreviousChallengesParams,
 } from "@/modules/auth/otp-request-store";
-
-/**
- * Second key of `pg_advisory_xact_lock(int, int)`.
- * Keeps OTP request locks in their own namespace.
- */
-const OTP_REQUEST_LOCK_NAMESPACE = 17003;
-
-async function lockOtpRequest(
-  executeRaw: PrismaClient["$executeRaw"],
-  phone: string,
-  clientIp: string,
-): Promise<void> {
-  const keys = [`otp-phone:${phone}`, `otp-ip:${clientIp}`].sort();
-
-  for (const key of keys) {
-    await executeRaw`SELECT pg_advisory_xact_lock(hashtext(${key}), ${OTP_REQUEST_LOCK_NAMESPACE})`;
-  }
-}
 
 /**
  * Durable cooldown and hourly limits.
@@ -182,7 +165,7 @@ export function createPrismaOtpRequestStore(
       supersededAt,
     }: SupersedePreviousChallengesParams): Promise<void> {
       await client.$transaction(async (tx) => {
-        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`otp-phone:${phone}`}), ${OTP_REQUEST_LOCK_NAMESPACE})`;
+        await lockOtpPhone(tx.$executeRaw.bind(tx), phone);
 
         const kept = await tx.otpChallenge.findFirst({
           where: {

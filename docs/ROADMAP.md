@@ -424,7 +424,7 @@ Allow a customer to request an OTP safely.
 
 ## AUTH-04 — Implement OTP Verification and Session
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 
 ### Depends On
 
