@@ -482,7 +482,7 @@ There is no revocation column. Explicit logout behavior belongs to a later authe
 
 ## Footage
 
-`Footage` is the V1 purchasable catalog entity. Migration `20261005214800_add_footage` creates only this model. Media files, categories, tags, search, orders, payments, entitlements, invoices, and blog models are not part of it.
+`Footage` is the V1 purchasable catalog entity. Migration `20261005214800_add_footage` creates the base model. Migration `20261005223000_add_categories_and_tags` adds the required `categoryId` foreign key and the Tag join. Media files, search, orders, payments, entitlements, invoices, and blog models are not part of these migrations.
 
 - `id`: PostgreSQL `gen_random_uuid()`.
 - `titleFa`: required Persian title, `varchar(200)`.
@@ -490,7 +490,36 @@ There is no revocation column. Explicit logout behavior belongs to a later authe
 - `descriptionFa`: required Persian description, `text`.
 - `priceToman`: required integer Toman amount. Floating-point money is forbidden. Zero is allowed at the persistence layer. Negative values are rejected by `Footage_priceToman_non_negative_check`. No commercial minimum or maximum is invented here.
 - `status`: `DRAFT` or `PUBLISHED`. Speculative states such as `ARCHIVED` or `SCHEDULED` are not modeled.
+- `categoryId`: required foreign key to `Category`. Each Footage belongs to exactly one Category. `Footage_categoryId_fkey` uses `ON DELETE RESTRICT` so deleting a Category does not silently delete Footage.
 - `createdAt` and `updatedAt`: `timestamptz(3)`. Jalali dates are not persisted.
 - `publishedAt`: `timestamptz(3)`, nullable. Must be null when `status` is `DRAFT`, and must be non-null when `status` is `PUBLISHED`. `Footage_published_state_check` enforces that pairing. Scheduled publishing is not supported.
 
-`Footage_slug_key` is the unique slug index. `Footage_status_idx` supports the known published-footage storefront listing query.
+`Footage_slug_key` is the unique slug index. `Footage_status_idx` supports the known published-footage storefront listing query. `Footage_categoryId_idx` supports listing Footage in one Category.
+
+## Category
+
+`Category` is a flat V1 catalog taxonomy. There is no `parentId`, nested hierarchy, taxonomy group, localization table, or generic taxonomy framework.
+
+- `id`: PostgreSQL `gen_random_uuid()`.
+- `nameFa`: required Persian display name, `varchar(120)`.
+- `slug`: required, unique, `varchar(120)`. Uniqueness is the durable lookup invariant. Automatic slug generation, case-insensitive slug semantics, and slug-history/redirect tables are not part of this model.
+- `createdAt` and `updatedAt`: `timestamptz(3)`.
+
+One Footage references exactly one Category. Category pages and Admin CRUD belong to later tasks.
+
+## Tag
+
+`Tag` is a many-to-many V1 catalog label. There are no tag groups, descriptions, or localization tables in this model.
+
+- `id`: PostgreSQL `gen_random_uuid()`.
+- `nameFa`: required Persian display name, `varchar(120)`.
+- `slug`: required, unique, `varchar(120)`. Uniqueness is the durable lookup invariant. Automatic slug generation, case-insensitive slug semantics, and slug-history/redirect tables are not part of this model.
+- `createdAt` and `updatedAt`: `timestamptz(3)`.
+
+## FootageTag
+
+`FootageTag` is the explicit join between Footage and Tag.
+
+- `footageId` and `tagId`: composite primary key. Duplicate Footage/Tag relationships are impossible.
+- Deleting a Footage or Tag cascades only to join rows. It does not cascade Category deletion and does not invent Tag soft-delete policy.
+- `FootageTag_tagId_idx` supports listing Footage for one Tag. The composite primary key supports listing Tags for one Footage.

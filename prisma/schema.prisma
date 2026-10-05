@@ -142,8 +142,51 @@ enum FootageStatus {
   PUBLISHED
 }
 
-/// Purchasable catalog Footage metadata only. Media files, categories, tags,
-/// search, and commerce relations belong to later tasks.
+/// Flat V1 catalog Category. No parentId, hierarchy, or taxonomy groups.
+/// `nameFa` is the Persian display name. `slug` is the unique durable lookup
+/// key. Automatic slug generation and slug-history/redirect tables are not
+/// part of this model.
+model Category {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nameFa    String   @db.VarChar(120)
+  slug      String   @unique @db.VarChar(120)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  footage Footage[]
+}
+
+/// V1 catalog Tag. Many Footage items may share a Tag, and one Footage may
+/// have many Tags through `FootageTag`. No tag groups or localization tables.
+/// `nameFa` is the Persian display name. `slug` is the unique durable lookup
+/// key. Automatic slug generation is not part of this model.
+model Tag {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nameFa    String   @db.VarChar(120)
+  slug      String   @unique @db.VarChar(120)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  footageTags FootageTag[]
+}
+
+/// Explicit Footage ↔ Tag join. Composite primary key prevents duplicate
+/// relationships. No extra join metadata in V1. Cascade on Footage or Tag
+/// delete removes only join rows, not the other catalog entity.
+model FootageTag {
+  footageId String @db.Uuid
+  tagId     String @db.Uuid
+
+  footage Footage @relation(fields: [footageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([footageId, tagId])
+  @@index([tagId])
+}
+
+/// Purchasable catalog Footage metadata. Media files, search, and commerce
+/// relations belong to later tasks. Each Footage belongs to exactly one
+/// Category. Tags are many-to-many through `FootageTag`.
 /// `titleFa` and `descriptionFa` are Persian storefront content. Do not add
 /// speculative English/locale fields here.
 /// `priceToman` is integer Toman. Floating-point money is forbidden. The
@@ -152,6 +195,9 @@ enum FootageStatus {
 /// `publishedAt` is null for DRAFT and required for PUBLISHED. That pairing is
 /// the durable publication contract; scheduled publishing is not supported.
 /// `@@index([status])` supports the known published-footage storefront listing.
+/// `@@index([categoryId])` supports listing Footage in one Category.
+/// Category deletion uses Restrict so referenced Footage is not silently
+/// deleted.
 model Footage {
   id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   titleFa       String        @db.VarChar(200)
@@ -159,9 +205,14 @@ model Footage {
   descriptionFa String
   priceToman    Int
   status        FootageStatus @default(DRAFT)
+  categoryId    String        @db.Uuid
   createdAt     DateTime      @default(now()) @db.Timestamptz(3)
   updatedAt     DateTime      @updatedAt @db.Timestamptz(3)
   publishedAt   DateTime?     @db.Timestamptz(3)
 
+  category    Category     @relation(fields: [categoryId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  footageTags FootageTag[]
+
   @@index([status])
+  @@index([categoryId])
 }

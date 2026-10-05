@@ -508,7 +508,7 @@ Include only fields required by the approved V1 product and discovery requiremen
 
 ## CAT-02 — Implement Categories and Tags
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 
 ### Depends On
 
