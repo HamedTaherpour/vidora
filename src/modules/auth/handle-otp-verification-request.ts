@@ -41,7 +41,8 @@ function json(body: PublicOtpVerificationResult, status: number): Response {
 }
 
 /**
- * HTTP boundary for `POST /api/auth/otp/verify`.
+ * HTTP boundary for browser OTP verification mutations.
+ * Used by `POST /api/auth/otp/verify` and `POST /api/admin/auth/otp/verify`.
  * Origin is checked before verification so a rejected browser request
  * does not consume the OTP or set a session cookie.
  */

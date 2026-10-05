@@ -18,10 +18,34 @@ describe("auth server boundaries", () => {
       /Client Component/,
     );
     await expect(
+      import("@/modules/auth/verify-admin-otp-request"),
+    ).rejects.toThrow(/Client Component/);
+    await expect(import("@/modules/auth/request-admin-otp")).rejects.toThrow(
+      /Client Component/,
+    );
+    await expect(
       import("@/modules/auth/resolve-current-customer"),
+    ).rejects.toThrow(/Client Component/);
+    await expect(
+      import("@/modules/auth/resolve-current-admin"),
+    ).rejects.toThrow(/Client Component/);
+    await expect(
+      import("@/modules/auth/require-current-customer"),
+    ).rejects.toThrow(/Client Component/);
+    await expect(
+      import("@/modules/auth/require-current-admin"),
     ).rejects.toThrow(/Client Component/);
     await expect(
       import("@/modules/auth/customer-session-cookie-store"),
     ).rejects.toThrow(/Client Component/);
+    await expect(
+      import("@/modules/auth/admin-session-cookie-store"),
+    ).rejects.toThrow(/Client Component/);
+    await expect(
+      import("@/modules/auth/prisma-admin-otp-verification-store"),
+    ).rejects.toThrow(/Client Component/);
+    await expect(import("@/modules/auth/provision-admin")).rejects.toThrow(
+      /Client Component/,
+    );
   });
 });

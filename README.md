@@ -80,7 +80,15 @@ pnpm build
 
 `pnpm format` rewrites files. The other commands only check or build, and each exits non-zero when its check fails.
 
-`pnpm test:pg` is optional. It checks OTP request locking, OTP consumption, and first-login races against the local development database. `pnpm test` does not run it, and CI does not run it.
+`pnpm test:pg` is optional. It checks OTP request locking, OTP consumption, first-login races, and Admin/customer authorization boundaries against the local development database. `pnpm test` does not run it, and CI does not run it.
+
+To provision an Admin phone for local development or operations:
+
+```bash
+pnpm admin:provision -- 09121234567
+```
+
+The command normalizes the phone, inserts `Admin` when absent, and is idempotent for an already-provisioned phone. It does not create a Customer account or session. There is no browser Admin signup.
 
 Canonical agent files can be checked separately:
 

@@ -72,9 +72,11 @@ function isEligible(
 }
 
 /**
- * The one challenge AUTH-04 may verify for a canonical phone.
+ * The one challenge that may be verified for a canonical phone and purpose.
+ * Callers must pass only challenges for that phone and purpose. Customer and
+ * Admin contexts must not be mixed in `challenges`.
  * A row is eligible only after `sentAt` is stored. A pending row is never
- * eligible. A newer non-failed row blocks every older row for that phone:
+ * eligible. A newer non-failed row blocks every older row in the supplied set:
  * a delivered row blocks permanently, and a pending row blocks until it
  * expires. When more than one row is eligible, the latest `createdAt` wins.
  * An equal `createdAt` picks the greater id and does not fall back. Compare

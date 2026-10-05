@@ -4,6 +4,10 @@ import { describe, expect, it } from "vitest";
 import { reservationFromRows } from "@/modules/auth/decide-otp-request";
 import { hashOtpCode } from "@/modules/auth/otp-hash";
 import { OTP_LIFETIME_MS } from "@/modules/auth/otp-policy";
+import {
+  OTP_PURPOSE_CUSTOMER,
+  type OtpPurpose,
+} from "@/modules/auth/otp-purpose";
 import type {
   OtpRequestStore,
   ReserveOtpRequestParams,
@@ -25,6 +29,7 @@ const CANONICAL_PHONE = "+989121234567";
 type StoredChallenge = {
   id: string;
   phone: string;
+  purpose: OtpPurpose;
   codeHash: string;
   expiresAt: Date;
   failedAttemptCount: number;
@@ -73,7 +78,9 @@ function createMemoryStore(): MemoryStore {
         const decision = reservationFromRows({
           now: params.now,
           challenges: challenges.filter(
-            (challenge) => challenge.phone === params.phone,
+            (challenge) =>
+              challenge.phone === params.phone &&
+              challenge.purpose === params.purpose,
           ),
           phoneRequestTimes: events
             .filter((event) => event.phone === params.phone)
@@ -91,6 +98,7 @@ function createMemoryStore(): MemoryStore {
         challenges.push({
           id,
           phone: params.phone,
+          purpose: params.purpose,
           codeHash: params.codeHash,
           expiresAt: params.expiresAt,
           failedAttemptCount: 0,
@@ -122,10 +130,14 @@ function createMemoryStore(): MemoryStore {
         challenges.splice(index, 1);
       }
     },
-    recordChallengeDelivery({ phone, challengeId, sentAt }) {
+    recordChallengeDelivery({ phone, purpose, challengeId, sentAt }) {
       return exclusive(async () => {
         const challenge = challenges.find((row) => {
-          return row.id === challengeId && row.phone === phone;
+          return (
+            row.id === challengeId &&
+            row.phone === phone &&
+            row.purpose === purpose
+          );
         });
 
         if (!challenge) {
@@ -141,10 +153,19 @@ function createMemoryStore(): MemoryStore {
         }
       });
     },
-    supersedePreviousChallenges({ phone, keptChallengeId, supersededAt }) {
+    supersedePreviousChallenges({
+      phone,
+      purpose,
+      keptChallengeId,
+      supersededAt,
+    }) {
       return exclusive(async () => {
         const kept = challenges.find((challenge) => {
-          return challenge.id === keptChallengeId && challenge.phone === phone;
+          return (
+            challenge.id === keptChallengeId &&
+            challenge.phone === phone &&
+            challenge.purpose === purpose
+          );
         });
 
         if (!kept) {
@@ -160,7 +181,11 @@ function createMemoryStore(): MemoryStore {
         }
 
         for (const challenge of challenges) {
-          if (challenge.phone !== phone || challenge.id === kept.id) {
+          if (
+            challenge.phone !== phone ||
+            challenge.purpose !== purpose ||
+            challenge.id === kept.id
+          ) {
             continue;
           }
 
@@ -285,6 +310,7 @@ describe("requestOtp", () => {
       expect(harness.store.challenges).toHaveLength(1);
       expect(harness.store.challenges[0]).toMatchObject({
         phone: CANONICAL_PHONE,
+        purpose: OTP_PURPOSE_CUSTOMER,
         codeHash: hashOtpCode(CODE, SECRET),
         failedAttemptCount: 0,
         consumedAt: null,
@@ -298,6 +324,7 @@ describe("requestOtp", () => {
         { phone: CANONICAL_PHONE, clientIp: IP, createdAt: START },
       ]);
       expect(harness.store.reserveCalls[0]).not.toHaveProperty("code");
+      expect(harness.store.reserveCalls[0]?.purpose).toBe(OTP_PURPOSE_CUSTOMER);
       expect(
         Object.values(harness.store.reserveCalls[0] ?? {}).includes(CODE),
       ).toBe(false);
@@ -388,6 +415,7 @@ describe("requestOtp", () => {
       {
         id: "expired",
         phone: CANONICAL_PHONE,
+        purpose: OTP_PURPOSE_CUSTOMER,
         codeHash: "ab".repeat(32),
         createdAt: new Date(START.getTime() - 30_000),
         expiresAt: new Date(START.getTime() - 1_000),
@@ -399,6 +427,7 @@ describe("requestOtp", () => {
       {
         id: "consumed",
         phone: CANONICAL_PHONE,
+        purpose: OTP_PURPOSE_CUSTOMER,
         codeHash: "cd".repeat(32),
         createdAt: new Date(START.getTime() - 10_000),
         expiresAt: new Date(START.getTime() + 60_000),
@@ -410,6 +439,7 @@ describe("requestOtp", () => {
       {
         id: "older-than-cooldown",
         phone: CANONICAL_PHONE,
+        purpose: OTP_PURPOSE_CUSTOMER,
         codeHash: "ef".repeat(32),
         createdAt: new Date(START.getTime() - 120_000),
         expiresAt: new Date(START.getTime() + 180_000),
@@ -891,6 +921,7 @@ describe("requestOtp", () => {
       {
         id: "delivered-before-crash",
         phone: CANONICAL_PHONE,
+        purpose: OTP_PURPOSE_CUSTOMER,
         codeHash: hashOtpCode(CODE, SECRET),
         createdAt: START,
         expiresAt: new Date(START.getTime() + OTP_LIFETIME_MS),
@@ -902,6 +933,7 @@ describe("requestOtp", () => {
       {
         id: "pending-after-crash",
         phone: CANONICAL_PHONE,
+        purpose: OTP_PURPOSE_CUSTOMER,
         codeHash: hashOtpCode("135790", SECRET),
         createdAt: pendingAt,
         expiresAt: new Date(pendingAt.getTime() + OTP_LIFETIME_MS),

@@ -37,7 +37,7 @@ const CANONICAL_PHONE = "+989121234567";
 type MemoryUser = { id: string; phone: string };
 
 type MemorySession = {
-  userId: string;
+  accountId: string;
   secretHash: string;
   expiresAt: Date;
   createdAt: Date;
@@ -91,7 +91,7 @@ function createMemoryStore(): MemoryStore {
 
       return true;
     },
-    async resolveUserId(phone) {
+    async resolveAccountId(phone) {
       const existing = users.find((user) => user.phone === phone);
 
       if (existing) {
@@ -126,7 +126,7 @@ function createMemoryStore(): MemoryStore {
         });
 
         if (outcome.status === "authenticated") {
-          return { status: "authenticated", userId: outcome.userId };
+          return { status: "authenticated", accountId: outcome.accountId };
         }
 
         if (outcome.status === "rejected") {
@@ -142,7 +142,7 @@ function createMemoryStore(): MemoryStore {
           return null;
         }
 
-        const user = users.find((row) => row.id === session.userId);
+        const user = users.find((row) => row.id === session.accountId);
 
         if (!user) {
           return null;
@@ -244,7 +244,7 @@ describe("OTP verification", () => {
 
     expect(result.status).toBe("authenticated");
     expect(memory.users).toEqual([{ id: "user-1", phone: CANONICAL_PHONE }]);
-    expect(memory.sessions.map((session) => session.userId)).toEqual([
+    expect(memory.sessions.map((session) => session.accountId)).toEqual([
       "user-1",
     ]);
   });
@@ -499,7 +499,7 @@ describe("customer session", () => {
 
     memory.users.push({ id: "user-1", phone: CANONICAL_PHONE });
     memory.sessions.push({
-      userId: "user-1",
+      accountId: "user-1",
       secretHash: hashSessionToken(token),
       expiresAt: START,
       createdAt: new Date(START.getTime() - SESSION_LIFETIME_MS),

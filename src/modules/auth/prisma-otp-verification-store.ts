@@ -4,6 +4,7 @@ import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { authenticateOtpChallenge } from "@/modules/auth/authenticate-otp";
 import { lockOtpPhone } from "@/modules/auth/otp-advisory-lock";
 import { OTP_MAX_VERIFICATION_ATTEMPTS } from "@/modules/auth/otp-policy";
+import { OTP_PURPOSE_CUSTOMER } from "@/modules/auth/otp-purpose";
 import type {
   CompleteOtpAuthenticationParams,
   CompleteOtpAuthenticationResult,
@@ -19,6 +20,7 @@ function verificationWriteWhere(
   return {
     id: challengeId,
     phone,
+    purpose: OTP_PURPOSE_CUSTOMER,
     consumedAt: null,
     supersededAt: null,
     sentAt: { not: null },
@@ -55,11 +57,11 @@ export async function resolveCustomerUserId(
 }
 
 /**
- * Durable OTP verification.
+ * Durable customer OTP verification.
  * The phone advisory lock is the same key OTP reservation uses.
- * Challenge rows are locked before the code is judged so a delivery update
- * cannot change eligibility mid-check. Consumption, user resolution, and
- * session insert commit together. No network call runs here.
+ * Challenge rows for the customer purpose are locked before the code is judged
+ * so a delivery update cannot change eligibility mid-check. Consumption, user
+ * resolution, and session insert commit together. No network call runs here.
  */
 export function createPrismaOtpVerificationStore(
   client: PrismaClient,
@@ -68,9 +70,19 @@ export function createPrismaOtpVerificationStore(
     async completeAuthentication(
       params: CompleteOtpAuthenticationParams,
     ): Promise<CompleteOtpAuthenticationResult> {
+      if (params.purpose !== OTP_PURPOSE_CUSTOMER) {
+        return { status: "rejected" };
+      }
+
       return client.$transaction(async (tx) => {
         await lockOtpPhone(tx.$executeRaw.bind(tx), params.phone);
-        await tx.$queryRaw`SELECT "id" FROM "OtpChallenge" WHERE "phone" = ${params.phone} FOR UPDATE`;
+        await tx.$queryRaw`
+          SELECT "id"
+          FROM "OtpChallenge"
+          WHERE "phone" = ${params.phone}
+            AND "purpose" = CAST(${OTP_PURPOSE_CUSTOMER} AS "OtpPurpose")
+          FOR UPDATE
+        `;
 
         const outcome = await authenticateOtpChallenge({
           phone: params.phone,
@@ -82,7 +94,7 @@ export function createPrismaOtpVerificationStore(
           mutations: {
             listChallenges(phone) {
               return tx.otpChallenge.findMany({
-                where: { phone },
+                where: { phone, purpose: OTP_PURPOSE_CUSTOMER },
                 select: {
                   id: true,
                   phone: true,
@@ -121,13 +133,13 @@ export function createPrismaOtpVerificationStore(
 
               return updated.count === 1;
             },
-            resolveUserId(phone, now) {
+            async resolveAccountId(phone, now) {
               return resolveCustomerUserId(tx, phone, now);
             },
             async createSession(session) {
               await tx.session.create({
                 data: {
-                  userId: session.userId,
+                  userId: session.accountId,
                   secretHash: session.secretHash,
                   expiresAt: session.expiresAt,
                   createdAt: session.createdAt,
@@ -149,7 +161,7 @@ export function createPrismaOtpVerificationStore(
           return { status: "attempt_limit" };
         }
 
-        return { status: "authenticated", userId: outcome.userId };
+        return { status: "authenticated", accountId: outcome.accountId };
       });
     },
 

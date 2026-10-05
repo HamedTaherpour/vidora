@@ -66,6 +66,8 @@ const requiredFiles = [
   "docs/adr/0003-phone-otp-authentication.md",
   "docs/adr/0004-private-object-storage-media-delivery.md",
   "docs/adr/0005-buy-now-commerce-payment-entitlement-invoice.md",
+  "docs/adr/0006-reject-better-auth.md",
+  "docs/adr/0007-separate-admin-identity-and-session.md",
   "instructions/architecture.md",
   "instructions/implementation.md",
   "instructions/project-organization.md",
@@ -96,6 +98,8 @@ const adrTitles = [
     "docs/adr/0005-buy-now-commerce-payment-entitlement-invoice.md",
     "# ADR-0005:",
   ],
+  ["docs/adr/0006-reject-better-auth.md", "# ADR-0006:"],
+  ["docs/adr/0007-separate-admin-identity-and-session.md", "# ADR-0007:"],
 ];
 
 for (const [relativePath, title] of adrTitles) {

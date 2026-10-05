@@ -15,6 +15,10 @@ import {
   OTP_RESEND_COOLDOWN_SECONDS,
 } from "@/modules/auth/otp-policy";
 import type { OtpRequestStore } from "@/modules/auth/otp-request-store";
+import {
+  OTP_PURPOSE_CUSTOMER,
+  type OtpPurpose,
+} from "@/modules/auth/otp-purpose";
 import { SmsSendError, type SmsProvider } from "@/modules/auth/sms-provider";
 
 export type RequestOtpResult =
@@ -59,6 +63,11 @@ export type RequestOtpParams = {
   otpHashSecret: string;
   smsProvider: SmsProvider;
   store: OtpRequestStore;
+  /**
+   * Authentication context for the challenge.
+   * Defaults to customer. Admin requests must pass `admin`.
+   */
+  purpose?: OtpPurpose;
   generateCode?: () => string;
   providerName?: string;
   log?: (event: OtpRequestLogEvent) => void;
@@ -105,6 +114,7 @@ export async function requestOtp({
   otpHashSecret,
   smsProvider,
   store,
+  purpose = OTP_PURPOSE_CUSTOMER,
   generateCode = generateOtpCode,
   providerName,
   log = defaultLog,
@@ -150,6 +160,7 @@ export async function requestOtp({
   const codeHash = hashOtpCode(code, otpHashSecret);
   const reserved = await store.reserve({
     phone,
+    purpose,
     clientIp: boundedIp.clientIp,
     codeHash,
     expiresAt: new Date(now.getTime() + OTP_LIFETIME_MS),
@@ -215,6 +226,7 @@ export async function requestOtp({
   try {
     await store.recordChallengeDelivery({
       phone,
+      purpose,
       challengeId: reserved.challengeId,
       sentAt: now,
     });
@@ -237,6 +249,7 @@ export async function requestOtp({
     // every earlier challenge ineligible.
     await store.supersedePreviousChallenges({
       phone,
+      purpose,
       keptChallengeId: reserved.challengeId,
       supersededAt: now,
     });

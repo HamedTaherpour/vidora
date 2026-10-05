@@ -23,9 +23,9 @@ export type AuthenticateOtpMutations = {
     phone: string;
     now: Date;
   }): Promise<boolean>;
-  resolveUserId(phone: string, now: Date): Promise<string>;
+  resolveAccountId(phone: string, now: Date): Promise<string | null>;
   createSession(params: {
-    userId: string;
+    accountId: string;
     secretHash: string;
     expiresAt: Date;
     createdAt: Date;
@@ -33,7 +33,7 @@ export type AuthenticateOtpMutations = {
 };
 
 export type AuthenticateOtpResult =
-  | { status: "authenticated"; userId: string; challengeId: string }
+  | { status: "authenticated"; accountId: string; challengeId: string }
   | { status: "invalid_code"; challengeId: string }
   | { status: "attempt_limit"; challengeId: string }
   | { status: "rejected" };
@@ -138,6 +138,17 @@ export async function authenticateOtpChallenge(params: {
     return { status: "invalid_code", challengeId: challenge.id };
   }
 
+  // Resolve after a correct code and before consume so a missing Admin rejects
+  // without burning the OTP, while a customer User is created only on success.
+  const accountId = await params.mutations.resolveAccountId(
+    params.phone,
+    params.now,
+  );
+
+  if (accountId === null) {
+    return { status: "rejected" };
+  }
+
   const consumed = await params.mutations.consumeChallenge({
     challengeId: challenge.id,
     phone: params.phone,
@@ -148,10 +159,8 @@ export async function authenticateOtpChallenge(params: {
     return { status: "rejected" };
   }
 
-  const userId = await params.mutations.resolveUserId(params.phone, params.now);
-
   await params.mutations.createSession({
-    userId,
+    accountId,
     secretHash: params.sessionSecretHash,
     expiresAt: params.sessionExpiresAt,
     createdAt: params.now,
@@ -159,7 +168,7 @@ export async function authenticateOtpChallenge(params: {
 
   return {
     status: "authenticated",
-    userId,
+    accountId,
     challengeId: challenge.id,
   };
 }

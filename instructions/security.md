@@ -93,6 +93,18 @@ V1 has one administrator and does not require generic RBAC.
 
 Do not weaken the boundary because there is only one Admin.
 
+Admin identity is separate from Customer `User` identity (ADR-0007):
+
+- `Admin` persistence is not a `User` row and has no role column;
+- `AdminSession` is separate from customer `Session`;
+- cookie `vidora_admin_session` is separate from `vidora_customer_session`;
+- customer authentication does not grant Admin access;
+- Admin authentication does not create a Customer account;
+- there is no public Admin signup; Admin phones are manually provisioned;
+- the same canonical phone may exist independently on `User` and `Admin` without linking identities.
+
+Server helpers `requireCurrentCustomer` and `requireCurrentAdmin` enforce these boundaries. An Admin session alone is not a Customer session, and a Customer session alone is not Admin authorization.
+
 ---
 
 # 5. OTP Security
@@ -110,30 +122,33 @@ These numbers are application policy. They are not columns on `OtpChallenge`, an
 
 `OtpChallenge` persists the code only as an HMAC-SHA256 hex digest in `codeHash`. The key is `OTP_HASH_SECRET`, a required server-only environment variable of at least 32 characters. There is no plaintext OTP column. The digest is `HMAC-SHA256(OTP_HASH_SECRET, UTF-8 OTP code)`. Later verification must use that same function. Do not store or compare the plaintext code.
 
-`consumedAt` records successful use; a non-null value invalidates that challenge. It is not how a replaced OTP is invalidated. A challenge can exist before the customer `User` row, so it has no user foreign key. An OTP request does not create a `User`.
+`purpose` is `customer` or `admin`. Customer and Admin share this table. Cooldown, supersession, and active selection are scoped by canonical phone + purpose. A customer-purpose challenge must not authenticate Admin, and an admin-purpose challenge must not authenticate a Customer. Hourly phone and IP request limits still count `OtpRequestEvent` rows across purposes because SMS cost is shared.
 
-A resend inside the 60-second cooldown, while an unconsumed, unexpired, non-superseded challenge exists, does not generate another OTP and does not send another SMS. Expired, consumed, and superseded challenges do not keep that cooldown. A reserved challenge (`sentAt` null) still keeps that cooldown. After 60 seconds a new challenge may be reserved even if an older unconsumed challenge has not expired. That reservation transaction commits before the SMS provider is called. Do not hold a database transaction open during the external SMS request.
+`consumedAt` records successful use; a non-null value invalidates that challenge. It is not how a replaced OTP is invalidated. A challenge can exist before the customer `User` row, so it has no user foreign key. An Admin challenge also has no admin foreign key; Admin must already be provisioned before Admin verification succeeds. An OTP request does not create a `User` or an `Admin`.
 
-`sentAt` is null on the reserved row. That pending row is not eligible for verification. It is still a non-failed challenge. While `expiresAt` is strictly after the verification time, it blocks every older challenge for that phone, including a previous delivered challenge. The block starts when the reservation commits, before the SMS provider is called. When the provider accepts the send, a later short write sets `sentAt` on that challenge and commits before any older challenge is changed. That write does not run while the SMS request is open. `sentAt` means the provider accepted this send. It does not mean the code was verified.
+A resend inside the 60-second cooldown, while an unconsumed, unexpired, non-superseded challenge exists for the same phone and purpose, does not generate another OTP and does not send another SMS. Expired, consumed, and superseded challenges do not keep that cooldown. A reserved challenge (`sentAt` null) still keeps that cooldown. After 60 seconds a new challenge may be reserved even if an older unconsumed challenge has not expired. That reservation transaction commits before the SMS provider is called. Do not hold a database transaction open during the external SMS request.
 
-A following short transaction takes the same phone advisory lock as reservation and sets `supersededAt` on every previous unconsumed, unexpired challenge for that canonical phone whose `createdAt` is less than or equal to the delivered challenge. It does not run while the SMS request is open. The delivered challenge is not superseded. `supersededAt` is not cleared when the newer challenge is later consumed or expires. A challenge created after the one just sent is left unchanged. Historical rows are retained. There is no cleanup policy.
+`sentAt` is null on the reserved row. That pending row is not eligible for verification. It is still a non-failed challenge. While `expiresAt` is strictly after the verification time, it blocks every older challenge for that phone and purpose, including a previous delivered challenge. The block starts when the reservation commits, before the SMS provider is called. When the provider accepts the send, a later short write sets `sentAt` on that challenge and commits before any older challenge is changed. That write does not run while the SMS request is open. `sentAt` means the provider accepted this send. It does not mean the code was verified.
 
-If that supersede write fails after `sentAt` is stored, the request still counts as accepted. The newer challenge stays delivered. Every earlier challenge for that phone stays permanently ineligible because a newer row with `sentAt` set blocks it, including when `supersededAt` was not written and after the newer row is consumed or expires.
+A following short transaction takes the same phone advisory lock as reservation and sets `supersededAt` on every previous unconsumed, unexpired challenge for that canonical phone and purpose whose `createdAt` is less than or equal to the delivered challenge. It does not run while the SMS request is open. The delivered challenge is not superseded. `supersededAt` is not cleared when the newer challenge is later consumed or expires. A challenge created after the one just sent is left unchanged. Challenges for the other purpose are left unchanged. Historical rows are retained. There is no cleanup policy.
+
+If that supersede write fails after `sentAt` is stored, the request still counts as accepted. The newer challenge stays delivered. Every earlier challenge for that phone and purpose stays permanently ineligible because a newer row with `sentAt` set blocks it, including when `supersededAt` was not written and after the newer row is consumed or expires.
 
 When the provider fails, delete the reserved challenge and do not set `sentAt` or `supersededAt`. Deletion matches only `sentAt` null, so a delivered challenge is not removed. After that delete, the previous delivered challenge may become eligible again. The `OtpRequestEvent` row is kept and still counts toward the hourly limits. If deleting the reserved challenge fails, that row can still impose cooldown and stays ineligible for verification, and it keeps blocking older challenges until it expires. Cooldown rejections and rate-limit rejections do not insert an event.
 
-If the process stops after the provider may have accepted the SMS, or if `sentAt` cannot be stored, keep the pending row. Do not delete it and do not supersede previous challenges. The pending row stays ineligible until `sentAt` is committed. Every older challenge for that phone stays ineligible while that pending row is unexpired. The `sentAt` write failure fails the request. The event row remains. This prefers a period with no verifiable OTP over accepting an older OTP after a newer OTP may have been sent.
+If the process stops after the provider may have accepted the SMS, or if `sentAt` cannot be stored, keep the pending row. Do not delete it and do not supersede previous challenges. The pending row stays ineligible until `sentAt` is committed. Every older challenge for that phone and purpose stays ineligible while that pending row is unexpired. The `sentAt` write failure fails the request. The event row remains. This prefers a period with no verifiable OTP over accepting an older OTP after a newer OTP may have been sent.
 
 A pending row stops blocking when its `expiresAt` is at or before the verification time. Selection then uses the rest of this rule. The pending row does not become eligible on expiry. With the 5-minute lifetime, a pending resend created after the 60-second cooldown expires after the previous challenge, so that previous challenge is usually already expired when the pending row expires. A later successful request is how the customer obtains a new eligible challenge.
 
-AUTH-04 must use this selection rule and must not invent another. `selectActiveOtpChallenge` in `src/modules/auth` implements it. A challenge is eligible only when all of these are true:
+AUTH-04 must use this selection rule and must not invent another. `selectActiveOtpChallenge` in `src/modules/auth` implements it. Callers must pass only challenges for one phone and one purpose. A challenge is eligible only when all of these are true:
 
 - `phone` is the canonical phone being verified;
+- `purpose` matches the authentication context being verified;
 - `sentAt` is set;
 - `supersededAt` is null;
 - `consumedAt` is null;
 - `expiresAt` is strictly after the verification time;
-- no newer non-failed challenge blocks it.
+- no newer non-failed challenge for that same phone and purpose blocks it.
 
 A newer challenge has a later `createdAt`, or the same `createdAt` and the greater id. A row that still exists is non-failed. Explicit provider failure deletes the reserved row, so that attempt is absent and does not block.
 
@@ -146,7 +161,7 @@ If more than one eligible row exists, select the one with the latest `createdAt`
 
 Verification compares the submitted code with `otpCodeMatchesHash` against that selected challenge only. A wrong code increments `failedAttemptCount` by 1. The count is not reset. The 5th wrong attempt stores 5. A challenge with `failedAttemptCount` greater than or equal to 5 is permanently unusable. That count is the exhaustion record. `consumedAt` stays reserved for successful verification and is not set when attempts are exhausted. A later correct code does not consume an exhausted challenge, does not increment the count further, and does not fall back to an older challenge.
 
-Successful verification runs in one database transaction. It consumes the selected challenge by setting `consumedAt`, resolves the customer by canonical phone, and inserts a `Session`. The conditional consume requires the challenge to still be eligible and under the attempt limit, so two correct submissions cannot both consume it. The transaction takes the same phone advisory lock as OTP reservation before it reads challenges, and it locks that phone's challenge rows, so a resend cannot change eligibility during the check. `User.phone` remains unique. Creating the customer uses that constraint, not a read-then-insert alone. No external call runs inside the transaction. A verification response does not say whether the `User` row was newly created.
+Successful verification runs in one database transaction. It consumes the selected challenge by setting `consumedAt`, resolves the account for that purpose, and inserts the matching session. For customer purpose, it resolves or creates `User` and inserts `Session`. For admin purpose, it resolves an already-provisioned `Admin` and inserts `AdminSession`; it never creates `Admin`, `User`, or customer `Session`. The conditional consume requires the challenge to still be eligible and under the attempt limit, so two correct submissions cannot both consume it. The transaction takes the same phone advisory lock as OTP reservation before it reads challenges, and it locks that phone's challenge rows for the purpose being verified, so a resend cannot change eligibility during the check. `User.phone` and `Admin.phone` remain unique within their own tables. Creating the customer uses the `User` unique constraint, not a read-then-insert alone. No external call runs inside the transaction. A verification response does not say whether the `User` row was newly created.
 
 `OtpRequestEvent` records each OTP send attempt that passed cooldown and rate checks: canonical phone, bounded client IP, and `createdAt`. The hourly phone and IP limits count these rows, so the limits hold across application instances. Phone and IP reservations take a PostgreSQL transaction advisory lock, in a stable key order, so concurrent requests cannot pass the same limit check before either insert is visible. The event row is kept when SMS sending fails. The reserved `OtpChallenge` (`sentAt` null) is removed so a failed send does not impose the resend cooldown. The failed attempt still consumes hourly quota.
 
@@ -185,7 +200,7 @@ The canonical persisted representation is:
 
 `X` is an ASCII digit. The value is E.164-style: `+`, country code `98`, and the ten-digit national number beginning with `9`.
 
-`normalizeIranianMobile` in `src/modules/auth` is the only conversion into this form. Persist and compare customer phone identity only after normalization.
+`normalizeIranianMobile` in `src/modules/auth` is the only conversion into this form. Persist and compare customer and Admin phone identity only after normalization.
 
 These inputs, and only these inputs, resolve to that canonical value:
 
@@ -211,7 +226,7 @@ Rejected input includes:
 
 `normalizeIranianMobile` returns only `+989XXXXXXXXX`. Invalid input fails and does not produce a best-effort string. The failure does not echo the submitted number.
 
-Persist that canonical value on `User.phone`, `OtpChallenge.phone`, and `OtpRequestEvent.phone`. `User.phone` is unique, and that unique constraint is the customer identity invariant under concurrent creation. Those phone columns are `varchar(13)` and have a PostgreSQL `CHECK` so the stored value matches `^\+989[0-9]{9}$`. Normalization remains required before insert. The database constraints reject a phone that was not stored in the canonical form.
+Persist that canonical value on `User.phone`, `Admin.phone`, `OtpChallenge.phone`, and `OtpRequestEvent.phone`. `User.phone` is unique within customers, and `Admin.phone` is unique within administrators. Those unique constraints are the identity invariants under concurrent creation within each table. Matching values across `User` and `Admin` do not link identities. Those phone columns are `varchar(13)` and have a PostgreSQL `CHECK` so the stored value matches `^\+989[0-9]{9}$`. Normalization remains required before insert. The database constraints reject a phone that was not stored in the canonical form.
 
 OTP request limits, lifetime, cooldown, and hashing are defined in section 5. This section does not set a second policy.
 
@@ -219,13 +234,13 @@ OTP request limits, lifetime, cooldown, and hashing are defined in section 5. Th
 
 # 7. Sessions
 
-Customer sessions are opaque server-side sessions. V1 does not use a JWT, a refresh token, or rolling renewal.
+Customer and Admin sessions are opaque server-side sessions. V1 does not use a JWT, a refresh token, or rolling renewal.
 
-The cookie name is `vidora_customer_session`. Its value is a base64url encoding of 32 cryptographically random bytes and nothing else. It does not contain the phone number or other customer data. PostgreSQL stores the SHA-256 hex digest of that UTF-8 token in `Session.secretHash`. The raw token is not a database column, is not logged, and is not returned in a normal JSON response. Lookup hashes the cookie and reads that unique hash.
+The customer cookie name is `vidora_customer_session`. The Admin cookie name is `vidora_admin_session`. Each value is a base64url encoding of 32 cryptographically random bytes and nothing else. It does not contain the phone number or other account data. PostgreSQL stores the SHA-256 hex digest of that UTF-8 token in `Session.secretHash` or `AdminSession.secretHash`. The raw token is not a database column, is not logged, and is not returned in a normal JSON response. Lookup hashes the cookie and reads that unique hash in the matching table only. A customer cookie must not resolve an Admin, and an Admin cookie must not resolve a Customer.
 
-`expiresAt` is exactly 30 days after creation. A request does not extend it. A session whose `expiresAt` is at or before the current time is not authenticated. Expired rows may remain until a later cleanup policy. This schema has no revocation column. Logout is not part of this session foundation. A session references `User` and is deleted with that user.
+`expiresAt` is exactly 30 days after creation. A request does not extend it. A session whose `expiresAt` is at or before the current time is not authenticated. Expired rows may remain until a later cleanup policy. This schema has no revocation column. Logout is not part of this session foundation. A customer session references `User` and is deleted with that user. An Admin session references `Admin` and is deleted with that Admin. Cascade deletion is storage cleanup, not an approved account-deletion product policy.
 
-Cookie attributes:
+Cookie attributes for both cookies:
 
 - `HttpOnly`
 - `SameSite=Lax`
@@ -236,9 +251,9 @@ Cookie attributes:
 
 Session credentials must not be stored in `localStorage` or `sessionStorage`.
 
-Reading the cookie is allowed in a Server Component. Setting it is allowed only in a Route Handler or Server Function. `POST /api/auth/otp/verify` verifies the code and sets the cookie. Later requests, including navigation and reload, restore the customer with `resolveCurrentCustomer()`. That read does not change `expiresAt`.
+Reading the cookie is allowed in a Server Component. Setting it is allowed only in a Route Handler or Server Function. `POST /api/auth/otp/verify` verifies a customer-purpose code and sets the customer cookie. `POST /api/admin/auth/otp/verify` verifies an admin-purpose code and sets the Admin cookie. Later requests, including navigation and reload, restore the account with `resolveCurrentCustomer()` or `resolveCurrentAdmin()`. Those reads do not change `expiresAt`.
 
-`SameSite=Lax` stays on the cookie. Login CSRF for `POST /api/auth/otp/verify` is the Origin allowlist in section 8. That route is the only browser authentication mutation covered by this check. There is no CSRF token and no application-wide CSRF framework. Do not disable framework protections.
+`SameSite=Lax` stays on both cookies. Login CSRF for both OTP verification POSTs is the Origin allowlist in section 8. There is no CSRF token and no application-wide CSRF framework. Do not disable framework protections.
 
 Do not invent a custom JWT architecture unless explicitly required.
 
@@ -254,9 +269,9 @@ External callbacks such as payment-provider callbacks must be validated using pr
 
 ## OTP verification login CSRF
 
-`POST /api/auth/otp/verify` creates the customer session cookie. A cross-site page can submit an attacker's phone and OTP. The browser can store the response `Set-Cookie` for this site even when the cookie is `SameSite=Lax`, because that attribute governs later sends, and this attack is about setting a new session. The route therefore checks `Origin` before it verifies the code and before it sets the cookie.
+`POST /api/auth/otp/verify` creates the customer session cookie. `POST /api/admin/auth/otp/verify` creates the Admin session cookie. A cross-site page can submit an attacker's phone and OTP. The browser can store the response `Set-Cookie` for this site even when the cookie is `SameSite=Lax`, because that attribute governs later sends, and this attack is about setting a new session. Both routes therefore check `Origin` before they verify the code and before they set a cookie.
 
-This check is scoped to that route. Do not grow it into application-wide CSRF middleware, a double-submit cookie, or a token framework unless a later requirement says so.
+This check is scoped to those OTP verification routes. Do not grow it into application-wide CSRF middleware, a double-submit cookie, or a token framework unless a later requirement says so.
 
 ### Allowlist
 

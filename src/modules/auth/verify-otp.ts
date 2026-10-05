@@ -3,6 +3,7 @@ import {
   normalizeIranianMobile,
 } from "@/modules/auth/normalize-iranian-mobile";
 import { assertOtpHashSecret } from "@/modules/auth/otp-hash";
+import { OTP_PURPOSE_CUSTOMER } from "@/modules/auth/otp-purpose";
 import type { OtpVerificationStore } from "@/modules/auth/otp-verification-store";
 import { SESSION_TOKEN_PATTERN } from "@/modules/auth/session-policy";
 import {
@@ -104,6 +105,7 @@ export async function verifyOtp({
   const expiresAt = sessionExpiresAt(now);
   const outcome = await store.completeAuthentication({
     phone,
+    purpose: OTP_PURPOSE_CUSTOMER,
     code,
     now,
     otpHashSecret,

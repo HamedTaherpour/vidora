@@ -449,7 +449,7 @@ Verify OTP and establish the authenticated customer session.
 
 ## AUTH-05 — Protect Customer and Admin Boundaries
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 
 ### Depends On
 

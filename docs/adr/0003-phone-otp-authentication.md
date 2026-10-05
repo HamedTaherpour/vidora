@@ -143,7 +143,12 @@ Customer
 Admin
 ```
 
-The implementation should use the simplest mechanism that securely preserves this boundary.
+AUTH-05 / ADR-0007 implement that distinction as separate persistence and sessions:
+
+- `User` + `Session` + `vidora_customer_session`
+- `Admin` + `AdminSession` + `vidora_admin_session`
+
+Admin uses phone + OTP with the same policy numbers as customers, but OTP challenges carry a purpose/context so customer and admin challenges are not interchangeable. There is no public Admin signup. Admin rows are manually provisioned. Matching phones on `User` and `Admin` do not link the identities.
 
 A future multi-admin RBAC system must not be built in V1 without a new requirement.
 

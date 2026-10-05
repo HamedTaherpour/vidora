@@ -12,6 +12,7 @@ import { PrismaClient } from "@/generated/prisma/client";
 import { loadLocalEnvFiles } from "@/lib/env/load-local-env-files";
 import { createPrismaOtpRequestStore } from "@/modules/auth/prisma-otp-request-store";
 import type { OtpRequestStore } from "@/modules/auth/otp-request-store";
+import { OTP_PURPOSE_CUSTOMER } from "@/modules/auth/otp-purpose";
 import { selectActiveOtpChallenge } from "@/modules/auth/select-active-otp-challenge";
 
 loadLocalEnvFiles({ nodeEnv: "development" });
@@ -71,6 +72,7 @@ function reserve(phone: string, clientIp: string, now: Date) {
 
   return store.reserve({
     phone,
+    purpose: OTP_PURPOSE_CUSTOMER,
     clientIp,
     codeHash: CODE_HASH,
     expiresAt: new Date(now.getTime() + 5 * 60 * 1000),
@@ -245,6 +247,7 @@ describe("OTP request concurrency on local PostgreSQL", () => {
 
     await store.recordChallengeDelivery({
       phone,
+      purpose: OTP_PURPOSE_CUSTOMER,
       challengeId: first.challengeId,
       sentAt: firstAt,
     });
@@ -332,6 +335,7 @@ describe("OTP request concurrency on local PostgreSQL", () => {
 
     await store.recordChallengeDelivery({
       phone,
+      purpose: OTP_PURPOSE_CUSTOMER,
       challengeId: replacement.challengeId,
       sentAt: replacementAt,
     });
@@ -353,6 +357,7 @@ describe("OTP request concurrency on local PostgreSQL", () => {
 
     await store.supersedePreviousChallenges({
       phone,
+      purpose: OTP_PURPOSE_CUSTOMER,
       keptChallengeId: replacement.challengeId,
       supersededAt: replacementAt,
     });

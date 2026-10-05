@@ -130,7 +130,7 @@ Create a new server-side session
 Set an HttpOnly session cookie
 ```
 
-Normalization rules belong to AUTH-02. OTP request behavior belongs to AUTH-03. Verification and session creation belong to AUTH-04. Customer versus admin authorization belongs to AUTH-05.
+Normalization rules belong to AUTH-02. OTP request behavior belongs to AUTH-03. Verification and session creation belong to AUTH-04. Customer versus admin authorization belongs to AUTH-05 / ADR-0007.
 
 ### Persistence
 

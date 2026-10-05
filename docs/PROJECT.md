@@ -407,6 +407,8 @@ A user must not lose library access merely because they logged out or changed de
 
 V1 has a single administrator.
 
+The administrator authenticates with Iranian mobile phone + OTP, but Admin identity is separate from Customer `User` identity. Admin has its own persistence and session cookie. There is no public Admin signup; Admin accounts are manually provisioned. The same canonical phone may exist independently on Customer and Admin without linking those identities. Customer authentication does not grant Admin access, and Admin authentication does not create a Customer account. V1 does not introduce generic RBAC.
+
 The administrator can manage the platform's content and commerce data required for operation.
 
 At minimum, administration requires capabilities for:

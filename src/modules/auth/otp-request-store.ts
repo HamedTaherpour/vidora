@@ -1,7 +1,9 @@
 import type { OtpReservationDecision } from "@/modules/auth/decide-otp-request";
+import type { OtpPurpose } from "@/modules/auth/otp-purpose";
 
 export type ReserveOtpRequestParams = {
   phone: string;
+  purpose: OtpPurpose;
   clientIp: string;
   codeHash: string;
   expiresAt: Date;
@@ -14,12 +16,14 @@ export type ReserveOtpRequestResult =
 
 export type RecordChallengeDeliveryParams = {
   phone: string;
+  purpose: OtpPurpose;
   challengeId: string;
   sentAt: Date;
 };
 
 export type SupersedePreviousChallengesParams = {
   phone: string;
+  purpose: OtpPurpose;
   keptChallengeId: string;
   supersededAt: Date;
 };

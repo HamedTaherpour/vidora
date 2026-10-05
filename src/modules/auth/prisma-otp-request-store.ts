@@ -17,11 +17,13 @@ import type {
 
 /**
  * Durable cooldown and hourly limits.
+ * Cooldown and supersession are scoped by phone + purpose.
+ * Hourly phone and IP limits remain shared across purposes.
  * The reservation transaction commits before SMS is sent. A failed send deletes
  * only a reserved challenge (`sentAt` null) and leaves the request event.
  * After the provider accepts, delivery is committed on its own, then older
- * challenges are superseded in a later transaction. Neither write runs while
- * SMS is in flight.
+ * same-purpose challenges are superseded in a later transaction. Neither write
+ * runs while SMS is in flight.
  */
 export function createPrismaOtpRequestStore(
   client: PrismaClient,
@@ -46,6 +48,7 @@ export function createPrismaOtpRequestStore(
         const challenges = await tx.otpChallenge.findMany({
           where: {
             phone: params.phone,
+            purpose: params.purpose,
             consumedAt: null,
             supersededAt: null,
             expiresAt: { gt: params.now },
@@ -86,6 +89,7 @@ export function createPrismaOtpRequestStore(
         const challenge = await tx.otpChallenge.create({
           data: {
             phone: params.phone,
+            purpose: params.purpose,
             codeHash: params.codeHash,
             expiresAt: params.expiresAt,
             failedAttemptCount: 0,
@@ -122,6 +126,7 @@ export function createPrismaOtpRequestStore(
 
     async recordChallengeDelivery({
       phone,
+      purpose,
       challengeId,
       sentAt,
     }: RecordChallengeDeliveryParams): Promise<void> {
@@ -129,6 +134,7 @@ export function createPrismaOtpRequestStore(
         where: {
           id: challengeId,
           phone,
+          purpose,
           consumedAt: null,
           sentAt: null,
         },
@@ -140,7 +146,7 @@ export function createPrismaOtpRequestStore(
       }
 
       const existing = await client.otpChallenge.findFirst({
-        where: { id: challengeId, phone },
+        where: { id: challengeId, phone, purpose },
         select: { consumedAt: true, sentAt: true },
       });
 
@@ -161,6 +167,7 @@ export function createPrismaOtpRequestStore(
 
     async supersedePreviousChallenges({
       phone,
+      purpose,
       keptChallengeId,
       supersededAt,
     }: SupersedePreviousChallengesParams): Promise<void> {
@@ -171,6 +178,7 @@ export function createPrismaOtpRequestStore(
           where: {
             id: keptChallengeId,
             phone,
+            purpose,
           },
           select: {
             id: true,
@@ -195,6 +203,7 @@ export function createPrismaOtpRequestStore(
         await tx.otpChallenge.updateMany({
           where: {
             phone,
+            purpose,
             id: { not: kept.id },
             consumedAt: null,
             supersededAt: null,

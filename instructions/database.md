@@ -96,7 +96,7 @@ Do not rely only on application checks when a database constraint can safely enf
 
 Use the project's chosen consistent ID strategy.
 
-Customer authentication rows use PostgreSQL `gen_random_uuid()` for `User`, `OtpChallenge`, `OtpRequestEvent`, and `Session`. Those IDs are internal. The customer-facing identity is the canonical phone number, not the UUID.
+Customer authentication rows use PostgreSQL `gen_random_uuid()` for `User`, `OtpChallenge`, `OtpRequestEvent`, and `Session`. Admin authentication rows use the same strategy for `Admin` and `AdminSession`. Those IDs are internal. The customer-facing identity is the canonical phone number, not the UUID. Admin identity is also the canonical phone on `Admin`, not the UUID.
 
 Do not expose assumptions about database row ordering through public identifiers.
 
@@ -367,11 +367,11 @@ Correctness is more important than completing a migration automatically.
 
 ---
 
-# 21. Customer Authentication Persistence
+# 21. Customer and Admin Authentication Persistence
 
-The first applied migration, `20261001171654_init_auth_core`, creates the customer authentication tables `User`, `OtpChallenge`, and `Session`. `20261001174721_otp_request_event` adds `OtpRequestEvent`. `20261002110000_otp_challenge_superseded_at` adds `OtpChallenge.supersededAt`. `20261002133000_otp_challenge_sent_at` adds `OtpChallenge.sentAt` and sets it to `createdAt` on rows that already existed. Those rows were removed on provider failure before delivery was stored, so a surviving row was treated as active. The update does not delete rows. Footage, commerce, media, and blog models are not part of these migrations.
+The first applied migration, `20261001171654_init_auth_core`, creates the customer authentication tables `User`, `OtpChallenge`, and `Session`. `20261001174721_otp_request_event` adds `OtpRequestEvent`. `20261002110000_otp_challenge_superseded_at` adds `OtpChallenge.supersededAt`. `20261002133000_otp_challenge_sent_at` adds `OtpChallenge.sentAt` and sets it to `createdAt` on rows that already existed. Those rows were removed on provider failure before delivery was stored, so a surviving row was treated as active. The update does not delete rows. `20261005183000_admin_auth_boundaries` adds `OtpChallenge.purpose`, `Admin`, and `AdminSession`. Footage, commerce, media, and blog models are not part of these migrations.
 
-Administrative identity is deferred. V1 has one administrator, but no approved Admin authentication persistence contract exists yet. `User` has no role column, and customers and Admin do not share an identity model by assumption.
+Admin identity is separate from Customer `User`. V1 has one administrator, but the `Admin` table may hold more than one row without introducing permissions or RBAC. `User` has no role column.
 
 ## User
 
@@ -395,20 +395,21 @@ There is no email, name, or profile column.
 
 ## OtpChallenge
 
-`OtpChallenge` stores one OTP attempt for a canonical phone.
+`OtpChallenge` stores one OTP attempt for a canonical phone and authentication purpose.
 
 - `phone`: same `varchar(13)` column and the same canonical-phone `CHECK` as `User.phone`.
+- `purpose`: `customer` or `admin`. Cooldown, supersession, and active selection are scoped by phone + purpose. Hourly request limits remain shared across purposes.
 - `codeHash`: HMAC-SHA256 hex digest of the OTP, keyed with `OTP_HASH_SECRET`. The plaintext code is never stored. The lifetime value is the 5-minute policy in `instructions/security.md`.
 - `expiresAt`: challenge expiry.
 - `failedAttemptCount`: failed verification attempts, starting at 0. Each wrong code adds 1. The count is not reset. At 5 the challenge is permanently unusable. That count is the exhaustion record. The limit of 5 is policy in `instructions/security.md`, not a separate column. Verification does not invent `lockedAt` or `consumedAt` for this state.
 - `consumedAt`: null until successful use. A non-null value invalidates the challenge. Successful use is the only meaning of this column. Attempt exhaustion does not set it.
-- `sentAt`: null while the challenge is only reserved. The post-send write sets it after the provider accepts the SMS and before older challenges are superseded. A null value is not eligible for verification. While that reserved row is unexpired, it blocks every older challenge for the same phone. A non-null value means that send was accepted. It does not mean the code was verified. An explicit provider failure deletes the reserved row. A crash or a failed `sentAt` write keeps it.
-- `supersededAt`: null until a newer OTP for this canonical phone is successfully sent. The transaction after `sentAt` commits sets it on each previous unconsumed, unexpired challenge. A non-null value invalidates the challenge. It does not mean the code was verified. `expiresAt` stays the original lifetime. A missing `supersededAt` does not make an earlier challenge eligible again while a newer non-failed row for that phone still blocks it. A newer row with `sentAt` set blocks permanently. A newer row with `sentAt` null blocks until that row expires. The full selection rule is in `instructions/security.md`.
+- `sentAt`: null while the challenge is only reserved. The post-send write sets it after the provider accepts the SMS and before older same-purpose challenges are superseded. A null value is not eligible for verification. While that reserved row is unexpired, it blocks every older challenge for the same phone and purpose. A non-null value means that send was accepted. It does not mean the code was verified. An explicit provider failure deletes the reserved row. A crash or a failed `sentAt` write keeps it.
+- `supersededAt`: null until a newer OTP for this canonical phone and purpose is successfully sent. The transaction after `sentAt` commits sets it on each previous unconsumed, unexpired challenge for that phone and purpose. A non-null value invalidates the challenge. It does not mean the code was verified. `expiresAt` stays the original lifetime. A missing `supersededAt` does not make an earlier challenge eligible again while a newer non-failed row for that phone and purpose still blocks it. A newer row with `sentAt` set blocks permanently. A newer row with `sentAt` null blocks until that row expires. The full selection rule is in `instructions/security.md`.
 - `createdAt`.
 
-A challenge does not reference `User`. The row can exist before the customer does. OTP request does not create a `User`.
+A challenge does not reference `User` or `Admin`. A customer challenge can exist before the customer does. An Admin challenge does not create an Admin. OTP request does not create a `User` or an `Admin`.
 
-`OtpChallenge_phone_createdAt_idx` supports lookup of a phone's challenges in creation order. Other columns are not indexed.
+`OtpChallenge_phone_purpose_createdAt_idx` supports lookup of a phone's challenges for one purpose in creation order. Other columns are not indexed.
 
 ## OtpRequestEvent
 
@@ -439,3 +440,36 @@ The event does not reference `User`.
 There is no revocation column. Explicit logout behavior belongs to a later authentication task. There is no refresh token or JWT table.
 
 `Session_userId_idx` supports the foreign key. `Session_secretHash_key` is the session lookup index.
+
+## Admin
+
+`Admin` is the administrator identity. It is not a Customer `User` and has no role column.
+
+- `id`: PostgreSQL `gen_random_uuid()`.
+- `phone`: required, unique, `varchar(13)`, canonical `+989XXXXXXXXX`.
+- `createdAt` and `updatedAt`: `timestamptz(3)`.
+
+`Admin_phone_key` is the unique index within administrators. The same phone may also exist on `User` without linking the identities.
+
+`Admin_phone_canonical_check` requires the same pattern as `User_phone_canonical_check`:
+
+```text
+^\+989[0-9]{9}$
+```
+
+There is no public Admin signup. Rows are manually provisioned. There is no email, name, password, or permissions column.
+
+## AdminSession
+
+`AdminSession` is the server-side Admin session. It is separate from customer `Session`.
+
+- `adminId`: required foreign key to `Admin`.
+- `secretHash`: unique SHA-256 hex digest of the UTF-8 cookie token. Lookup hashes the `vidora_admin_session` cookie and reads this column.
+- `expiresAt`: exactly 30 days after `createdAt`. A request does not extend it.
+- `createdAt`.
+
+`AdminSession_adminId_fkey` uses `ON DELETE CASCADE` and `ON UPDATE CASCADE`. Deleting an Admin deletes that Admin's sessions. Cascade is storage cleanup, not an approved Admin deletion product policy.
+
+There is no revocation column. Explicit logout behavior belongs to a later authentication task. There is no refresh token or JWT table.
+
+`AdminSession_adminId_idx` supports the foreign key. `AdminSession_secretHash_key` is the Admin session lookup index.

@@ -1,8 +1,8 @@
-// Customer authentication persistence only.
-// Internal IDs are PostgreSQL gen_random_uuid() values. They are not customer-facing.
-// Administrative identity is deferred. V1 has one administrator, but no approved
-// Admin authentication persistence contract exists yet. Do not add a role on User
-// to stand in for that contract.
+// Customer and Admin authentication persistence.
+// Internal IDs are PostgreSQL gen_random_uuid() values. They are not public
+// account identifiers. Customer identity is the canonical phone on User.
+// Admin identity is a separate Admin row with its own phone and sessions.
+// Do not add a role on User. Do not model Admin as a special Customer.
 
 generator client {
   provider = "prisma-client"
@@ -11,6 +11,13 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+/// Distinguishes customer and admin OTP challenges that share one table.
+/// A customer challenge must not authenticate Admin, and vice versa.
+enum OtpPurpose {
+  customer
+  admin
 }
 
 /// Customer identity. `phone` is the canonical Iranian mobile `+989XXXXXXXXX`.
@@ -27,39 +34,47 @@ model User {
 }
 
 /// An OTP challenge may exist before the customer User row does, so this model
-/// has no user foreign key. `codeHash` is an HMAC-SHA256 digest, never the
-/// plaintext OTP. `sentAt` stays null while the row is only reserved. An
-/// unexpired reserved row blocks older challenges for the same phone. A
-/// non-null `sentAt` records that the SMS provider accepted this send. A
-/// non-null `consumedAt` records successful use and invalidates the challenge.
-/// It is not set when verification attempts are exhausted. A non-null
-/// `supersededAt` records that a newer OTP for the same phone was successfully
-/// sent. Neither timestamp means the other, and `expiresAt` stays the original
-/// lifetime. `failedAttemptCount` starts at 0. The 5th wrong code stores 5 and
-/// that count makes the challenge permanently unusable. Eligibility is
-/// `instructions/security.md`. `@@index([phone, createdAt])` supports lookup
-/// of a phone's challenges in creation order. Lifetime, resend cooldown, and
-/// the verification attempt limit are policy in `instructions/security.md`,
-/// not columns here.
+/// has no user foreign key. Admin challenges also have no admin foreign key;
+/// Admin must already be provisioned before verification succeeds.
+/// `purpose` separates customer and admin authentication contexts that share
+/// this table. Cooldown, supersession, and active selection are scoped by
+/// phone + purpose. Hourly request limits still count by phone and IP across
+/// purposes because SMS cost is shared.
+/// `codeHash` is an HMAC-SHA256 digest, never the plaintext OTP. `sentAt`
+/// stays null while the row is only reserved. An unexpired reserved row blocks
+/// older challenges for the same phone and purpose. A non-null `sentAt`
+/// records that the SMS provider accepted this send. A non-null `consumedAt`
+/// records successful use and invalidates the challenge. It is not set when
+/// verification attempts are exhausted. A non-null `supersededAt` records that
+/// a newer OTP for the same phone and purpose was successfully sent. Neither
+/// timestamp means the other, and `expiresAt` stays the original lifetime.
+/// `failedAttemptCount` starts at 0. The 5th wrong code stores 5 and that
+/// count makes the challenge permanently unusable. Eligibility is
+/// `instructions/security.md`. `@@index([phone, purpose, createdAt])` supports
+/// lookup of a phone's challenges for one purpose in creation order. Lifetime,
+/// resend cooldown, and the verification attempt limit are policy in
+/// `instructions/security.md`, not columns here.
 model OtpChallenge {
-  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  phone              String    @db.VarChar(13)
+  id                 String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phone              String     @db.VarChar(13)
+  purpose            OtpPurpose @default(customer)
   codeHash           String
-  expiresAt          DateTime  @db.Timestamptz(3)
-  failedAttemptCount Int       @default(0)
-  consumedAt         DateTime? @db.Timestamptz(3)
-  sentAt             DateTime? @db.Timestamptz(3)
-  supersededAt       DateTime? @db.Timestamptz(3)
-  createdAt          DateTime  @default(now()) @db.Timestamptz(3)
+  expiresAt          DateTime   @db.Timestamptz(3)
+  failedAttemptCount Int        @default(0)
+  consumedAt         DateTime?  @db.Timestamptz(3)
+  sentAt             DateTime?  @db.Timestamptz(3)
+  supersededAt       DateTime?  @db.Timestamptz(3)
+  createdAt          DateTime   @default(now()) @db.Timestamptz(3)
 
-  @@index([phone, createdAt])
+  @@index([phone, purpose, createdAt])
 }
 
 /// One OTP send attempt that passed cooldown and hourly-limit checks.
 /// Phone and IP limits count these rows so the limits hold across application
-/// instances. The row stays if SMS sending fails. The reserved `OtpChallenge`
-/// is removed only while `sentAt` is null, so a failed send does not start the
-/// resend cooldown. A delivered challenge is not deleted.
+/// instances. Limits are shared across OTP purposes for the same phone because
+/// SMS cost is shared. The row stays if SMS sending fails. The reserved
+/// `OtpChallenge` is removed only while `sentAt` is null, so a failed send does
+/// not start the resend cooldown. A delivered challenge is not deleted.
 /// `clientIp` is the bounded address from the request boundary, not a forwarded
 /// header. There is no user foreign key. The phone CHECK is in the migration
 /// SQL because Prisma schema cannot represent CHECK constraints.
@@ -89,4 +104,33 @@ model Session {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@index([userId])
+}
+
+/// Administrator identity. Separate from Customer `User`. The same canonical
+/// phone may exist independently on User and Admin. Phone uniqueness is only
+/// within Admin. No public signup. Rows are provisioned manually.
+/// The format CHECK is in the migration SQL.
+model Admin {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phone     String   @unique @db.VarChar(13)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  sessions AdminSession[]
+}
+
+/// Server-side Admin session. Separate from customer `Session`.
+/// Cookie is `vidora_admin_session`. Lookup uses the unique `secretHash`.
+/// `onDelete: Cascade` removes sessions with their Admin. Cascade is storage
+/// cleanup, not an approved Admin deletion product policy.
+model AdminSession {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  adminId    String   @db.Uuid
+  secretHash String   @unique
+  expiresAt  DateTime @db.Timestamptz(3)
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+
+  admin Admin @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([adminId])
 }
