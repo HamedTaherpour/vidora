@@ -496,6 +496,18 @@ There is no revocation column. Explicit logout behavior belongs to a later authe
 
 `Footage_slug_key` is the unique slug index. `Footage_status_idx` supports the known published-footage storefront listing query. `Footage_categoryId_idx` supports listing Footage in one Category.
 
+### Admin Footage mutations (CAT-03)
+
+Admin catalog application functions create and manage Footage metadata. There is no approved hard-delete behavior in CAT-03.
+
+- Create always starts as `DRAFT` with `publishedAt` null. A create request cannot set `PUBLISHED` directly.
+- Admin may edit metadata of draft or published Footage. Metadata edits do not automatically unpublish.
+- Editable fields are `titleFa`, `slug`, `descriptionFa`, `priceToman`, `categoryId`, and the complete Tag set (`tagIds` replacement semantics). Slugs are not auto-generated.
+- Publish requires the currently available catalog invariants: non-empty title/slug/description, non-negative integer `priceToman`, and an existing Category. Tags are optional. Media/preview/original files are not part of CAT-03 publication validation.
+- Publish sets `status = PUBLISHED` and `publishedAt` to the current timestamp. Repeated publish on an already-published row is idempotent and does not reset `publishedAt`.
+- Unpublish sets `status = DRAFT` and `publishedAt` null. It does not delete Footage, Category relations, or Tags. Repeated unpublish is safe.
+- Footage metadata and Tag relationship writes that belong together run in one database transaction. Unique slug violations become safe application errors; the database unique constraint remains authoritative.
+
 ## Category
 
 `Category` is a flat V1 catalog taxonomy. There is no `parentId`, nested hierarchy, taxonomy group, localization table, or generic taxonomy framework.

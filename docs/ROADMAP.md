@@ -529,7 +529,7 @@ Model catalog classification required for browsing and search.
 
 ## CAT-03 — Implement Admin Footage CRUD
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 
 ### Depends On
 
