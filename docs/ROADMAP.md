@@ -556,7 +556,7 @@ Normal customers cannot perform these operations.
 
 ## CAT-04 — Implement Admin Catalog List
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 
 ### Depends On
 

@@ -508,6 +508,15 @@ Admin catalog application functions create and manage Footage metadata. There is
 - Unpublish sets `status = DRAFT` and `publishedAt` null. It does not delete Footage, Category relations, or Tags. Repeated unpublish is safe.
 - Footage metadata and Tag relationship writes that belong together run in one database transaction. Unique slug violations become safe application errors; the database unique constraint remains authoritative.
 
+### Admin catalog list (CAT-04)
+
+The Admin catalog list is a server-side Footage query for operational management. It includes both `DRAFT` and `PUBLISHED` rows. It does not apply storefront unpublished restrictions.
+
+- Returned row fields: `id`, `titleFa`, `slug`, `priceToman`, `status`, `updatedAt`, and Category `id`/`nameFa`. Tag collections are not loaded for list rows.
+- Search is optional PostgreSQL `contains` over `titleFa` and `slug` (case-insensitive). Empty/whitespace search means the unfiltered list.
+- Pagination is fixed at 50 rows per page. Ordering is `updatedAt DESC`, then `id DESC` as the deterministic tie-breaker.
+- Category is loaded with the Footage row to avoid N+1 queries. No speculative search indexes are added here; SEARCH-01 owns broader search indexing decisions.
+
 ## Category
 
 `Category` is a flat V1 catalog taxonomy. There is no `parentId`, nested hierarchy, taxonomy group, localization table, or generic taxonomy framework.
