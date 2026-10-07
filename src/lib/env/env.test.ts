@@ -7,6 +7,9 @@ import {
   kavenegarEnvSchema,
   parseServerEnv,
   serverEnvSchema,
+  storageEnvSchema,
+  storageSignedReadTtlEnvSchema,
+  storageSignedUploadTtlEnvSchema,
 } from "@/lib/env/server-schema";
 
 const exampleSchema = z.object({
@@ -238,6 +241,76 @@ describe("kavenegar environment schema", () => {
   });
 });
 
+describe("storage environment schema", () => {
+  const validStorageEnv = {
+    STORAGE_ENDPOINT: "https://storage.c2.liara.site",
+    STORAGE_REGION: "default",
+    STORAGE_BUCKET: "example-bucket",
+    STORAGE_ACCESS_KEY: "example-access-key",
+    STORAGE_SECRET_KEY: "example-secret-key",
+    STORAGE_FORCE_PATH_STYLE: "true",
+  };
+
+  it("accepts storage credentials without exposing them through boot config", () => {
+    expect(parseEnv(storageEnvSchema, validStorageEnv)).toEqual(
+      validStorageEnv,
+    );
+    expect(Object.keys(serverEnvSchema.shape)).not.toContain(
+      "STORAGE_ACCESS_KEY",
+    );
+    expect(Object.keys(serverEnvSchema.shape)).not.toContain(
+      "STORAGE_SECRET_KEY",
+    );
+  });
+
+  it("rejects a missing access key without printing the secret", () => {
+    const secret = "example-secret-key";
+    const error = captureConfigError(() =>
+      parseEnv(storageEnvSchema, {
+        ...validStorageEnv,
+        STORAGE_ACCESS_KEY: undefined,
+        STORAGE_SECRET_KEY: secret,
+      }),
+    );
+
+    expect(error.message).toContain("STORAGE_ACCESS_KEY");
+    expect(error.message).not.toContain(secret);
+  });
+
+  it("keeps signed-access TTL variables out of storage construction schema", () => {
+    expect(Object.keys(storageEnvSchema.shape)).not.toContain(
+      "STORAGE_SIGNED_PREVIEW_READ_TTL_SECONDS",
+    );
+    expect(Object.keys(storageEnvSchema.shape)).not.toContain(
+      "STORAGE_SIGNED_ORIGINAL_READ_TTL_SECONDS",
+    );
+    expect(Object.keys(storageEnvSchema.shape)).not.toContain(
+      "STORAGE_SIGNED_PREVIEW_UPLOAD_TTL_SECONDS",
+    );
+    expect(Object.keys(storageEnvSchema.shape)).not.toContain(
+      "STORAGE_SIGNED_ORIGINAL_UPLOAD_TTL_SECONDS",
+    );
+    expect(
+      parseEnv(storageSignedReadTtlEnvSchema, {
+        STORAGE_SIGNED_PREVIEW_READ_TTL_SECONDS: "120",
+        STORAGE_SIGNED_ORIGINAL_READ_TTL_SECONDS: "30",
+      }),
+    ).toEqual({
+      STORAGE_SIGNED_PREVIEW_READ_TTL_SECONDS: 120,
+      STORAGE_SIGNED_ORIGINAL_READ_TTL_SECONDS: 30,
+    });
+    expect(
+      parseEnv(storageSignedUploadTtlEnvSchema, {
+        STORAGE_SIGNED_PREVIEW_UPLOAD_TTL_SECONDS: "180",
+        STORAGE_SIGNED_ORIGINAL_UPLOAD_TTL_SECONDS: "60",
+      }),
+    ).toEqual({
+      STORAGE_SIGNED_PREVIEW_UPLOAD_TTL_SECONDS: 180,
+      STORAGE_SIGNED_ORIGINAL_UPLOAD_TTL_SECONDS: 60,
+    });
+  });
+});
+
 describe("databaseUrlForPrismaCli", () => {
   it("allows Prisma Client generation when DATABASE_URL is absent", () => {
     expect(databaseUrlForPrismaCli({})).toBe("");
@@ -278,6 +351,8 @@ describe("client environment", () => {
         SERVER_ONLY_SECRET: secret,
         OTP_HASH_SECRET: "a".repeat(32),
         KAVENEGAR_API_KEY: secret,
+        STORAGE_ACCESS_KEY: secret,
+        STORAGE_SECRET_KEY: secret,
       },
     );
 
@@ -287,6 +362,8 @@ describe("client environment", () => {
     expect(parsed).not.toHaveProperty("SERVER_ONLY_SECRET");
     expect(parsed).not.toHaveProperty("OTP_HASH_SECRET");
     expect(parsed).not.toHaveProperty("KAVENEGAR_API_KEY");
+    expect(parsed).not.toHaveProperty("STORAGE_ACCESS_KEY");
+    expect(parsed).not.toHaveProperty("STORAGE_SECRET_KEY");
     expect(JSON.stringify(parsed)).not.toContain(secret);
     expect(clientEnv).toEqual({});
   });

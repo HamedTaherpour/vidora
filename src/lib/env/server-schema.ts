@@ -71,6 +71,76 @@ export const kavenegarEnvSchema = z.object({
 });
 
 /**
+ * Required only when object storage is constructed.
+ * Intentionally absent from boot `serverEnvSchema` so build and CI do not need
+ * a live Liara account. Credentials are server-only and must never use the
+ * `NEXT_PUBLIC_` prefix. Liara's S3-compatible API requires path-style access
+ * (`STORAGE_FORCE_PATH_STYLE=true`) and commonly uses region `default`
+ * (see official Liara Next.js Object Storage docs).
+ */
+export const storageEnvSchema = z.object({
+  STORAGE_ENDPOINT: z.string().url({
+    message: "must be an absolute http or https storage endpoint URL",
+  }),
+  STORAGE_REGION: z.string().min(1, {
+    message: "must be a non-empty S3-compatible region",
+  }),
+  STORAGE_BUCKET: z.string().min(1, {
+    message: "must be a non-empty bucket name",
+  }),
+  STORAGE_ACCESS_KEY: z.string().regex(/^\S+$/, {
+    message: "must be a non-empty credential without spaces",
+  }),
+  STORAGE_SECRET_KEY: z.string().regex(/^\S+$/, {
+    message: "must be a non-empty credential without spaces",
+  }),
+  STORAGE_FORCE_PATH_STYLE: z.enum(["true", "false"], {
+    message: 'must be "true" or "false"',
+  }),
+});
+
+/**
+ * Technical upper bound for S3 SigV4 presigned URL duration (7 days).
+ * This is a provider/SDK constraint, not a product-default TTL.
+ */
+export const STORAGE_SIGNED_ACCESS_TTL_MAX_SECONDS = 604_800;
+
+const storageSignedAccessTtlSecondsSchema = z
+  .string()
+  .regex(/^[1-9]\d*$/, {
+    message: "must be a positive integer number of seconds",
+  })
+  .refine(
+    (value) =>
+      Number.parseInt(value, 10) <= STORAGE_SIGNED_ACCESS_TTL_MAX_SECONDS,
+    {
+      message: `must be at most ${STORAGE_SIGNED_ACCESS_TTL_MAX_SECONDS} seconds`,
+    },
+  )
+  .transform((value) => Number.parseInt(value, 10));
+
+/**
+ * Required only when signed-read access is created.
+ * Absent from boot and from storage construction so connectivity checks do not
+ * invent or require product TTL values.
+ */
+export const storageSignedReadTtlEnvSchema = z.object({
+  STORAGE_SIGNED_PREVIEW_READ_TTL_SECONDS: storageSignedAccessTtlSecondsSchema,
+  STORAGE_SIGNED_ORIGINAL_READ_TTL_SECONDS: storageSignedAccessTtlSecondsSchema,
+});
+
+/**
+ * Required only when signed-upload access is created.
+ * Preview and original remain separately configured policies.
+ */
+export const storageSignedUploadTtlEnvSchema = z.object({
+  STORAGE_SIGNED_PREVIEW_UPLOAD_TTL_SECONDS:
+    storageSignedAccessTtlSecondsSchema,
+  STORAGE_SIGNED_ORIGINAL_UPLOAD_TTL_SECONDS:
+    storageSignedAccessTtlSecondsSchema,
+});
+
+/**
  * Datasource URL for the Prisma CLI.
  * `prisma generate` does not connect, so a missing URL stays empty.
  * A present URL uses the same PostgreSQL check as `serverEnv`.

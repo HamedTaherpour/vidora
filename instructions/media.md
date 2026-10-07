@@ -52,7 +52,29 @@ Durable invariants:
 - technical metadata (`width`, `height`, `fps`, `codec`) may be nullable;
 - retention/deletion remains unresolved (ADR-0004); Footage FK deletion is Restrict so media metadata is not silently cascade-deleted.
 
-Upload authorization, object-storage integration, signed URLs, and protected downloads are later media tasks.
+Upload authorization, multipart Admin upload, and protected customer downloads are later media tasks.
+
+## 1.2 Object Storage Boundary (MEDIA-02)
+
+Initial provider: **Liara Object Storage** (S3-compatible).
+
+Application code depends on a provider-neutral `ObjectStorage` boundary:
+
+```text
+media / application code
+  → ObjectStorage
+  → Liara S3-compatible adapter
+```
+
+Do not import AWS SDK types or Liara-specific client details into business modules.
+
+Server-only entry: `createObjectStorage()` in `src/modules/media/create-object-storage.ts`.
+
+Storage credentials are parsed only when storage is constructed (`storageEnvSchema`), not at application boot, so build and default CI do not require a live Liara account.
+
+Signed-access TTL variables are parsed lazily only when `createReadAccess` / `createUploadAccess` runs (`storageSignedReadTtlEnvSchema` / `storageSignedUploadTtlEnvSchema`). Connectivity checks and non-signing operations do not require them.
+
+Credentials are server-only. Never expose them through `clientEnv` or `NEXT_PUBLIC_*` variables. Never log them.
 
 ---
 
@@ -133,11 +155,55 @@ PostgreSQL stores:
 
 Do not store video binaries in PostgreSQL.
 
+Do not store signed URLs, temporary URLs, provider responses, or access tokens in PostgreSQL.
+
+## 6.1 Preview vs original access policy
+
+`ObjectAccessPolicy` distinguishes:
+
+- `preview` — watermarked preview delivery; may later be streamed/downloaded without purchase;
+- `original` — private downloadable variants; never permanent public URLs.
+
+MEDIA-02 keeps the bucket private and expresses both policies through temporary signed access with different lifetimes. CDN or public-bucket topology for previews is not decided here.
+
+Do not make the entire bucket public merely to simplify preview delivery.
+
+Original-file privacy must not be weakened.
+
+## 6.2 Temporary signed-access lifetimes
+
+MEDIA-02 establishes distinct preview vs original signed-access policies. Exact TTL seconds are **not** hard-coded in application code and are **not** shipped as product defaults.
+
+Configured through validated server environment variables (seconds):
+
+| Access        | Policy   | Environment variable                         |
+| ------------- | -------- | -------------------------------------------- |
+| Signed read   | preview  | `STORAGE_SIGNED_PREVIEW_READ_TTL_SECONDS`    |
+| Signed read   | original | `STORAGE_SIGNED_ORIGINAL_READ_TTL_SECONDS`   |
+| Signed upload | preview  | `STORAGE_SIGNED_PREVIEW_UPLOAD_TTL_SECONDS`  |
+| Signed upload | original | `STORAGE_SIGNED_ORIGINAL_UPLOAD_TTL_SECONDS` |
+
+Validation:
+
+- required only when the matching signed-access operation is used;
+- must be a positive integer;
+- must not exceed `604800` (S3 SigV4 technical maximum for presigned URLs — not a product TTL recommendation).
+
+Policy resolution lives in `storage-access-policy.ts`. Do not invent alternate expiration values in business code.
+
+Signed URLs are temporary and must never be persisted.
+
+`createReadAccess` / `createUploadAccess` are infrastructure primitives. They do not perform purchase entitlement or Admin authorization. Later download/upload tasks own those checks and must call these primitives only after authorization.
+
+Do not call original signed-read access from arbitrary browser code without that future authorization boundary.
+
 ---
 
 # 7. Object Keys
 
 Object keys should be predictable enough for operations but must not be treated as authorization secrets.
+
+`FootageFile.objectKey` is the provider-neutral object identity used with `ObjectStorage`.
 
 A possible organization is:
 
@@ -146,7 +212,7 @@ footage/{footageId}/preview/...
 footage/{footageId}/originals/...
 ```
 
-Exact naming may evolve.
+Exact naming may evolve. MEDIA-02 does not redesign the object-key format.
 
 Knowing an object key must never grant purchase access.
 
@@ -277,6 +343,8 @@ Do not cache them as durable customer download URLs.
 Generate them after authorization.
 
 Do not unnecessarily log complete signed URLs.
+
+Use the approved lifetimes in §6.2. Do not invent alternate expiration values in business code.
 
 ---
 

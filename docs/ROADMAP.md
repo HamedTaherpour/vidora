@@ -612,7 +612,7 @@ File metadata can represent varying quality labels without adding a new database
 
 ## MEDIA-02 — Integrate S3-Compatible Storage
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 
 ### Depends On
 

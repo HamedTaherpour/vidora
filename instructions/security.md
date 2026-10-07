@@ -359,7 +359,15 @@ Do not:
 - treat them as durable entitlement;
 - generate them without authorization.
 
-Exact expiration is defined by media/security configuration.
+Exact expiration seconds come from validated server configuration
+(`STORAGE_SIGNED_*_TTL_SECONDS`), resolved through
+`src/modules/media/storage-access-policy.ts`. See `instructions/media.md` §6.2.
+Do not invent signed-access TTL defaults in code.
+
+Storage credentials remain server-only. Original objects must not use permanent
+public URLs. Preview vs original access policy is distinguished at the
+`ObjectStorage` boundary; do not make the entire media bucket public merely to
+simplify preview delivery.
 
 ---
 
