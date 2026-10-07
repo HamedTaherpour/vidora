@@ -482,7 +482,7 @@ There is no revocation column. Explicit logout behavior belongs to a later authe
 
 ## Footage
 
-`Footage` is the V1 purchasable catalog entity. Migration `20261005214800_add_footage` creates the base model. Migration `20261005223000_add_categories_and_tags` adds the required `categoryId` foreign key and the Tag join. Media files, search, orders, payments, entitlements, invoices, and blog models are not part of these migrations.
+`Footage` is the V1 purchasable catalog entity. Migration `20261005214800_add_footage` creates the base model. Migration `20261005223000_add_categories_and_tags` adds the required `categoryId` foreign key and the Tag join. Physical media metadata is `FootageFile` (migration `20261007170018_add_footage_files`). Search, orders, payments, entitlements, invoices, and blog models are not part of these migrations.
 
 - `id`: PostgreSQL `gen_random_uuid()`.
 - `titleFa`: required Persian title, `varchar(200)`.
@@ -544,3 +544,27 @@ One Footage references exactly one Category. Category pages and Admin CRUD belon
 - `footageId` and `tagId`: composite primary key. Duplicate Footage/Tag relationships are impossible.
 - Deleting a Footage or Tag cascades only to join rows. It does not cascade Category deletion and does not invent Tag soft-delete policy.
 - `FootageTag_tagId_idx` supports listing Footage for one Tag. The composite primary key supports listing Tags for one Footage.
+
+## FootageFile
+
+`FootageFile` is physical media-file metadata for one purchasable `Footage`. Footage (catalog product) and FootageFile (storage object metadata) are separate concepts. Migration `20261007170018_add_footage_files` creates the model. Object-storage clients, upload flows, signed URLs, and protected downloads are not part of this migration.
+
+- `id`: PostgreSQL `gen_random_uuid()`.
+- `footageId`: required foreign key to `Footage`. `FootageFile_footageId_fkey` uses `ON DELETE RESTRICT` so deleting Footage does not silently remove media metadata. ADR-0004 leaves retention/deletion unresolved; this task does not invent cleanup behavior.
+- `kind`: `PREVIEW` or `ORIGINAL`. Speculative kinds such as `THUMBNAIL`, `POSTER`, `AUDIO`, `PROXY`, or `SOURCE` are not modeled.
+- `label`: required open descriptive string, `varchar(120)`. Examples include `1080p`, `4K`, `Master`, and `ProRes Master`. It is not a closed enum and is not unique.
+- `objectKey`: required unique provider-neutral object-storage key/reference, `varchar(1024)`. Signed URLs and permanent public original URLs are never persisted. `FootageFile_objectKey_key` prevents two rows from representing the same physical object accidentally.
+- `sizeBytes`: required `BIGINT`. Integer-safe for files at and above approximately 2 GB. Floating-point byte size is forbidden.
+- `mimeType`: required bounded string, `varchar(127)`. Stored as metadata only; browser-provided MIME type is not treated as authoritative security validation.
+- `width`, `height`: nullable integers. Technical metadata may be absent.
+- `fps`: nullable `DECIMAL(10, 3)`. Chosen so common rates such as `23.976` and `29.97` persist without binary floating-point error. Rational-number modeling is not introduced in V1.
+- `codec`: nullable `varchar(64)`.
+- `createdAt` and `updatedAt`: `timestamptz(3)`.
+
+Each Footage may have at most one `PREVIEW` file. Prisma schema cannot express partial unique indexes, so migration SQL adds `FootageFile_one_preview_per_footage_key`:
+
+```text
+UNIQUE (footageId) WHERE kind = 'PREVIEW'
+```
+
+A Footage may have many `ORIGINAL` rows with arbitrary labels. Label uniqueness is not required. Publication rules that require preview/original media before publish belong to later media/catalog tasks; MEDIA-01 does not change CAT-03 publication logic.

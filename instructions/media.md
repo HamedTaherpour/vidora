@@ -38,6 +38,22 @@ One Footage has one purchase price in V1.
 
 File variants do not have separate prices.
 
+## 1.1 Persistence Contract (MEDIA-01)
+
+PostgreSQL stores `FootageFile` metadata separately from `Footage`.
+
+Durable invariants:
+
+- each Footage may have at most one `PREVIEW` `FootageFile` (database partial unique index);
+- each Footage may have many `ORIGINAL` variants;
+- `label` is open-ended descriptive text, not a closed enum and not unique;
+- `objectKey` stores provider-neutral object identity and is globally unique;
+- signed URLs are never persisted;
+- technical metadata (`width`, `height`, `fps`, `codec`) may be nullable;
+- retention/deletion remains unresolved (ADR-0004); Footage FK deletion is Restrict so media metadata is not silently cascade-deleted.
+
+Upload authorization, object-storage integration, signed URLs, and protected downloads are later media tasks.
+
 ---
 
 # 2. Preview

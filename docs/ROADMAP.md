@@ -589,7 +589,7 @@ Goal:
 
 ## MEDIA-01 — Implement Footage File Model
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 
 ### Depends On
 

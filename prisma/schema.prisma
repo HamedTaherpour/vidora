@@ -184,9 +184,9 @@ model FootageTag {
   @@index([tagId])
 }
 
-/// Purchasable catalog Footage metadata. Media files, search, and commerce
-/// relations belong to later tasks. Each Footage belongs to exactly one
-/// Category. Tags are many-to-many through `FootageTag`.
+/// Purchasable catalog Footage metadata. Physical media rows are `FootageFile`.
+/// Search and commerce relations belong to later tasks. Each Footage belongs to
+/// exactly one Category. Tags are many-to-many through `FootageTag`.
 /// `titleFa` and `descriptionFa` are Persian storefront content. Do not add
 /// speculative English/locale fields here.
 /// `priceToman` is integer Toman. Floating-point money is forbidden. The
@@ -197,7 +197,8 @@ model FootageTag {
 /// `@@index([status])` supports the known published-footage storefront listing.
 /// `@@index([categoryId])` supports listing Footage in one Category.
 /// Category deletion uses Restrict so referenced Footage is not silently
-/// deleted.
+/// deleted. FootageFile deletion uses Restrict for the same reason: media
+/// retention/deletion policy is unresolved (ADR-0004).
 model Footage {
   id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   titleFa       String        @db.VarChar(200)
@@ -210,9 +211,57 @@ model Footage {
   updatedAt     DateTime      @updatedAt @db.Timestamptz(3)
   publishedAt   DateTime?     @db.Timestamptz(3)
 
-  category    Category     @relation(fields: [categoryId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  footageTags FootageTag[]
+  category     Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  footageTags  FootageTag[]
+  footageFiles FootageFile[]
 
   @@index([status])
   @@index([categoryId])
+}
+
+/// Distinguishes the public watermarked preview from private original variants.
+/// Speculative kinds such as THUMBNAIL, POSTER, AUDIO, PROXY, or SOURCE are not
+/// part of the approved V1 media model.
+enum FootageFileKind {
+  PREVIEW
+  ORIGINAL
+}
+
+/// Physical media file associated with one purchasable Footage.
+/// Footage (catalog product) and FootageFile (storage object metadata) are
+/// separate concepts. One Footage may have at most one PREVIEW file and any
+/// number of ORIGINAL variants. The one-preview invariant is a PostgreSQL
+/// partial unique index in the migration SQL; Prisma schema cannot express
+/// partial unique indexes.
+/// `label` is an open descriptive string (for example 1080p, 4K, Master,
+/// ProRes Master). It is not a closed enum and is not unique.
+/// `objectKey` is the provider-neutral object-storage key/reference. It is
+/// globally unique so two rows cannot accidentally point at the same object.
+/// Signed URLs and permanent public original URLs are never persisted.
+/// `sizeBytes` is BIGINT so values at and above ~2 GB remain integer-safe.
+/// `mimeType` is metadata only; browser-provided MIME type is not treated as
+/// authoritative security validation (upload content checks belong later).
+/// `width`, `height`, `fps`, and `codec` are nullable because real files may
+/// not always supply every technical value. `fps` uses DECIMAL(10, 3) so rates
+/// such as 23.976 and 29.97 persist without binary floating-point error.
+/// Footage FK uses Restrict: ADR-0004 leaves retention/deletion unresolved, so
+/// deleting Footage must not silently cascade-delete media metadata.
+model FootageFile {
+  id        String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  footageId String          @db.Uuid
+  kind      FootageFileKind
+  label     String          @db.VarChar(120)
+  objectKey String          @unique @db.VarChar(1024)
+  sizeBytes BigInt
+  mimeType  String          @db.VarChar(127)
+  width     Int?
+  height    Int?
+  fps       Decimal?        @db.Decimal(10, 3)
+  codec     String?         @db.VarChar(64)
+  createdAt DateTime        @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime        @updatedAt @db.Timestamptz(3)
+
+  footage Footage @relation(fields: [footageId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([footageId])
 }
