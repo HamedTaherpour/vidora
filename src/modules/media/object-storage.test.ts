@@ -351,6 +351,18 @@ describe("mapS3StorageError", () => {
 
     expect(error.category).toBe("not_found");
   });
+
+  it("maps NoSuchUpload to not_found for completion recovery", () => {
+    const error = mapS3StorageError({
+      error: { name: "NoSuchUpload", $metadata: { httpStatusCode: 404 } },
+      operation: "completeMultipartUpload",
+      provider: "liara-s3",
+      bucket: "vidora-media",
+      objectKey: "footage/a/originals/master.mp4",
+    });
+
+    expect(error.category).toBe("not_found");
+  });
 });
 
 describe("Liara S3 object storage adapter", () => {
@@ -414,6 +426,10 @@ describe("Liara S3 object storage adapter", () => {
     expect(typeof storage.createReadAccess).toBe("function");
     expect(typeof storage.headObject).toBe("function");
     expect(typeof storage.deleteObject).toBe("function");
+    expect(typeof storage.createMultipartUpload).toBe("function");
+    expect(typeof storage.createUploadPartAccess).toBe("function");
+    expect(typeof storage.completeMultipartUpload).toBe("function");
+    expect(typeof storage.abortMultipartUpload).toBe("function");
 
     // ObjectStorage is assignable without referencing AWS SDK command/client types.
     const contractKeys: Array<keyof ObjectStorage> = [
@@ -423,10 +439,63 @@ describe("Liara S3 object storage adapter", () => {
       "createReadAccess",
       "headObject",
       "deleteObject",
+      "createMultipartUpload",
+      "createUploadPartAccess",
+      "completeMultipartUpload",
+      "abortMultipartUpload",
     ];
     for (const key of contractKeys) {
       expect(storage[key]).toBeDefined();
     }
+  });
+
+  it("creates, signs, completes, and aborts multipart uploads through the adapter", async () => {
+    const send = vi
+      .fn()
+      .mockResolvedValueOnce({ UploadId: "mpu-1" })
+      .mockResolvedValueOnce({ ETag: '"complete"' })
+      .mockResolvedValueOnce({});
+    const signUrl = vi
+      .fn()
+      .mockResolvedValue("https://storage.example.test/part?X-Amz-Signature=x");
+    const storage = createTestStorage({
+      send,
+      signUrl,
+      now: () => new Date("2026-10-07T12:00:00.000Z"),
+    });
+
+    const session = await storage.createMultipartUpload({
+      objectKey: "footage/a/originals/master.mp4",
+      accessPolicy: "original",
+      contentType: "video/mp4",
+    });
+    expect(session.uploadId).toBe("mpu-1");
+
+    const partAccess = await storage.createUploadPartAccess({
+      objectKey: session.objectKey,
+      uploadId: session.uploadId,
+      partNumber: 1,
+      accessPolicy: "original",
+    });
+    expect(partAccess.method).toBe("PUT");
+    expect(partAccess.url).toContain("storage.example.test");
+
+    await expect(
+      storage.completeMultipartUpload({
+        objectKey: session.objectKey,
+        uploadId: session.uploadId,
+        parts: [{ partNumber: 1, etag: '"p1"' }],
+      }),
+    ).resolves.toMatchObject({ objectKey: session.objectKey });
+
+    await expect(
+      storage.abortMultipartUpload({
+        objectKey: "footage/a/originals/other.mp4",
+        uploadId: "mpu-abort",
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(send).toHaveBeenCalledTimes(3);
   });
 
   it("rejects unsafe object keys before calling the provider", async () => {

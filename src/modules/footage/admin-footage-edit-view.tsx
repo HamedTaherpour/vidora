@@ -1,6 +1,7 @@
 import type { AdminFootageRecord } from "@/modules/footage/admin-footage-store";
 import type { AdminClassificationOption } from "@/modules/footage/load-admin-footage-edit";
 import { updateAdminFootageMetadataAction } from "@/modules/footage/update-admin-footage-metadata-action";
+import { AdminFootageUploadPanel } from "@/modules/media/admin-footage-upload-panel";
 
 type AdminFootageEditViewProps = {
   footage: AdminFootageRecord;
@@ -12,7 +13,7 @@ type AdminFootageEditViewProps = {
 
 /**
  * Minimal operational Admin Footage editor.
- * Supports CAT-03 editable fields only. No media or bulk lifecycle UI.
+ * CAT-03 metadata fields plus the MEDIA-03 direct-upload panel.
  */
 export function AdminFootageEditView({
   footage,
@@ -162,6 +163,8 @@ export function AdminFootageEditView({
           ذخیره
         </button>
       </form>
+
+      <AdminFootageUploadPanel footageId={footage.id} />
     </div>
   );
 }

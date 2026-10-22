@@ -253,7 +253,7 @@ Session credentials must not be stored in `localStorage` or `sessionStorage`.
 
 Reading the cookie is allowed in a Server Component. Setting it is allowed only in a Route Handler or Server Function. `POST /api/auth/otp/verify` verifies a customer-purpose code and sets the customer cookie. `POST /api/admin/auth/otp/verify` verifies an admin-purpose code and sets the Admin cookie. Later requests, including navigation and reload, restore the account with `resolveCurrentCustomer()` or `resolveCurrentAdmin()`. Those reads do not change `expiresAt`.
 
-`SameSite=Lax` stays on both cookies. Login CSRF for both OTP verification POSTs is the Origin allowlist in section 8. There is no CSRF token and no application-wide CSRF framework. Do not disable framework protections.
+`SameSite=Lax` stays on both cookies. Login CSRF for both OTP verification POSTs, and CSRF protection for Admin media upload control POSTs, use the Origin allowlist in section 8. There is no CSRF token and no application-wide CSRF framework. Do not disable framework protections.
 
 Do not invent a custom JWT architecture unless explicitly required.
 
@@ -267,11 +267,13 @@ Do not disable framework or auth-library protections merely because they interfe
 
 External callbacks such as payment-provider callbacks must be validated using provider-specific verification rather than treated as trusted browser requests.
 
-## OTP verification login CSRF
+## Browser Origin allowlist for sensitive cookie-authenticated POSTs
 
 `POST /api/auth/otp/verify` creates the customer session cookie. `POST /api/admin/auth/otp/verify` creates the Admin session cookie. A cross-site page can submit an attacker's phone and OTP. The browser can store the response `Set-Cookie` for this site even when the cookie is `SameSite=Lax`, because that attribute governs later sends, and this attack is about setting a new session. Both routes therefore check `Origin` before they verify the code and before they set a cookie.
 
-This check is scoped to those OTP verification routes. Do not grow it into application-wide CSRF middleware, a double-submit cookie, or a token framework unless a later requirement says so.
+Admin media upload control endpoints are also cookie-authenticated state-changing POSTs (`/api/admin/media/uploads` and its part/complete/abort routes). They use the same `Origin` allowlist helpers (`allowedBrowserAuthOrigins` / `isAllowedBrowserAuthOrigin`). `SameSite=Lax` alone is not sufficient. Signed direct `PUT`s to object storage are outside this cookie/Origin contract and follow provider signing rules.
+
+This check remains an explicit per-route pattern for those sensitive POSTs. Do not grow it into application-wide CSRF middleware, a double-submit cookie, or a token framework unless a later requirement says so.
 
 ### Allowlist
 
@@ -373,18 +375,21 @@ simplify preview delivery.
 
 # 12. Upload Security
 
-Only the administrator may initiate protected media uploads.
+Only the administrator may initiate protected media uploads, obtain signed UploadPart access, complete multipart uploads, or abort unfinished uploads.
 
 Upload authorization should constrain the upload as much as practical, including relevant:
 
-- object destination;
-- operation;
-- content expectations;
-- expiration.
+- object destination (server-generated `objectKey`);
+- multipart session identity (`providerUploadId` from initiation);
+- expected size (maximum 2 GiB = 2_147_483_648 bytes);
+- part number range for the authorized size;
+- signed-access expiration from configured upload TTLs.
 
 Never expose long-lived object-storage credentials to the browser.
 
-A signed upload authorization is not permission to upload arbitrary objects anywhere in storage.
+Never persist signed part URLs, signed read URLs, or temporary credentials.
+
+A signed upload authorization is not permission to upload arbitrary objects anywhere in storage. Incomplete `FootageFile` rows (`INITIATED` / `FAILED` / `ABORTED`) are not usable media.
 
 ---
 

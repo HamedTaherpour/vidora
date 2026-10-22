@@ -52,7 +52,7 @@ Durable invariants:
 - technical metadata (`width`, `height`, `fps`, `codec`) may be nullable;
 - retention/deletion remains unresolved (ADR-0004); Footage FK deletion is Restrict so media metadata is not silently cascade-deleted.
 
-Upload authorization, multipart Admin upload, and protected customer downloads are later media tasks.
+Protected customer downloads remain a later media task. Admin direct multipart upload is MEDIA-03 (see §8–§11).
 
 ## 1.2 Object Storage Boundary (MEDIA-02)
 
@@ -205,71 +205,139 @@ Object keys should be predictable enough for operations but must not be treated 
 
 `FootageFile.objectKey` is the provider-neutral object identity used with `ObjectStorage`.
 
-A possible organization is:
+Server-generated organization (MEDIA-03):
 
 ```text id="lkt19d"
-footage/{footageId}/preview/...
-footage/{footageId}/originals/...
+footage/{footageId}/preview/{uuid}[.ext]
+footage/{footageId}/originals/{uuid}[.ext]
 ```
 
-Exact naming may evolve. MEDIA-02 does not redesign the object-key format.
+The browser must not choose an arbitrary storage key. Object-key secrecy is not an authorization control.
 
 Knowing an object key must never grant purchase access.
 
 ---
 
-# 8. Upload Flow
+# 8. Upload Flow (MEDIA-03)
 
-Large media uploads must go directly:
+Large Admin media uploads go directly to Liara Object Storage after server-side authorization:
 
-```text id="r5ygvb"
+```text
 Admin Browser
-      ↓
-Object Storage
+    ↓
+Next.js authorization/control endpoint
+    ↓
+ObjectStorage multipart initiation/signing
+    ↓
+Browser uploads parts directly to Liara
+    ↓
+Next.js completion endpoint
+    ↓
+Storage completes multipart upload
+    ↓
+Object existence/metadata confirmed
+    ↓
+FootageFile upload state becomes READY
 ```
 
-after server-side authorization.
+Next.js handles Admin authorization, validation, object-key allocation, multipart initiation, part signing, completion validation, and persistence state.
 
-Do not proxy multi-gigabyte media through Next.js.
+Next.js does **not** transport video bytes. Do not proxy multi-gigabyte media through the application server.
+
+Control routes (cookie-authenticated Admin mutations):
+
+- `POST /api/admin/media/uploads`
+- `POST /api/admin/media/uploads/[id]/parts`
+- `POST /api/admin/media/uploads/[id]/complete`
+- `POST /api/admin/media/uploads/[id]/abort`
+
+These routes apply the approved browser `Origin` allowlist (same helpers as OTP verification). Signed direct `PUT` requests to object storage use provider signing and do not carry the Admin session cookie.
 
 ---
 
 # 9. Upload Authorization
 
-Only the administrator may request upload authorization.
+Only an authenticated Admin may initiate upload, obtain signed part-upload access, complete upload, or abort an unfinished upload.
 
-The application should constrain authorized uploads to the intended object operation and destination.
+Anonymous and Customer callers are denied server-side (`requireAuthenticatedAdmin` / AUTH-05). Admin UI visibility is not a security boundary.
 
-Storage account credentials must never be exposed to the browser.
+Every signing request must be tied to a persisted Admin-authorized upload session (`FootageFile` row). Do not sign arbitrary object keys or arbitrary provider upload IDs supplied by the browser.
+
+Storage account credentials must never be exposed to the browser. Signed part URLs are temporary and must never be persisted.
 
 ---
 
-# 10. Large Files
+# 10. Large Files and Multipart Strategy
 
 Expected individual file size may reach approximately 2 GB.
 
-Use the selected provider's appropriate large-file mechanism.
+Explicit server-side maximum:
 
-Where multipart upload is required:
+```text
+2 GiB = 2_147_483_648 bytes
+```
 
-- track upload identity;
-- complete uploads explicitly;
-- handle failed parts safely;
-- do not mark application media ready before upload completion is confirmed.
+Reject requested uploads larger than this limit before multipart initiation. Browser-reported size is used for authorization and expected-size consistency; it is not sole proof of content.
 
-Do not invent provider-specific part sizes before provider selection.
+## Multipart strategy (Liara S3-compatible)
+
+Liara Object Storage is used through the AWS S3-compatible API. MEDIA-03 uses standard multipart primitives via `ObjectStorage`:
+
+- `CreateMultipartUpload`
+- signed `UploadPart`
+- `CompleteMultipartUpload`
+- `AbortMultipartUpload`
+
+Capability evidence: Liara documents S3-compatible AWS SDK usage; the official `@liara/sdk` exposes incomplete-upload listing/removal and documents transparent multipart for large `putObject` payloads. Live development-bucket probes remain preferred when credentials are available and are not required in default CI.
+
+Browser part `PUT`s require the Liara bucket CORS configuration to allow the Admin app origin for `PUT` (and typically `GET`/`HEAD` preflight as needed). That is an operations concern for the development/production bucket; it is not encoded as application product policy.
+
+Fixed part size (not user-configurable in V1 UI):
+
+```text
+16 MiB = 16_777_216 bytes
+```
+
+Rationale:
+
+- satisfies the S3 minimum of 5 MiB for every part except the last;
+- keeps a 2 GiB object at 128 parts (well under the 10_000 part limit);
+- practical for browser `Blob.slice` memory/network behavior;
+- permits retry of an individual failed part without restarting the full upload.
+
+The browser requests signing for needed part numbers; the server signs only valid part numbers for that persisted session.
+
+Part upload failure: retry that part (bounded client attempts). Do not restart the full ~2 GB upload unless the provider session is lost.
+
+Completion is explicit and server-authorized. Part PUT success alone does not mark media ready. The client submits `{ partNumber, etag }` pairs. The server validates the session and expected part set, calls `CompleteMultipartUpload`, confirms the object with `HeadObject` (including expected size), and only then sets `uploadStatus = READY`.
+
+Failed completion must not mark READY. Preserve durable state for safe retry when provider semantics permit. Do not create a second media row automatically. Idempotent completion of an already-READY session returns success without duplicating the row.
+
+Abort (when supported): Admin-only; marks the row `ABORTED`; does not mark READY; does not delete unrelated objects. No cleanup cron in MEDIA-03.
 
 ---
 
 # 11. Upload State
 
-The database should distinguish enough state to avoid presenting incomplete files as available.
+`FootageFile` carries upload lifecycle fields:
 
-An initiated upload is not equivalent to a completed upload.
+- `uploadStatus`: `INITIATED` | `READY` | `FAILED` | `ABORTED`
+- `providerUploadId`: S3 multipart upload id while unfinished (null when READY/ABORTED)
+- `sizeBytes`: authorized expected size while incomplete; confirmed size when READY
 
-Do not publish or offer a protected download for an object that has not been successfully confirmed.
+Only `READY` rows are usable media. Incomplete uploads must never be presented as downloadable or streamable.
 
-Keep the state model as small as the actual workflow permits.
+Signed URLs are never persisted.
+
+## Preview invariant during upload
+
+The database still allows at most one `PREVIEW` `FootageFile` per Footage.
+
+- A READY preview blocks a new preview upload (replacement/deletion policy is unresolved — do not invent it).
+- A non-ready preview row may be restarted in place for retry (same row identity, new server object key / multipart session).
+- Concurrent second preview rows are rejected by the partial unique index.
+
+Multiple `ORIGINAL` uploads remain allowed. Labels stay open-ended.
 
 ---
 

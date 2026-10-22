@@ -633,7 +633,7 @@ Connect the application to the selected object-storage provider behind a narrow 
 
 ## MEDIA-03 — Implement Direct Admin Upload
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 
 ### Depends On
 

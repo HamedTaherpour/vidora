@@ -12,8 +12,9 @@ import type { ObjectStorage } from "@/modules/media/object-storage";
  * Constructs the application ObjectStorage boundary.
  * Storage credentials are parsed here so boot, build, and default CI do not
  * require a live Liara account. Signed-access TTL env vars are parsed lazily
- * only when createReadAccess / createUploadAccess runs. Call only from
- * server-side media/infrastructure code. Do not import from Client Components.
+ * only when createReadAccess / createUploadAccess / createUploadPartAccess runs.
+ * Call only from server-side media/infrastructure code. Do not import from
+ * Client Components.
  */
 export function createObjectStorage(): ObjectStorage {
   return createLiaraS3ObjectStorageFromEnv();

@@ -1,8 +1,12 @@
 import {
+  AbortMultipartUploadCommand,
+  CompleteMultipartUploadCommand,
+  CreateMultipartUploadCommand,
   DeleteObjectCommand,
   GetObjectCommand,
   HeadObjectCommand,
   PutObjectCommand,
+  UploadPartCommand,
   S3Client,
   type S3ClientConfig,
 } from "@aws-sdk/client-s3";
@@ -21,6 +25,7 @@ import {
   signedUploadTtlSeconds,
   type SignedAccessTtlResolver,
 } from "@/modules/media/storage-access-policy";
+import { MULTIPART_MAX_PART_NUMBER } from "@/modules/media/upload-limits";
 
 const PROVIDER = "liara-s3" as const;
 const MAX_OBJECT_KEY_LENGTH = 1024;
@@ -34,11 +39,16 @@ export type LiaraS3StorageConfig = {
   forcePathStyle: boolean;
 };
 
+type SignableCommand = GetObjectCommand | PutObjectCommand | UploadPartCommand;
+
 type SignUrl = (
   client: S3Client,
-  command: GetObjectCommand | PutObjectCommand,
+  command: SignableCommand,
   options: { expiresIn: number },
 ) => Promise<string>;
+
+const defaultSignUrl: SignUrl = (client, command, options) =>
+  getSignedUrl(client, command as never, options);
 
 type LiaraS3ObjectStorageDeps = {
   config: LiaraS3StorageConfig;
@@ -94,6 +104,23 @@ function assertObjectKey(objectKey: string, bucket: string): string {
   return trimmed;
 }
 
+function assertPartNumber(partNumber: number, bucket: string): number {
+  if (
+    !Number.isInteger(partNumber) ||
+    partNumber < 1 ||
+    partNumber > MULTIPART_MAX_PART_NUMBER
+  ) {
+    throw new ObjectStorageError({
+      category: "invalid_request",
+      operation: "validatePartNumber",
+      provider: PROVIDER,
+      bucket,
+    });
+  }
+
+  return partNumber;
+}
+
 function createS3Client(config: LiaraS3StorageConfig): S3Client {
   const clientConfig: S3ClientConfig = {
     region: config.region,
@@ -134,7 +161,7 @@ export function createLiaraS3ObjectStorage({
   config,
   signedAccessTtl = createEnvSignedAccessTtlResolver(),
   client = createS3Client(config),
-  signUrl = getSignedUrl,
+  signUrl = defaultSignUrl,
   now = () => new Date(),
 }: LiaraS3ObjectStorageDeps): LiaraS3ObjectStorage {
   const bucket = config.bucket;
@@ -302,6 +329,187 @@ export function createLiaraS3ObjectStorage({
     }
   }
 
+  async function createMultipartUpload({
+    objectKey,
+    accessPolicy,
+    contentType,
+  }: Parameters<ObjectStorage["createMultipartUpload"]>[0]) {
+    const key = assertObjectKey(objectKey, bucket);
+
+    try {
+      const output = await client.send(
+        new CreateMultipartUploadCommand({
+          Bucket: bucket,
+          Key: key,
+          ContentType: contentType,
+        }),
+      );
+
+      if (output.UploadId === undefined || output.UploadId.length === 0) {
+        throw new ObjectStorageError({
+          category: "provider",
+          operation: "createMultipartUpload",
+          provider: PROVIDER,
+          bucket,
+          objectKey: key,
+        });
+      }
+
+      return {
+        objectKey: key,
+        uploadId: output.UploadId,
+        accessPolicy,
+      };
+    } catch (error) {
+      if (error instanceof ObjectStorageError) {
+        throw error;
+      }
+
+      throw mapS3StorageError({
+        error,
+        operation: "createMultipartUpload",
+        provider: PROVIDER,
+        bucket,
+        objectKey: key,
+      });
+    }
+  }
+
+  async function createUploadPartAccess({
+    objectKey,
+    uploadId,
+    partNumber,
+    accessPolicy,
+  }: Parameters<
+    ObjectStorage["createUploadPartAccess"]
+  >[0]): Promise<TemporaryObjectAccess> {
+    const key = assertObjectKey(objectKey, bucket);
+    const part = assertPartNumber(partNumber, bucket);
+    const expiresIn = signedUploadTtlSeconds(
+      accessPolicy,
+      signedAccessTtl.resolveUploadTtl(),
+    );
+
+    if (uploadId.trim().length === 0) {
+      throw new ObjectStorageError({
+        category: "invalid_request",
+        operation: "createUploadPartAccess",
+        provider: PROVIDER,
+        bucket,
+        objectKey: key,
+      });
+    }
+
+    try {
+      const command = new UploadPartCommand({
+        Bucket: bucket,
+        Key: key,
+        UploadId: uploadId,
+        PartNumber: part,
+      });
+      const url = await signUrl(client, command, { expiresIn });
+
+      return {
+        url,
+        method: "PUT",
+        expiresAt: new Date(now().getTime() + expiresIn * 1000),
+        accessPolicy,
+        objectKey: key,
+      };
+    } catch (error) {
+      throw mapS3StorageError({
+        error,
+        operation: "createUploadPartAccess",
+        provider: PROVIDER,
+        bucket,
+        objectKey: key,
+      });
+    }
+  }
+
+  async function completeMultipartUpload({
+    objectKey,
+    uploadId,
+    parts,
+  }: Parameters<
+    ObjectStorage["completeMultipartUpload"]
+  >[0]): Promise<StorageObjectMetadata> {
+    const key = assertObjectKey(objectKey, bucket);
+
+    if (uploadId.trim().length === 0 || parts.length === 0) {
+      throw new ObjectStorageError({
+        category: "invalid_request",
+        operation: "completeMultipartUpload",
+        provider: PROVIDER,
+        bucket,
+        objectKey: key,
+      });
+    }
+
+    try {
+      const output = await client.send(
+        new CompleteMultipartUploadCommand({
+          Bucket: bucket,
+          Key: key,
+          UploadId: uploadId,
+          MultipartUpload: {
+            Parts: parts.map((part) => ({
+              PartNumber: part.partNumber,
+              ETag: part.etag,
+            })),
+          },
+        }),
+      );
+
+      return toMetadata(key, {
+        ETag: output.ETag,
+      });
+    } catch (error) {
+      throw mapS3StorageError({
+        error,
+        operation: "completeMultipartUpload",
+        provider: PROVIDER,
+        bucket,
+        objectKey: key,
+      });
+    }
+  }
+
+  async function abortMultipartUpload({
+    objectKey,
+    uploadId,
+  }: Parameters<ObjectStorage["abortMultipartUpload"]>[0]): Promise<void> {
+    const key = assertObjectKey(objectKey, bucket);
+
+    if (uploadId.trim().length === 0) {
+      throw new ObjectStorageError({
+        category: "invalid_request",
+        operation: "abortMultipartUpload",
+        provider: PROVIDER,
+        bucket,
+        objectKey: key,
+      });
+    }
+
+    try {
+      await client.send(
+        new AbortMultipartUploadCommand({
+          Bucket: bucket,
+          Key: key,
+          UploadId: uploadId,
+        }),
+      );
+    } catch (error) {
+      throw mapS3StorageError({
+        error,
+        operation: "abortMultipartUpload",
+        provider: PROVIDER,
+        bucket,
+        objectKey: key,
+      });
+    }
+  }
+
   return {
     provider: PROVIDER,
     bucket,
@@ -310,5 +518,9 @@ export function createLiaraS3ObjectStorage({
     headObject,
     deleteObject,
     putObjectBytes,
+    createMultipartUpload,
+    createUploadPartAccess,
+    completeMultipartUpload,
+    abortMultipartUpload,
   };
 }

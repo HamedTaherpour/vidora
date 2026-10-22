@@ -87,9 +87,44 @@ export type DeleteObjectParams = {
   objectKey: string;
 };
 
+export type CreateMultipartUploadParams = {
+  objectKey: string;
+  accessPolicy: ObjectAccessPolicy;
+  contentType: string;
+};
+
+export type MultipartUploadSession = {
+  objectKey: string;
+  uploadId: string;
+  accessPolicy: ObjectAccessPolicy;
+};
+
+export type CreateUploadPartAccessParams = {
+  objectKey: string;
+  uploadId: string;
+  partNumber: number;
+  accessPolicy: ObjectAccessPolicy;
+};
+
+export type CompletedMultipartPart = {
+  partNumber: number;
+  etag: string;
+};
+
+export type CompleteMultipartUploadParams = {
+  objectKey: string;
+  uploadId: string;
+  parts: CompletedMultipartPart[];
+};
+
+export type AbortMultipartUploadParams = {
+  objectKey: string;
+  uploadId: string;
+};
+
 /**
- * Narrow storage operations needed to prove integration and support later
- * upload/download tasks. Not a generic storage SDK.
+ * Narrow storage operations needed for media integration and Admin
+ * direct multipart upload. Not a generic storage SDK.
  */
 export type ObjectStorage = {
   readonly provider: ObjectStorageProviderName;
@@ -107,4 +142,14 @@ export type ObjectStorage = {
    * Not an approved media-retention or automatic cleanup policy.
    */
   deleteObject(params: DeleteObjectParams): Promise<void>;
+  createMultipartUpload(
+    params: CreateMultipartUploadParams,
+  ): Promise<MultipartUploadSession>;
+  createUploadPartAccess(
+    params: CreateUploadPartAccessParams,
+  ): Promise<TemporaryObjectAccess>;
+  completeMultipartUpload(
+    params: CompleteMultipartUploadParams,
+  ): Promise<StorageObjectMetadata>;
+  abortMultipartUpload(params: AbortMultipartUploadParams): Promise<void>;
 };

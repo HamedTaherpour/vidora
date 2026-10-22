@@ -51,6 +51,7 @@ function categorizeS3Failure(error: unknown): ObjectStorageErrorCategory {
   if (
     name === "NotFound" ||
     name === "NoSuchKey" ||
+    name === "NoSuchUpload" ||
     name === "NotFoundError" ||
     status === 404
   ) {

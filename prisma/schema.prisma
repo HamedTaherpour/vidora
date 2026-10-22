@@ -227,6 +227,17 @@ enum FootageFileKind {
   ORIGINAL
 }
 
+/// Admin direct-upload lifecycle for a FootageFile row.
+/// INITIATED/FAILED/ABORTED rows are not usable media. Only READY may be
+/// treated as a completed physical file for later preview/download tasks.
+/// MEDIA-01 rows that predate upload lifecycle default to READY.
+enum FootageFileUploadStatus {
+  INITIATED
+  READY
+  FAILED
+  ABORTED
+}
+
 /// Physical media file associated with one purchasable Footage.
 /// Footage (catalog product) and FootageFile (storage object metadata) are
 /// separate concepts. One Footage may have at most one PREVIEW file and any
@@ -239,6 +250,9 @@ enum FootageFileKind {
 /// globally unique so two rows cannot accidentally point at the same object.
 /// Signed URLs and permanent public original URLs are never persisted.
 /// `sizeBytes` is BIGINT so values at and above ~2 GB remain integer-safe.
+/// During INITIATED it stores the Admin-authorized expected size; after READY
+/// it is the confirmed object size. `providerUploadId` holds the S3 multipart
+/// upload identity only while the upload is unfinished.
 /// `mimeType` is metadata only; browser-provided MIME type is not treated as
 /// authoritative security validation (upload content checks belong later).
 /// `width`, `height`, `fps`, and `codec` are nullable because real files may
@@ -247,21 +261,24 @@ enum FootageFileKind {
 /// Footage FK uses Restrict: ADR-0004 leaves retention/deletion unresolved, so
 /// deleting Footage must not silently cascade-delete media metadata.
 model FootageFile {
-  id        String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  footageId String          @db.Uuid
-  kind      FootageFileKind
-  label     String          @db.VarChar(120)
-  objectKey String          @unique @db.VarChar(1024)
-  sizeBytes BigInt
-  mimeType  String          @db.VarChar(127)
-  width     Int?
-  height    Int?
-  fps       Decimal?        @db.Decimal(10, 3)
-  codec     String?         @db.VarChar(64)
-  createdAt DateTime        @default(now()) @db.Timestamptz(3)
-  updatedAt DateTime        @updatedAt @db.Timestamptz(3)
+  id               String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  footageId        String                  @db.Uuid
+  kind             FootageFileKind
+  label            String                  @db.VarChar(120)
+  objectKey        String                  @unique @db.VarChar(1024)
+  sizeBytes        BigInt
+  mimeType         String                  @db.VarChar(127)
+  uploadStatus     FootageFileUploadStatus @default(READY)
+  providerUploadId String?                 @db.VarChar(255)
+  width            Int?
+  height           Int?
+  fps              Decimal?                @db.Decimal(10, 3)
+  codec            String?                 @db.VarChar(64)
+  createdAt        DateTime                @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime                @updatedAt @db.Timestamptz(3)
 
   footage Footage @relation(fields: [footageId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   @@index([footageId])
+  @@index([uploadStatus])
 }
