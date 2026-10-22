@@ -442,28 +442,29 @@ export async function completeAdminMediaUpload({
   const parts = normalizeCompletedParts(parsed.data.parts, expectedCount);
   const expectedSize = Number(existing.sizeBytes);
 
-  const confirmReady = async (): Promise<CompleteAdminMediaUploadResult | null> => {
-    const check = await checkCompletedObjectSize({
-      storage,
-      objectKey: existing.objectKey,
-      expectedSizeBytes: expectedSize,
-    });
-
-    if (check.status === "match") {
-      return markReadyAfterVerifiedSize({
-        store,
-        uploadId: existing.id,
-        sizeBytes: check.sizeBytes,
+  const confirmReady =
+    async (): Promise<CompleteAdminMediaUploadResult | null> => {
+      const check = await checkCompletedObjectSize({
+        storage,
+        objectKey: existing.objectKey,
+        expectedSizeBytes: expectedSize,
       });
-    }
 
-    if (check.status === "mismatch") {
-      await store.markFailed(existing.id);
-      throw new UploadCompletionFailedError();
-    }
+      if (check.status === "match") {
+        return markReadyAfterVerifiedSize({
+          store,
+          uploadId: existing.id,
+          sizeBytes: check.sizeBytes,
+        });
+      }
 
-    return null;
-  };
+      if (check.status === "mismatch") {
+        await store.markFailed(existing.id);
+        throw new UploadCompletionFailedError();
+      }
+
+      return null;
+    };
 
   // Provider may already have assembled the object (lost response / DB write fail).
   const recoveredBeforeComplete = await confirmReady();
@@ -499,10 +500,7 @@ export async function completeAdminMediaUpload({
 
     // Keep INITIATED/FAILED for retryable part/ETag/provider failures.
     // Mark FAILED only when the multipart session is gone and no object exists.
-    if (
-      error instanceof ObjectStorageError &&
-      error.category === "not_found"
-    ) {
+    if (error instanceof ObjectStorageError && error.category === "not_found") {
       await store.markFailed(existing.id);
     }
 

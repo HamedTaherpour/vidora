@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import {
@@ -62,6 +63,7 @@ async function readJson(response: Response): Promise<unknown> {
 export function AdminFootageUploadPanel({
   footageId,
 }: AdminFootageUploadPanelProps) {
+  const router = useRouter();
   const [kind, setKind] = useState<UploadKind>("PREVIEW");
   const [label, setLabel] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -178,6 +180,7 @@ export function AdminFootageUploadPanel({
       );
       setProgressText(null);
       setFile(null);
+      router.refresh();
     } catch (error) {
       const message = error instanceof Error ? error.message : "upload_failed";
       setErrorText(`آپلود متوقف شد (${message}).`);

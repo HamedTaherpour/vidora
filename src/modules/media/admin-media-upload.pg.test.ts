@@ -19,6 +19,7 @@ import {
   UploadSessionNotActiveError,
 } from "@/modules/media/admin-media-upload-errors";
 import { createPrismaAdminMediaUploadStore } from "@/modules/media/prisma-admin-media-upload-store";
+import { createPrismaAdminOriginalVariantStore } from "@/modules/media/prisma-admin-original-variants";
 import type { ObjectStorage } from "@/modules/media/object-storage";
 import { MULTIPART_PART_SIZE_BYTES } from "@/modules/media/upload-limits";
 
@@ -310,6 +311,64 @@ describe("MEDIA-03 upload lifecycle PostgreSQL contract", () => {
     expect(count).toBe(2);
   });
 
+  it("updates only an ORIGINAL label and preserves storage and lifecycle identity", async () => {
+    const client = requirePrisma();
+    const footageId = await createTestFootage("original-label-edit");
+    const objectKey = trackKey(`footage/${footageId}/originals/label-edit.mp4`);
+    const row = await client.footageFile.create({
+      data: {
+        footageId,
+        kind: "ORIGINAL",
+        label: "1080p",
+        objectKey,
+        sizeBytes: BigInt(2_000),
+        mimeType: "video/mp4",
+        uploadStatus: "INITIATED",
+        providerUploadId: "provider-label-edit",
+      },
+    });
+    const store = createPrismaAdminOriginalVariantStore(client);
+
+    const updated = await store.updateLabel({
+      footageId,
+      variantId: row.id,
+      label: "Master",
+    });
+
+    expect(updated).toMatchObject({
+      id: row.id,
+      footageId,
+      label: "Master",
+      sizeBytes: 2_000,
+      uploadStatus: "INITIATED",
+    });
+    const persisted = await client.footageFile.findUniqueOrThrow({
+      where: { id: row.id },
+    });
+    expect(persisted.objectKey).toBe(objectKey);
+    expect(persisted.providerUploadId).toBe("provider-label-edit");
+    expect(persisted.uploadStatus).toBe("INITIATED");
+
+    const preview = await client.footageFile.create({
+      data: {
+        footageId,
+        kind: "PREVIEW",
+        label: "Preview",
+        objectKey: trackKey(`footage/${footageId}/preview/label-edit.mp4`),
+        sizeBytes: BigInt(1_000),
+        mimeType: "video/mp4",
+        uploadStatus: "READY",
+      },
+    });
+    await expect(
+      store.updateLabel({
+        footageId,
+        variantId: preview.id,
+        label: "Original",
+      }),
+    ).resolves.toBeNull();
+  });
+
   it("rejects a second PREVIEW row at the database when application checks are bypassed", async () => {
     const client = requirePrisma();
     const footageId = await createTestFootage("preview-db");
@@ -425,7 +484,9 @@ describe("MEDIA-03 upload lifecycle PostgreSQL contract", () => {
         etag: '"recovered"',
       }),
       completeMultipartUpload: async () => {
-        throw new Error("complete must not run when HeadObject already matches");
+        throw new Error(
+          "complete must not run when HeadObject already matches",
+        );
       },
     });
 

@@ -3,14 +3,19 @@ import type { AdminClassificationOption } from "@/modules/footage/load-admin-foo
 import { updateAdminFootageMetadataAction } from "@/modules/footage/update-admin-footage-metadata-action";
 import { AdminFootageUploadPanel } from "@/modules/media/admin-footage-upload-panel";
 import type { AdminFootagePreviewSummary } from "@/modules/media/admin-footage-preview-store";
+import type { AdminOriginalVariant } from "@/modules/media/admin-original-variants";
+import { updateAdminOriginalVariantLabelAction } from "@/modules/media/update-admin-original-variant-label-action";
 
 type AdminFootageEditViewProps = {
   footage: AdminFootageRecord;
   preview: AdminFootagePreviewSummary;
   categories: AdminClassificationOption[];
   tags: AdminClassificationOption[];
+  originalVariants: AdminOriginalVariant[];
   saved?: boolean;
   error?: string | null;
+  variantSaved?: boolean;
+  variantError?: string | null;
 };
 
 /**
@@ -22,8 +27,11 @@ export function AdminFootageEditView({
   preview,
   categories,
   tags,
+  originalVariants,
   saved = false,
   error = null,
+  variantSaved = false,
+  variantError = null,
 }: AdminFootageEditViewProps) {
   const selectedTags = new Set(footage.tagIds);
   const action = updateAdminFootageMetadataAction.bind(null, footage.id);
@@ -168,6 +176,109 @@ export function AdminFootageEditView({
       </form>
 
       <AdminFootageUploadPanel footageId={footage.id} />
+
+      <section className="flex flex-col gap-3 border-t border-border pt-6">
+        <h2 className="text-lg font-semibold">فایل‌های اصلی</h2>
+        <p className="text-sm text-muted-foreground">
+          فقط فایل‌های آماده قابل استفاده برای دانلود هستند. فایل‌های اصلی
+          خصوصی‌اند و در این بخش لینک عمومی ندارند.
+        </p>
+        {variantSaved ? (
+          <p role="status" className="text-sm">
+            برچسب فایل ذخیره شد.
+          </p>
+        ) : null}
+        {variantError ? (
+          <p role="alert" className="text-sm text-destructive">
+            ویرایش فایل انجام نشد ({variantError}).
+          </p>
+        ) : null}
+        {originalVariants.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            فایل اصلی ثبت نشده است.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-right text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="p-2">برچسب</th>
+                  <th className="p-2">حجم</th>
+                  <th className="p-2">نوع</th>
+                  <th className="p-2">مشخصات فنی</th>
+                  <th className="p-2">وضعیت</th>
+                  <th className="p-2">تاریخ ایجاد</th>
+                  <th className="p-2">ویرایش</th>
+                </tr>
+              </thead>
+              <tbody>
+                {originalVariants.map((variant) => {
+                  const action = updateAdminOriginalVariantLabelAction.bind(
+                    null,
+                    footage.id,
+                    variant.id,
+                  );
+                  return (
+                    <tr key={variant.id} className="border-b border-border">
+                      <td className="p-2">{variant.label}</td>
+                      <td className="p-2" dir="ltr">
+                        {variant.sizeBytes.toLocaleString("fa-IR")} بایت
+                      </td>
+                      <td className="p-2" dir="ltr">
+                        {variant.mimeType}
+                      </td>
+                      <td className="p-2" dir="ltr">
+                        {[
+                          variant.width && variant.height
+                            ? `${variant.width}×${variant.height}`
+                            : null,
+                          variant.fps ? `${variant.fps} fps` : null,
+                          variant.codec,
+                        ]
+                          .filter((value): value is string => value !== null)
+                          .join(" · ") || "—"}
+                      </td>
+                      <td className="p-2">
+                        {variant.uploadStatus}
+                        {variant.uploadStatus === "READY"
+                          ? " — قابل دانلود"
+                          : " — غیرقابل استفاده"}
+                      </td>
+                      <td className="p-2" dir="ltr">
+                        {variant.createdAt.toLocaleDateString("fa-IR")}
+                      </td>
+                      <td className="p-2">
+                        <form action={action} className="flex gap-2">
+                          <label
+                            htmlFor={`variant-label-${variant.id}`}
+                            className="sr-only"
+                          >
+                            برچسب {variant.label}
+                          </label>
+                          <input
+                            id={`variant-label-${variant.id}`}
+                            name="label"
+                            required
+                            maxLength={120}
+                            defaultValue={variant.label}
+                            className="min-w-32 rounded-md border border-input bg-background px-2 py-1"
+                          />
+                          <button
+                            type="submit"
+                            className="rounded-md border border-input px-2 py-1"
+                          >
+                            ذخیره
+                          </button>
+                        </form>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
       <section className="flex flex-col gap-3 border-t border-border pt-6">
         <h2 className="text-lg font-semibold">پیش‌نمایش</h2>

@@ -103,6 +103,14 @@ They must not use permanent public URLs.
 
 Access requires server-side purchase authorization.
 
+During MEDIA-05, Admin may list ORIGINAL variants on the protected Footage
+editor and edit only their descriptive `label`. Labels remain open-ended and
+non-unique. The edit preserves `objectKey`, storage-verified properties,
+`providerUploadId`, and `uploadStatus`; it performs no storage operation and
+does not delete or replace a physical object. Only `READY` variants are
+usable files. Customer entitlement and download access remain deferred to the
+later download tasks.
+
 ---
 
 # 4. File Labels

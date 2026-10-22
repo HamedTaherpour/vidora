@@ -203,7 +203,10 @@ function createFakeStorage(
       accessPolicy,
     })),
     createUploadPartAccess: vi.fn(
-      async ({ objectKey: key, accessPolicy }): Promise<TemporaryObjectAccess> => ({
+      async ({
+        objectKey: key,
+        accessPolicy,
+      }): Promise<TemporaryObjectAccess> => ({
         url: "https://storage.example.test/signed-part",
         method: "PUT",
         expiresAt: new Date("2026-10-07T12:05:00.000Z"),
@@ -537,15 +540,12 @@ describe("completeAdminMediaUpload", () => {
     const record = makeRecord();
     const store = createMemoryStore([record]);
     const storage = createFakeStorage({
-      headObject: vi
-        .fn()
-        .mockResolvedValueOnce(null)
-        .mockResolvedValue({
-          objectKey: record.objectKey,
-          sizeBytes: 1,
-          contentType: "video/mp4",
-          etag: '"x"',
-        }),
+      headObject: vi.fn().mockResolvedValueOnce(null).mockResolvedValue({
+        objectKey: record.objectKey,
+        sizeBytes: 1,
+        contentType: "video/mp4",
+        etag: '"x"',
+      }),
     });
 
     await expect(

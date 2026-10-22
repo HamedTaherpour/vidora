@@ -676,7 +676,7 @@ Allow Admin to associate a prepared watermarked preview with Footage.
 
 ## MEDIA-05 — Implement Original Variant Management
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 
 ### Depends On
 

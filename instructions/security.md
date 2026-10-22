@@ -271,7 +271,7 @@ External callbacks such as payment-provider callbacks must be validated using pr
 
 `POST /api/auth/otp/verify` creates the customer session cookie. `POST /api/admin/auth/otp/verify` creates the Admin session cookie. A cross-site page can submit an attacker's phone and OTP. The browser can store the response `Set-Cookie` for this site even when the cookie is `SameSite=Lax`, because that attribute governs later sends, and this attack is about setting a new session. Both routes therefore check `Origin` before they verify the code and before they set a cookie.
 
-Admin media upload control endpoints are also cookie-authenticated state-changing POSTs (`/api/admin/media/uploads` and its part/complete/abort routes). They use the same `Origin` allowlist helpers (`allowedBrowserAuthOrigins` / `isAllowedBrowserAuthOrigin`). `SameSite=Lax` alone is not sufficient. Signed direct `PUT`s to object storage are outside this cookie/Origin contract and follow provider signing rules.
+Admin media upload control endpoints are also cookie-authenticated state-changing POSTs (`/api/admin/media/uploads` and its part/complete/abort routes). They use the same `Origin` allowlist helpers (`allowedBrowserAuthOrigins` / `isAllowedBrowserAuthOrigin`). The Admin original-variant label edit uses a Next.js Server Action, so it remains behind the framework's Server Action request-origin protection and performs the same server-side Admin authorization check. `SameSite=Lax` alone is not sufficient. Signed direct `PUT`s to object storage are outside this cookie/Origin contract and follow provider signing rules.
 
 This check remains an explicit per-route pattern for those sensitive POSTs. Do not grow it into application-wide CSRF middleware, a double-submit cookie, or a token framework unless a later requirement says so.
 
@@ -332,6 +332,11 @@ Payment secrets remain server-side.
 # 10. Download Security
 
 Original Footage files are private.
+
+The protected Admin Footage editor may show original metadata, including
+upload lifecycle state, but never exposes original object keys, provider upload
+IDs, public URLs, or signed-read access. Metadata-only label edits do not call
+object deletion and do not change storage identity or lifecycle state.
 
 Before granting access:
 
