@@ -4,6 +4,7 @@ import { Prisma, type PrismaClient } from "@/generated/prisma/client";
 import {
   CategoryNotFoundError,
   FootageNotFoundError,
+  FootagePreviewNotReadyError,
   FootageSlugConflictError,
   TagNotFoundError,
 } from "@/modules/footage/admin-footage-errors";
@@ -93,6 +94,19 @@ export function createPrismaAdminFootageStore(
       });
 
       return category !== null;
+    },
+
+    async hasReadyPreview(footageId) {
+      const preview = await client.footageFile.findFirst({
+        where: {
+          footageId,
+          kind: "PREVIEW",
+          uploadStatus: "READY",
+        },
+        select: { id: true },
+      });
+
+      return preview !== null;
     },
 
     async findExistingTagIds(tagIds) {
@@ -205,17 +219,74 @@ export function createPrismaAdminFootageStore(
 
     async setPublished(data: PublishFootagePersistence) {
       try {
-        const row = await client.footage.update({
-          where: { id: data.footageId },
-          data: {
-            status: "PUBLISHED",
-            publishedAt: data.publishedAt,
-          },
-          include: footageInclude,
+        const row = await client.$transaction(async (tx) => {
+          const current = await tx.footage.findUnique({
+            where: { id: data.footageId },
+            include: footageInclude,
+          });
+
+          if (!current) {
+            throw new FootageNotFoundError();
+          }
+
+          if (current.status === "PUBLISHED" && current.publishedAt !== null) {
+            return current;
+          }
+
+          const updatedCount = await tx.footage.updateMany({
+            where: {
+              id: data.footageId,
+              status: "DRAFT",
+              footageFiles: {
+                some: {
+                  kind: "PREVIEW",
+                  uploadStatus: "READY",
+                },
+              },
+            },
+            data: {
+              status: "PUBLISHED",
+              publishedAt: data.publishedAt,
+            },
+          });
+
+          if (updatedCount.count === 0) {
+            const afterRace = await tx.footage.findUnique({
+              where: { id: data.footageId },
+              include: footageInclude,
+            });
+
+            if (
+              afterRace?.status === "PUBLISHED" &&
+              afterRace.publishedAt !== null
+            ) {
+              return afterRace;
+            }
+
+            throw new FootagePreviewNotReadyError();
+          }
+
+          const published = await tx.footage.findUnique({
+            where: { id: data.footageId },
+            include: footageInclude,
+          });
+
+          if (!published) {
+            throw new FootageNotFoundError();
+          }
+
+          return published;
         });
 
         return toRecord(row);
       } catch (error) {
+        if (
+          error instanceof FootageNotFoundError ||
+          error instanceof FootagePreviewNotReadyError
+        ) {
+          throw error;
+        }
+
         if (
           error instanceof Prisma.PrismaClientKnownRequestError &&
           error.code === "P2025"

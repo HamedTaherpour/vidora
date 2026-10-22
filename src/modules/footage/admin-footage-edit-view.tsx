@@ -2,9 +2,11 @@ import type { AdminFootageRecord } from "@/modules/footage/admin-footage-store";
 import type { AdminClassificationOption } from "@/modules/footage/load-admin-footage-edit";
 import { updateAdminFootageMetadataAction } from "@/modules/footage/update-admin-footage-metadata-action";
 import { AdminFootageUploadPanel } from "@/modules/media/admin-footage-upload-panel";
+import type { AdminFootagePreviewSummary } from "@/modules/media/admin-footage-preview-store";
 
 type AdminFootageEditViewProps = {
   footage: AdminFootageRecord;
+  preview: AdminFootagePreviewSummary;
   categories: AdminClassificationOption[];
   tags: AdminClassificationOption[];
   saved?: boolean;
@@ -17,6 +19,7 @@ type AdminFootageEditViewProps = {
  */
 export function AdminFootageEditView({
   footage,
+  preview,
   categories,
   tags,
   saved = false,
@@ -165,6 +168,42 @@ export function AdminFootageEditView({
       </form>
 
       <AdminFootageUploadPanel footageId={footage.id} />
+
+      <section className="flex flex-col gap-3 border-t border-border pt-6">
+        <h2 className="text-lg font-semibold">پیش‌نمایش</h2>
+        <dl className="grid gap-2 text-sm">
+          <div className="flex justify-between gap-4">
+            <dt>وجود فایل</dt>
+            <dd>{preview.exists ? "دارد" : "ندارد"}</dd>
+          </div>
+          <div className="flex justify-between gap-4">
+            <dt>وضعیت آپلود</dt>
+            <dd>{preview.uploadStatus ?? "—"}</dd>
+          </div>
+          <div className="flex justify-between gap-4">
+            <dt>قابل انتشار</dt>
+            <dd>{preview.isReady ? "بله" : "خیر"}</dd>
+          </div>
+        </dl>
+        {footage.status === "PUBLISHED" && preview.isReady ? (
+          <div className="flex gap-3 text-sm">
+            <a
+              href={`/api/footage/${footage.id}/preview?mode=stream`}
+              target="_blank"
+              rel="noreferrer"
+              className="underline"
+            >
+              پخش پیش‌نمایش
+            </a>
+            <a
+              href={`/api/footage/${footage.id}/preview?mode=download`}
+              className="underline"
+            >
+              دانلود پیش‌نمایش
+            </a>
+          </div>
+        ) : null}
+      </section>
     </div>
   );
 }

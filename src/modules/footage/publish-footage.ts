@@ -2,6 +2,7 @@ import {
   CategoryNotFoundError,
   FootageNotFoundError,
   FootageNotReadyToPublishError,
+  FootagePreviewNotReadyError,
 } from "@/modules/footage/admin-footage-errors";
 import {
   FOOTAGE_SLUG_MAX_LENGTH,
@@ -70,6 +71,10 @@ export async function publishFootage({
 
   if (!isReadyToPublish(footage)) {
     throw new FootageNotReadyToPublishError();
+  }
+
+  if (!(await store.hasReadyPreview(footageId))) {
+    throw new FootagePreviewNotReadyError();
   }
 
   if (!(await store.categoryExists(footage.categoryId))) {

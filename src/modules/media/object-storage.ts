@@ -77,6 +77,8 @@ export type CreateUploadAccessParams = {
 export type CreateReadAccessParams = {
   objectKey: string;
   accessPolicy: ObjectAccessPolicy;
+  responseContentType?: string;
+  responseContentDisposition?: "inline" | "attachment";
 };
 
 export type HeadObjectParams = {

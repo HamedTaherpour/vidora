@@ -56,3 +56,12 @@ export class FootageNotReadyToPublishError extends Error {
     this.name = "FootageNotReadyToPublishError";
   }
 }
+
+export class FootagePreviewNotReadyError extends Error {
+  readonly code = "footage_preview_not_ready" as const;
+
+  constructor() {
+    super("Footage requires a ready preview before publication.");
+    this.name = "FootagePreviewNotReadyError";
+  }
+}

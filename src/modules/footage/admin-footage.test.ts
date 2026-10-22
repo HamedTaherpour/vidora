@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   CategoryNotFoundError,
   FootageNotFoundError,
+  FootagePreviewNotReadyError,
   FootageSlugConflictError,
   TagNotFoundError,
 } from "@/modules/footage/admin-footage-errors";
@@ -64,10 +65,18 @@ function createMemoryStore(): AdminFootageStore & {
   footageById: Map<string, AdminFootageRecord>;
   categories: Set<string>;
   tags: Set<string>;
+  previewStatusByFootage: Map<
+    string,
+    "INITIATED" | "READY" | "FAILED" | "ABORTED"
+  >;
 } {
   const footageById = new Map<string, AdminFootageRecord>();
   const categories = new Set<string>([CATEGORY_A, CATEGORY_B]);
   const tags = new Set<string>([TAG_A, TAG_B, TAG_C]);
+  const previewStatusByFootage = new Map<
+    string,
+    "INITIATED" | "READY" | "FAILED" | "ABORTED"
+  >();
   let clock = NOW.getTime();
 
   function nextTimestamp(): Date {
@@ -79,13 +88,22 @@ function createMemoryStore(): AdminFootageStore & {
     footageById: Map<string, AdminFootageRecord>;
     categories: Set<string>;
     tags: Set<string>;
+    previewStatusByFootage: Map<
+      string,
+      "INITIATED" | "READY" | "FAILED" | "ABORTED"
+    >;
   } = {
     footageById,
     categories,
     tags,
+    previewStatusByFootage,
 
     async categoryExists(categoryId) {
       return categories.has(categoryId);
+    },
+
+    async hasReadyPreview(footageId) {
+      return previewStatusByFootage.get(footageId) === "READY";
     },
 
     async findExistingTagIds(tagIds) {
@@ -209,6 +227,21 @@ function createMemoryStore(): AdminFootageStore & {
   };
 
   return store;
+}
+
+function markPreviewReady(
+  store: ReturnType<typeof createMemoryStore>,
+  footageId: string,
+): void {
+  store.previewStatusByFootage.set(footageId, "READY");
+}
+
+function setPreviewStatus(
+  store: ReturnType<typeof createMemoryStore>,
+  footageId: string,
+  status: "INITIATED" | "READY" | "FAILED" | "ABORTED",
+): void {
+  store.previewStatusByFootage.set(footageId, status);
 }
 
 describe("Admin Footage input validation", () => {
@@ -339,7 +372,6 @@ describe("updateFootageMetadata", () => {
       ),
       store,
     });
-
     const updated = await updateFootageMetadata({
       footageId: created.id,
       input: updateFootageMetadataInputSchema.parse(
@@ -372,7 +404,6 @@ describe("updateFootageMetadata", () => {
       ),
       store,
     });
-
     await expect(
       updateFootageMetadata({
         footageId: created.id,
@@ -429,12 +460,41 @@ describe("updateFootageMetadata", () => {
 });
 
 describe("publishFootage and unpublishFootage", () => {
+  it.each(["INITIATED", "FAILED", "ABORTED"] as const)(
+    "rejects publication when preview status is %s",
+    async (status) => {
+      const store = createMemoryStore();
+      const created = await createDraftFootage({
+        input: createDraftFootageInputSchema.parse(validCreateBody()),
+        store,
+      });
+      setPreviewStatus(store, created.id, status);
+
+      await expect(
+        publishFootage({ footageId: created.id, store }),
+      ).rejects.toBeInstanceOf(FootagePreviewNotReadyError);
+    },
+  );
+
+  it("rejects publication when no preview exists", async () => {
+    const store = createMemoryStore();
+    const created = await createDraftFootage({
+      input: createDraftFootageInputSchema.parse(validCreateBody()),
+      store,
+    });
+
+    await expect(
+      publishFootage({ footageId: created.id, store }),
+    ).rejects.toBeInstanceOf(FootagePreviewNotReadyError);
+  });
+
   it("publishes a valid draft, sets publishedAt, and does not require Tags", async () => {
     const store = createMemoryStore();
     const created = await createDraftFootage({
       input: createDraftFootageInputSchema.parse(validCreateBody()),
       store,
     });
+    markPreviewReady(store, created.id);
     const publishedAt = new Date("2026-10-05T15:00:00.000Z");
 
     const published = await publishFootage({
@@ -456,6 +516,7 @@ describe("publishFootage and unpublishFootage", () => {
       input: createDraftFootageInputSchema.parse(validCreateBody()),
       store,
     });
+    markPreviewReady(store, created.id);
     const firstAt = new Date("2026-10-05T15:00:00.000Z");
     const secondAt = new Date("2026-10-05T16:00:00.000Z");
 
@@ -478,6 +539,7 @@ describe("publishFootage and unpublishFootage", () => {
       ),
       store,
     });
+    markPreviewReady(store, created.id);
     await publishFootage({
       footageId: created.id,
       store,
@@ -516,6 +578,7 @@ describe("publishFootage and unpublishFootage", () => {
       input: createDraftFootageInputSchema.parse(validCreateBody()),
       store,
     });
+    markPreviewReady(store, created.id);
     const publishedAt = new Date("2026-10-05T15:00:00.000Z");
     await publishFootage({ footageId: created.id, store, now: publishedAt });
 
@@ -609,6 +672,8 @@ describe("Admin Footage authorization boundary", () => {
       store,
     });
     expect(updated.status).toBe("ok");
+
+    markPreviewReady(store, created.footage.id);
 
     const published = await handleAdminPublishFootage({
       admin: ADMIN,

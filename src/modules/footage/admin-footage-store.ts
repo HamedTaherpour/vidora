@@ -45,6 +45,7 @@ export type PublishFootagePersistence = {
  */
 export type AdminFootageStore = {
   categoryExists: (categoryId: string) => Promise<boolean>;
+  hasReadyPreview: (footageId: string) => Promise<boolean>;
   findExistingTagIds: (tagIds: readonly string[]) => Promise<string[]>;
   createDraft: (
     data: CreateDraftFootagePersistence,

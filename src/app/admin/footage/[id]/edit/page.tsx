@@ -5,6 +5,7 @@ import { AdminFootageEditView } from "@/modules/footage/admin-footage-edit-view"
 import { loadAdminFootageEdit } from "@/modules/footage/load-admin-footage-edit";
 import { createPrismaAdminFootageEditOptionsStore } from "@/modules/footage/prisma-admin-footage-edit-options-store";
 import { createPrismaAdminFootageStore } from "@/modules/footage/prisma-admin-footage-store";
+import { createPrismaAdminFootagePreviewStore } from "@/modules/media/admin-footage-preview-store";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,7 @@ export default async function AdminFootageEditPage({
     footageId: id,
     store: createPrismaAdminFootageStore(prisma),
     optionsStore: createPrismaAdminFootageEditOptionsStore(prisma),
+    previewStore: createPrismaAdminFootagePreviewStore(prisma),
   });
 
   if (result.status === "denied") {
@@ -61,6 +63,7 @@ export default async function AdminFootageEditPage({
     <main>
       <AdminFootageEditView
         footage={result.data.footage}
+        preview={result.data.preview}
         categories={result.data.categories}
         tags={result.data.tags}
         saved={savedRaw === "1"}

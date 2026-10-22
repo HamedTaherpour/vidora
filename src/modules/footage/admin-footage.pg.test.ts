@@ -79,6 +79,9 @@ async function cleanup(): Promise<void> {
   }
 
   if (createdFootageSlugs.length > 0) {
+    await prisma.footageFile.deleteMany({
+      where: { footage: { slug: { in: [...new Set(createdFootageSlugs)] } } },
+    });
     await prisma.footage.deleteMany({
       where: { slug: { in: [...new Set(createdFootageSlugs)] } },
     });
@@ -272,6 +275,18 @@ describe("Admin Footage CRUD PostgreSQL persistence", () => {
       store,
     });
 
+    await client.footageFile.create({
+      data: {
+        footageId: footage.id,
+        kind: "PREVIEW",
+        label: "Preview",
+        objectKey: `footage/${footage.id}/preview/cat03.mp4`,
+        sizeBytes: 1,
+        mimeType: "video/mp4",
+        uploadStatus: "READY",
+      },
+    });
+
     const publishedAt = new Date("2026-10-05T20:00:00.000Z");
     const published = await publishFootage({
       footageId: footage.id,
@@ -304,6 +319,50 @@ describe("Admin Footage CRUD PostgreSQL persistence", () => {
     expect(dbRow.status).toBe("DRAFT");
     expect(dbRow.publishedAt).toBeNull();
   });
+
+  it.each(["INITIATED", "FAILED", "ABORTED"] as const)(
+    "rejects publication with a %s preview",
+    async (uploadStatus) => {
+      const client = requirePrisma();
+      const store = createPrismaAdminFootageStore(client);
+      const category = await client.category.create({
+        data: { nameFa: "دسته پیش‌نمایش", slug: categorySlug(uploadStatus) },
+      });
+      const footage = await createDraftFootage({
+        input: createDraftFootageInputSchema.parse({
+          titleFa: "پیش‌نمایش ناآماده",
+          slug: footageSlug(`preview-${uploadStatus.toLowerCase()}`),
+          descriptionFa: "نباید منتشر شود",
+          priceToman: 1000,
+          categoryId: category.id,
+          tagIds: [],
+        }),
+        store,
+      });
+
+      await client.footageFile.create({
+        data: {
+          footageId: footage.id,
+          kind: "PREVIEW",
+          label: "Preview",
+          objectKey: `footage/${footage.id}/preview/${uploadStatus}.mp4`,
+          sizeBytes: 1,
+          mimeType: "video/mp4",
+          uploadStatus,
+          providerUploadId: uploadStatus === "INITIATED" ? "upload-id" : null,
+        },
+      });
+
+      await expect(
+        publishFootage({ footageId: footage.id, store }),
+      ).rejects.toThrow("ready preview");
+
+      const row = await client.footage.findUniqueOrThrow({
+        where: { id: footage.id },
+      });
+      expect(row.status).toBe("DRAFT");
+    },
+  );
 
   it("rejects create with unknown Category via application error", async () => {
     const client = requirePrisma();

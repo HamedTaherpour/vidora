@@ -655,7 +655,7 @@ Upload footage files directly from the admin browser to object storage.
 
 ## MEDIA-04 — Implement Preview Management
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 
 ### Depends On
 

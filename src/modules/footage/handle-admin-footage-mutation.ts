@@ -9,6 +9,7 @@ import {
   CategoryNotFoundError,
   FootageNotFoundError,
   FootageNotReadyToPublishError,
+  FootagePreviewNotReadyError,
   FootageSlugConflictError,
   TagNotFoundError,
 } from "@/modules/footage/admin-footage-errors";
@@ -48,7 +49,8 @@ export type AdminFootageMutationResult =
   | { status: "category_not_found" }
   | { status: "tag_not_found" }
   | { status: "footage_not_found" }
-  | { status: "footage_not_ready_to_publish" };
+  | { status: "footage_not_ready_to_publish" }
+  | { status: "footage_preview_not_ready" };
 
 function toPublicFootage(
   footage: AdminFootageRecord,
@@ -103,6 +105,10 @@ function mapApplicationError(error: unknown): AdminFootageMutationResult {
 
   if (error instanceof FootageNotReadyToPublishError) {
     return { status: "footage_not_ready_to_publish" };
+  }
+
+  if (error instanceof FootagePreviewNotReadyError) {
+    return { status: "footage_preview_not_ready" };
   }
 
   throw error;
@@ -299,6 +305,11 @@ export function adminFootageMutationResponse(
     case "footage_not_ready_to_publish":
       return Response.json(
         { status: "footage_not_ready_to_publish" },
+        { status: 400, headers: NO_STORE },
+      );
+    case "footage_preview_not_ready":
+      return Response.json(
+        { status: "footage_preview_not_ready" },
         { status: 400, headers: NO_STORE },
       );
   }

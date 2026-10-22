@@ -8,6 +8,10 @@ import type {
   AdminFootageRecord,
   AdminFootageStore,
 } from "@/modules/footage/admin-footage-store";
+import type {
+  AdminFootagePreviewStore,
+  AdminFootagePreviewSummary,
+} from "@/modules/media/admin-footage-preview-store";
 
 export type AdminClassificationOption = {
   id: string;
@@ -21,6 +25,7 @@ export type AdminFootageEditOptionsStore = {
 
 export type AdminFootageEditPageData = {
   footage: AdminFootageRecord;
+  preview: AdminFootagePreviewSummary;
   categories: AdminClassificationOption[];
   tags: AdminClassificationOption[];
 };
@@ -40,11 +45,13 @@ export async function loadAdminFootageEdit({
   footageId,
   store,
   optionsStore,
+  previewStore,
 }: {
   admin: ResolvedAdmin;
   footageId: string;
   store: AdminFootageStore;
   optionsStore: AdminFootageEditOptionsStore;
+  previewStore?: AdminFootagePreviewStore;
 }): Promise<AdminFootageEditLoadResult> {
   try {
     requireAuthenticatedAdmin(admin);
@@ -73,10 +80,20 @@ export async function loadAdminFootageEdit({
     optionsStore.listTags(),
   ]);
 
+  const preview = previewStore
+    ? await previewStore.findPreviewSummary(idParsed.data)
+    : {
+        exists: false,
+        uploadStatus: null,
+        isReady: false,
+        mimeType: null,
+      };
+
   return {
     status: "ok",
     data: {
       footage,
+      preview,
       categories,
       tags,
     },

@@ -301,6 +301,9 @@ describe("loadAdminFootageEdit authorization", () => {
     async categoryExists() {
       return true;
     },
+    async hasReadyPreview() {
+      return false;
+    },
     async findExistingTagIds() {
       return [];
     },

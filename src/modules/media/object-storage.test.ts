@@ -295,6 +295,28 @@ describe("preview and original access policy", () => {
     expect(original.method).toBe("GET");
   });
 
+  it("signs provider response headers for preview streaming and download", async () => {
+    const signUrl = vi
+      .fn()
+      .mockResolvedValue("https://storage.example.test/preview-signed");
+    const storage = createTestStorage({ signUrl });
+
+    await storage.createReadAccess({
+      objectKey: "footage/a/preview/v1.mp4",
+      accessPolicy: "preview",
+      responseContentType: "video/mp4",
+      responseContentDisposition: "attachment",
+    });
+
+    const command = signUrl.mock.calls[0]?.[1] as {
+      input?: Record<string, unknown>;
+    };
+    expect(command.input).toMatchObject({
+      ResponseContentType: "video/mp4",
+      ResponseContentDisposition: "attachment",
+    });
+  });
+
   it("does not require signed-access TTL env for non-signing operations", async () => {
     const send = vi.fn().mockRejectedValue({
       name: "NotFound",

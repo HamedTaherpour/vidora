@@ -208,6 +208,8 @@ export function createLiaraS3ObjectStorage({
   async function createReadAccess({
     objectKey,
     accessPolicy,
+    responseContentType,
+    responseContentDisposition,
   }: Parameters<
     ObjectStorage["createReadAccess"]
   >[0]): Promise<TemporaryObjectAccess> {
@@ -221,6 +223,8 @@ export function createLiaraS3ObjectStorage({
       const command = new GetObjectCommand({
         Bucket: bucket,
         Key: key,
+        ResponseContentType: responseContentType,
+        ResponseContentDisposition: responseContentDisposition,
       });
       const url = await signUrl(client, command, { expiresIn });
 
