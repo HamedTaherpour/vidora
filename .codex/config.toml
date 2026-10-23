@@ -4,3 +4,6 @@
 # Project-specific Codex settings may be added here later only when they
 # control Codex runtime/tool behavior and cannot be expressed canonically
 # through AGENTS.md or shared skills.
+[mcp_servers.shadcn]
+command = "npx"
+args = ["shadcn@latest", "mcp"]

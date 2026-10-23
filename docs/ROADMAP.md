@@ -705,7 +705,7 @@ Goal:
 
 ## UI-01 — Establish Design Foundations
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 
 ### Depends On
 
