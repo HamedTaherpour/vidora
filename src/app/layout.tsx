@@ -6,28 +6,9 @@ import "@/lib/env/server";
 import "./globals.css";
 
 const vazirmatn = localFont({
-  src: [
-    {
-      path: "../../node_modules/vazirmatn/fonts/webfonts/Vazirmatn-Regular.woff2",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../../node_modules/vazirmatn/fonts/webfonts/Vazirmatn-Medium.woff2",
-      weight: "500",
-      style: "normal",
-    },
-    {
-      path: "../../node_modules/vazirmatn/fonts/webfonts/Vazirmatn-SemiBold.woff2",
-      weight: "600",
-      style: "normal",
-    },
-    {
-      path: "../../node_modules/vazirmatn/fonts/webfonts/Vazirmatn-Bold.woff2",
-      weight: "700",
-      style: "normal",
-    },
-  ],
+  src: "../assets/fonts/Vazirmatn[wght].woff2",
+  weight: "100 900",
+  style: "normal",
   variable: "--font-vazirmatn",
   display: "swap",
 });

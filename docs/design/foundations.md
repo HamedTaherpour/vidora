@@ -85,7 +85,7 @@ Use the semantic utilities (`bg-background`, `text-foreground`, `bg-primary`, `b
 
 ## Typography
 
-The interface language is Persian (`fa`) and uses Vazirmatn for both Storefront and Admin. Vazirmatn is loaded locally through the official `vazirmatn` package, with only the approved weights: 400, 500, 600, and 700. The package is distributed under the SIL Open Font License 1.1. There is no runtime Google Fonts dependency.
+The interface language is Persian (`fa`) and uses Vazirmatn for both Storefront and Admin. The local asset `src/assets/fonts/Vazirmatn[wght].woff2` is copied from the official `vazirmatn` 33.0.3 distribution and supports weights 100–900, including the approved weights 400, 500, 600, and 700. The accompanying `src/assets/fonts/OFL.txt` preserves the SIL Open Font License 1.1 notice. There is no runtime Google Fonts or CDN dependency.
 
 | Role  | Size | Line height | Utility         |
 | ----- | ---: | ----------: | --------------- |
