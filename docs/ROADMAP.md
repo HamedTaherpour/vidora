@@ -695,7 +695,78 @@ Allow Admin to manage downloadable original-quality files.
 
 ---
 
-# Phase 4 — Storefront & Discovery
+## MEDIA-COVER-01 — Define Mandatory Manual Footage Cover
+
+**Status:** READY_FOR_REVIEW
+
+### Depends On
+
+MEDIA-03, MEDIA-04, UI-02.
+
+### Objective
+
+Define the approved primary cover contract for Footage without implementing
+storage, schema, upload endpoints, or Admin/storefront UI changes.
+
+### Product Contract
+
+- Admin manually uploads one primary cover image per Footage.
+- Draft Footage may exist without a cover.
+- A Footage must have a usable cover before publication.
+- Admin can explicitly replace the cover later.
+- The storefront uses the cover in FootageCard and Footage detail.
+- V1 does not extract thumbnails or covers automatically from video.
+
+### Required Future Implementation
+
+- choose and document the persistence/media representation for the cover;
+- add an Admin cover upload and replacement workflow using the approved media
+  authorization and direct-upload boundary;
+- enforce the cover requirement in the server-side publication mutation and
+  persistence path, including negative-path tests;
+- expose only publication-safe cover data through the public catalog/detail DTOs;
+- render the cover in FootageCard and Footage detail with a safe delivery
+  fallback;
+- preserve the existing separation between cover, watermarked preview, and
+  private original files.
+
+### Unresolved Technical Decisions
+
+Image size/type limits, dimensions/aspect-ratio requirements, image processing,
+storage role/schema shape, object-key layout, delivery mechanism/TTL, and
+replacement/retention behavior are not defined by this task. Resolve them before
+implementation; do not infer them from video-preview or original-file rules.
+
+---
+
+## MEDIA-COVER-02 — Implement Admin Cover Upload with Cropping
+
+**Status:** READY_FOR_REVIEW
+
+### Depends On
+
+MEDIA-COVER-01.
+
+### Objective
+
+Implement the Admin primary-cover workflow with a fixed 16:9 crop and safe
+replacement behavior.
+
+### Acceptance Criteria
+
+- Admin selects a JPEG, PNG, or WebP source image.
+- Admin repositions and zooms the image in an accessible fixed 16:9 crop area.
+- Only the confirmed 1280×720 JPEG crop, at most 2 MiB, is stored.
+- Each Footage has one active cover in a dedicated `FootageCover` record.
+- Draft Footage may have no cover; publication requires a stored cover.
+- Replacement failure leaves the previous active cover unchanged.
+- Public catalog data and cover delivery expose no storage credentials or object keys.
+- No automatic video thumbnail extraction is introduced.
+
+### Out of Scope
+
+Video processing, preview replacement, original-file delivery changes, and
+automatic media cleanup remain outside this task.
 
 Goal:
 
@@ -738,7 +809,7 @@ At minimum:
 
 ## UI-02 — Define Core Storefront Component Contracts
 
-**Status:** TODO
+**Status:** DONE
 
 ### Depends On
 

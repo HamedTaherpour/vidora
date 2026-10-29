@@ -93,6 +93,33 @@ Preview access does not require purchase.
 
 A preview must never accidentally reference a protected unwatermarked original.
 
+## 2.1 Primary cover image
+
+Each Footage has one primary cover image supplied manually by the administrator.
+The cover is used by the public FootageCard and Footage detail surfaces. It is
+not a video preview, is not extracted automatically from a video, and must not
+be inferred from a preview frame.
+
+Draft Footage may have no cover. Publication must require a usable cover, and
+the publication check must be enforced in the server-side Footage mutation
+boundary as well as reflected by the Admin workflow. Admin may replace the
+cover later through an explicit replacement operation.
+
+The implementation stores the active cover in a dedicated `FootageCover` row,
+separate from `FootageFile` PREVIEW and ORIGINAL rows. The Admin accepts JPEG,
+PNG, or WebP source images in the browser, then uploads only a confirmed
+1280×720 JPEG crop. The stored output is limited to 2 MiB. Server validation
+decodes the uploaded bytes and verifies the JPEG format and exact dimensions;
+browser metadata is not authoritative.
+
+Cover reads use the separate `cover` signed-access policy and
+`STORAGE_SIGNED_COVER_READ_TTL_SECONDS`. Cover uploads use the existing
+server-side Admin authorization and object-storage boundary. A replacement
+updates the active database row only after the new object is validated and
+stored; failed replacement does not remove or deactivate the existing cover.
+Old objects are not automatically deleted because the media-retention policy
+remains unresolved.
+
 ---
 
 # 3. Originals
@@ -469,6 +496,7 @@ V1 does not require:
 - automatic watermarking;
 - automatic preview generation;
 - automatic poster generation;
+- automatic cover/thumbnail extraction from video;
 - background media queues.
 
 Do not introduce these because they are common in video platforms.

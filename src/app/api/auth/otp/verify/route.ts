@@ -1,7 +1,7 @@
 import { serverEnv } from "@/lib/env/server";
-import { setCustomerSessionCookie } from "@/modules/auth/customer-session-cookie-store";
-import { handleOtpVerificationRequest } from "@/modules/auth/handle-otp-verification-request";
-import { verifyCustomerOtp } from "@/modules/auth/verify-customer-otp";
+import { setCustomerSessionCookie } from "@/modules/auth/sessions/customer-session-cookie-store";
+import { handleOtpVerificationRequest } from "@/modules/auth/otp/handle-otp-verification-request";
+import { verifyCustomerOtp } from "@/modules/auth/otp/verify-customer-otp";
 
 export const dynamic = "force-dynamic";
 

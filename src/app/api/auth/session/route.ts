@@ -1,4 +1,4 @@
-import { resolveCurrentCustomer } from "@/modules/auth/resolve-current-customer";
+import { resolveCurrentCustomer } from "@/modules/auth/sessions/resolve-current-customer";
 
 export const dynamic = "force-dynamic";
 

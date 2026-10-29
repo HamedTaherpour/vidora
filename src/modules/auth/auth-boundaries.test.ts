@@ -1,29 +1,29 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { adminSessionCookieOptions } from "@/modules/auth/admin-session-cookie";
-import { authenticateOtpChallenge } from "@/modules/auth/authenticate-otp";
-import { customerSessionCookieOptions } from "@/modules/auth/customer-session-cookie";
-import { hashOtpCode } from "@/modules/auth/otp-hash";
+import { adminSessionCookieOptions } from "@/modules/auth/sessions/admin-session-cookie";
+import { authenticateOtpChallenge } from "@/modules/auth/otp/authenticate-otp";
+import { customerSessionCookieOptions } from "@/modules/auth/sessions/customer-session-cookie";
+import { hashOtpCode } from "@/modules/auth/otp/otp-hash";
 import {
   OTP_PURPOSE_ADMIN,
   OTP_PURPOSE_CUSTOMER,
-} from "@/modules/auth/otp-purpose";
-import { resolveAdminSession } from "@/modules/auth/resolve-admin-session";
-import { resolveCustomerSession } from "@/modules/auth/resolve-customer-session";
+} from "@/modules/auth/otp/otp-purpose";
+import { resolveAdminSession } from "@/modules/auth/sessions/resolve-admin-session";
+import { resolveCustomerSession } from "@/modules/auth/sessions/resolve-customer-session";
 import {
   ADMIN_SESSION_COOKIE_NAME,
   CUSTOMER_SESSION_COOKIE_NAME,
-} from "@/modules/auth/session-policy";
+} from "@/modules/auth/sessions/session-policy";
 import {
   generateSessionToken,
   hashSessionToken,
-} from "@/modules/auth/session-token";
-import { verifyAdminOtp } from "@/modules/auth/verify-admin-otp";
-import { verifyOtp } from "@/modules/auth/verify-otp";
+} from "@/modules/auth/sessions/session-token";
+import { verifyAdminOtp } from "@/modules/auth/otp/verify-admin-otp";
+import { verifyOtp } from "@/modules/auth/otp/verify-otp";
 import type {
   AdminOtpVerificationStore,
   OtpVerificationStore,
-} from "@/modules/auth/otp-verification-store";
+} from "@/modules/auth/otp/otp-verification-store";
 
 const SECRET = "test-otp-hash-secret-0123456789ab";
 const CODE = "042817";

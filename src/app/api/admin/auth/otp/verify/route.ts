@@ -1,7 +1,7 @@
 import { serverEnv } from "@/lib/env/server";
-import { setAdminSessionCookie } from "@/modules/auth/admin-session-cookie-store";
-import { handleOtpVerificationRequest } from "@/modules/auth/handle-otp-verification-request";
-import { verifyAdminOtpRequest } from "@/modules/auth/verify-admin-otp-request";
+import { setAdminSessionCookie } from "@/modules/auth/sessions/admin-session-cookie-store";
+import { handleOtpVerificationRequest } from "@/modules/auth/otp/handle-otp-verification-request";
+import { verifyAdminOtpRequest } from "@/modules/auth/otp/verify-admin-otp-request";
 
 export const dynamic = "force-dynamic";
 

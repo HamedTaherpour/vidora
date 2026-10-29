@@ -9,22 +9,22 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { PrismaClient } from "@/generated/prisma/client";
 import { loadLocalEnvFiles } from "@/lib/env/load-local-env-files";
-import { hashOtpCode } from "@/modules/auth/otp-hash";
+import { hashOtpCode } from "@/modules/auth/otp/otp-hash";
 import {
   OTP_PURPOSE_ADMIN,
   OTP_PURPOSE_CUSTOMER,
-} from "@/modules/auth/otp-purpose";
-import { createPrismaAdminOtpVerificationStore } from "@/modules/auth/prisma-admin-otp-verification-store";
-import { createPrismaOtpVerificationStore } from "@/modules/auth/prisma-otp-verification-store";
-import { resolveAdminSession } from "@/modules/auth/resolve-admin-session";
-import { resolveCustomerSession } from "@/modules/auth/resolve-customer-session";
+} from "@/modules/auth/otp/otp-purpose";
+import { createPrismaAdminOtpVerificationStore } from "@/modules/auth/otp/prisma-admin-otp-verification-store";
+import { createPrismaOtpVerificationStore } from "@/modules/auth/otp/prisma-otp-verification-store";
+import { resolveAdminSession } from "@/modules/auth/sessions/resolve-admin-session";
+import { resolveCustomerSession } from "@/modules/auth/sessions/resolve-customer-session";
 import {
   generateSessionToken,
   hashSessionToken,
   sessionExpiresAt,
-} from "@/modules/auth/session-token";
-import { verifyAdminOtp } from "@/modules/auth/verify-admin-otp";
-import { verifyOtp } from "@/modules/auth/verify-otp";
+} from "@/modules/auth/sessions/session-token";
+import { verifyAdminOtp } from "@/modules/auth/otp/verify-admin-otp";
+import { verifyOtp } from "@/modules/auth/otp/verify-otp";
 
 loadLocalEnvFiles({ nodeEnv: "development" });
 

@@ -67,6 +67,16 @@ Framework boundaries should delegate to the relevant module.
 
 `src/modules` owns business capabilities.
 
+All business capability code belongs under:
+
+```text
+src/modules/<capability>/
+```
+
+Do not introduce a competing `src/features/` tree or unrelated project-wide
+architecture layers. A capability module remains the owner even when it has
+multiple UI surfaces, workflows, persistence adapters, or provider boundaries.
+
 Expected future modules may include:
 
 ```text
@@ -163,28 +173,52 @@ module/
 
 unless those categories are genuinely required.
 
-Start small.
+When a module contains multiple meaningful responsibilities, group files into
+subdirectories by business surface, workflow, or integration boundary. Use the
+shallowest structure that makes ownership and discovery clear.
 
-Example:
-
-```text
-modules/footage/
-  get-published-footage.ts
-  footage.types.ts
-```
-
-Later, if complexity justifies it:
+The approved Footage organization is an example of this principle:
 
 ```text
-modules/footage/
-  server/
-  components/
-  schemas/
+src/modules/footage/
+  admin/
+    catalog/
+    edit/
+    mutations/
+  public/
+    catalog/
+    components/
+      footage-card/
+      footage-list/
 ```
 
-may emerge.
+This is an illustrative example, not a mandatory template for every module.
+Other modules may need different groupings, or no subdirectories at all.
 
-Structure should follow real complexity.
+Module roots may contain genuinely capability-wide files. Do not place a new
+file directly at a module root merely because it is convenient when an existing
+meaningful directory owns the responsibility.
+
+Before creating or relocating a source file, agents must:
+
+1. inspect the owning module's existing structure;
+2. identify the closest related implementation;
+3. reuse an existing meaningful directory where appropriate;
+4. determine whether a new subdirectory is justified;
+5. keep related implementation, contracts, and tests discoverable together.
+
+Do not create generic dumping-ground directories, universal folder templates,
+arbitrary folder depth, mandatory barrels, or directories solely for visual
+symmetry. Do not enforce arbitrary numerical file-count limits.
+
+When modifying existing code, follow its approved directory structure. If its
+placement violates these rules, report the issue and propose a scoped correction.
+Do not silently reorganize unrelated code during ordinary feature work.
+
+New conventions apply to future implementation and to existing code when that
+code is deliberately migrated through a reviewed refactor. They do not require
+unrelated file moves as part of ordinary feature work, and an existing module
+must not be described as compliant before it has been audited.
 
 ---
 
@@ -235,6 +269,10 @@ random helpers
 
 `src/components` is for UI that is genuinely reusable across business areas or belongs to the application-wide shell/design system.
 
+Application-owned component rules, including shadcn usage, shared-boundary decisions,
+props contracts, accessibility, responsive behavior, and component tests are defined
+in `instructions/components.md`.
+
 Examples may include:
 
 - shared layout primitives;
@@ -256,6 +294,9 @@ src/components/ui/
 ```
 
 These components are implementation primitives, not business modules.
+
+Use direct imports by default. A barrel is appropriate only when it defines a
+deliberate public boundary; barrels are not required for every component directory.
 
 Do not place Footage-specific or commerce-specific business logic into shadcn primitives.
 
@@ -305,15 +346,16 @@ A hook should move to a shared location only when reuse across independent areas
 
 # 14. Feature Components
 
-A feature-specific component should stay close to the feature.
+A feature-specific component should stay close to the owning capability and
+surface. Co-locate the component implementation, its companion `*.types.ts`
+file, and focused component tests. For multiple UI surfaces, group components
+by the owning surface or feature inside the module.
 
-For example, future Footage UI may use:
+For example, Footage storefront components belong under:
 
 ```text
-modules/footage/components/footage-card.tsx
+src/modules/footage/public/components/
 ```
-
-if the component is owned by the Footage capability.
 
 A route-specific composition component may stay beside the route when it has no value outside that route.
 
@@ -391,6 +433,11 @@ Do not import Prisma into:
 Do not require a repository class for every model.
 
 Introduce a dedicated persistence boundary when it improves correctness, reuse, testing, transaction behavior, or separation from Prisma.
+
+Group related use cases, persistence contracts, adapters, and tests by their
+owning workflow when that improves discoverability. Preserve explicit
+server-only boundaries: server-only persistence code must not be imported into
+client components or browser-safe utilities.
 
 ---
 

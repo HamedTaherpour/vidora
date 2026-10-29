@@ -164,6 +164,7 @@ Each published Footage should have a dedicated public page.
 
 The page should be capable of displaying:
 
+- the manually supplied primary cover image;
 - title;
 - description;
 - watermarked preview;
@@ -178,6 +179,21 @@ The page should be capable of displaying:
 - related or similar footage when implemented.
 
 The Footage page is also an important SEO surface.
+
+### Cover image
+
+Each Footage has one primary cover image supplied manually by the administrator.
+The cover is a catalog presentation asset, separate from the watermarked video
+preview. Draft Footage may exist without a cover, but a Footage must have a
+usable cover before it can be published.
+
+The administrator may replace the cover after it has been uploaded. V1 does not
+extract a cover or thumbnail automatically from video media.
+
+The Admin cover workflow accepts JPEG, PNG, or WebP source images, crops them to
+a fixed 16:9 frame, and stores the confirmed result as a 1280×720 JPEG no larger
+than 2 MiB. These are implementation constraints for the V1 workflow, not
+requirements for video previews or original files.
 
 ---
 
@@ -451,6 +467,8 @@ Additional operational states may be introduced only when justified by implement
 The administrator uploads:
 
 ```text
+One primary cover image
+
 Watermarked Preview
 
 and
@@ -458,7 +476,10 @@ and
 One or more original/downloadable files
 ```
 
-Publishing should require the minimum data necessary for a valid customer-facing Footage.
+Publishing must reject Footage without a usable primary cover. Draft creation
+and editing must remain possible while the cover is missing. Cover replacement
+must be an explicit administrator operation and must not silently change the
+preview or original-file roles.
 
 ---
 

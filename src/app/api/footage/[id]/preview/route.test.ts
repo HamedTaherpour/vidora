@@ -6,12 +6,12 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/db/client", () => ({ prisma: {} }));
-vi.mock("@/modules/media/prisma-public-preview-store", () => ({
+vi.mock("@/modules/media/previews/prisma-public-preview-store", () => ({
   createPrismaPublicPreviewStore: () => ({
     findPublishedReadyPreview: mocks.findPublishedReadyPreview,
   }),
 }));
-vi.mock("@/modules/media/create-object-storage", () => ({
+vi.mock("@/modules/media/storage/create-object-storage", () => ({
   createObjectStorage: () => ({
     createReadAccess: mocks.createReadAccess,
   }),

@@ -238,6 +238,17 @@ pnpm test
 pnpm build
 ```
 
+Select verification according to the task:
+
+- formatting, linting, and typechecking for changed code;
+- unit or component tests for changed behavior;
+- `pnpm test:pg` when PostgreSQL behavior or constraints are part of the task;
+- build verification when application wiring, routes, or production compilation are affected;
+- browser or E2E verification when the task changes a browser flow and the required tooling is available.
+
+Do not claim Playwright or any other browser tooling is installed or executed unless
+the repository and the current environment provide evidence for it.
+
 Task-specific tests should normally be run before the entire suite when that provides faster feedback.
 
 ---

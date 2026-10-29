@@ -106,6 +106,22 @@ The application does not need to generate the watermark automatically.
 
 Preview delivery may use public or CDN-accessible object delivery where appropriate.
 
+## Primary Cover Images
+
+Each Footage also has one primary cover image supplied manually by the
+administrator. A cover is a presentation asset for the public catalog and
+Footage detail page; it is not a replacement for the watermarked preview and is
+not extracted automatically from video.
+
+Draft Footage may exist without a cover. Publication requires a usable cover.
+The administrator may explicitly replace the cover later. Vidora stores the
+active cover in a dedicated `FootageCover` row, separate from `FootageFile`
+PREVIEW and ORIGINAL rows. The browser produces a 1280×720 JPEG crop from a
+JPEG, PNG, or WebP source; the server decodes and validates the final JPEG and
+rejects outputs above 2 MiB. Cover reads use a separate signed `cover` access
+policy. Failed replacement leaves the existing active row untouched, and old
+objects are not automatically deleted because retention remains unresolved.
+
 ## Original Files
 
 Original downloadable files are private objects.

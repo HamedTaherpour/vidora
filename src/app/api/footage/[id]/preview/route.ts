@@ -1,10 +1,10 @@
 import { prisma } from "@/lib/db/client";
-import { createObjectStorage } from "@/modules/media/create-object-storage";
+import { createObjectStorage } from "@/modules/media/storage/create-object-storage";
 import {
   createPublicPreviewAccess,
   PreviewNotAvailableError,
-} from "@/modules/media/public-preview";
-import { createPrismaPublicPreviewStore } from "@/modules/media/prisma-public-preview-store";
+} from "@/modules/media/previews/public-preview";
+import { createPrismaPublicPreviewStore } from "@/modules/media/previews/prisma-public-preview-store";
 
 export const dynamic = "force-dynamic";
 

@@ -27,9 +27,14 @@ Do not read unrelated documentation merely to increase context.
 Use the smallest context set that is sufficient to implement the task correctly.
 
 - [AI governance](instructions/ai-governance.md) for instruction precedence, risk classification, verification integrity, adversarial review, and AI-assisted change discipline.
+- [Architecture](instructions/architecture.md) for application boundaries, provider boundaries, Server Components, Route Handlers, and architectural change.
 - [Project organization](instructions/project-organization.md) for Next.js source placement, module ownership, server/client boundaries, and shared-code placement.
+- [Components](instructions/components.md) for application-owned UI ownership, shadcn/Base UI usage, props, accessibility, responsive behavior, and component tests.
 - [Frontend implementation](instructions/frontend-implementation.md) for React/Next.js implementation rules, Server Components, client boundaries, effects, state, accessibility, RTL, and design-contract compliance.
 - [Functions and types](instructions/functions-and-types.md) for TypeScript function signatures, props, type placement, inference, provider types, and naming conventions.
+- [Database](instructions/database.md), [security](instructions/security.md), [media](instructions/media.md), and [commerce](instructions/commerce.md) for tasks involving persistence, protected behavior, media, or purchasing.
+- [Testing](instructions/testing.md), [implementation](instructions/implementation.md), and [Definition of Done](instructions/definition-of-done.md) for verification and handoff requirements.
+- [Design foundations and contracts](docs/design/) for approved visual tokens and component/page behavior when a UI task is covered there.
 
 ---
 
@@ -335,6 +340,11 @@ Before reporting a task as ready for review:
 
 Use the repository's Definition of Done.
 
+Before introducing a new component, module, abstraction, or convention, inspect the
+existing implementation, applicable design contracts, and representative tests.
+
+Do not create commits or push changes without explicit user approval.
+
 Implementation agents normally finish at:
 
 ```text
@@ -369,7 +379,7 @@ Tests added/updated:
 Verification executed:
 - ...
 
-Documentation updated:
+Documentation status:
 - ...
 
 Known limitations / unresolved questions:

@@ -292,10 +292,12 @@ describe("storage environment schema", () => {
     );
     expect(
       parseEnv(storageSignedReadTtlEnvSchema, {
+        STORAGE_SIGNED_COVER_READ_TTL_SECONDS: "90",
         STORAGE_SIGNED_PREVIEW_READ_TTL_SECONDS: "120",
         STORAGE_SIGNED_ORIGINAL_READ_TTL_SECONDS: "30",
       }),
     ).toEqual({
+      STORAGE_SIGNED_COVER_READ_TTL_SECONDS: 90,
       STORAGE_SIGNED_PREVIEW_READ_TTL_SECONDS: 120,
       STORAGE_SIGNED_ORIGINAL_READ_TTL_SECONDS: 30,
     });

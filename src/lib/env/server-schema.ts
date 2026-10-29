@@ -1,7 +1,7 @@
 import { z } from "zod";
 // Relative imports so Prisma CLI can load this file from `prisma.config.ts`.
 // That process does not resolve the `@/` TypeScript path alias.
-import { isAbsoluteHttpOrigin } from "../../modules/auth/browser-auth-origin";
+import { isAbsoluteHttpOrigin } from "../../modules/auth/browser/browser-auth-origin";
 import { EnvironmentConfigError, parseEnv, type EnvSource } from "./parse-env";
 
 function isPostgreSqlConnectionUrl(value: string): boolean {
@@ -45,7 +45,9 @@ export const serverEnvSchema = databaseUrlSchema.extend({
  * Parses server boot configuration.
  * Production fails clearly when `APP_ORIGIN` is missing.
  */
-export function parseServerEnv(source: EnvSource) {
+export function parseServerEnv(
+  source: EnvSource,
+): z.output<typeof serverEnvSchema> {
   const env = parseEnv(serverEnvSchema, source);
 
   if (source.NODE_ENV === "production" && env.APP_ORIGIN === undefined) {
@@ -125,6 +127,7 @@ const storageSignedAccessTtlSecondsSchema = z
  * invent or require product TTL values.
  */
 export const storageSignedReadTtlEnvSchema = z.object({
+  STORAGE_SIGNED_COVER_READ_TTL_SECONDS: storageSignedAccessTtlSecondsSchema,
   STORAGE_SIGNED_PREVIEW_READ_TTL_SECONDS: storageSignedAccessTtlSecondsSchema,
   STORAGE_SIGNED_ORIGINAL_READ_TTL_SECONDS: storageSignedAccessTtlSecondsSchema,
 });

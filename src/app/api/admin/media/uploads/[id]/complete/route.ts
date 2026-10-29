@@ -1,12 +1,12 @@
 import { prisma } from "@/lib/db/client";
-import { resolveCurrentAdmin } from "@/modules/auth/resolve-current-admin";
-import { createObjectStorage } from "@/modules/media/create-object-storage";
+import { resolveCurrentAdmin } from "@/modules/auth/sessions/resolve-current-admin";
+import { createObjectStorage } from "@/modules/media/storage/create-object-storage";
 import {
   adminMediaUploadResponse,
   assertAdminMediaUploadOrigin,
   handleAdminCompleteMediaUpload,
-} from "@/modules/media/handle-admin-media-upload";
-import { createPrismaAdminMediaUploadStore } from "@/modules/media/prisma-admin-media-upload-store";
+} from "@/modules/media/uploads/handle-admin-media-upload";
+import { createPrismaAdminMediaUploadStore } from "@/modules/media/uploads/prisma-admin-media-upload-store";
 
 export const dynamic = "force-dynamic";
 

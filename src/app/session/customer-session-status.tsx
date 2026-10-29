@@ -1,14 +1,8 @@
-import { resolveCurrentCustomer } from "@/modules/auth/resolve-current-customer";
+import { resolveCurrentCustomer } from "@/modules/auth/sessions/resolve-current-customer";
+import type { CustomerSessionStatusProps } from "./customer-session-status.types";
 
-type CustomerSessionStatusProps = {
-  heading: string;
-  continueHref?: string;
-};
-
-export async function CustomerSessionStatus({
-  heading,
-  continueHref,
-}: CustomerSessionStatusProps) {
+export async function CustomerSessionStatus(props: CustomerSessionStatusProps) {
+  const { heading, continueHref } = props;
   const customer = await resolveCurrentCustomer();
   const label =
     customer.status === "authenticated" ? "authenticated" : "anonymous";

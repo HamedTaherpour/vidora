@@ -5,5 +5,5 @@ type AdminLayoutProps = {
 };
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-  return <div>{children}</div>;
+  return <div className="container-admin">{children}</div>;
 }

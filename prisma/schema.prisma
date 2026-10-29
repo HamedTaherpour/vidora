@@ -214,9 +214,28 @@ model Footage {
   category     Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   footageTags  FootageTag[]
   footageFiles FootageFile[]
+  cover        FootageCover?
 
   @@index([status])
   @@index([categoryId])
+}
+
+/// The one active, administrator-supplied 16:9 presentation cover for a
+/// Footage. Covers are separate from PREVIEW and ORIGINAL FootageFile rows.
+/// Replacement updates this row only after the new object has been validated
+/// and stored; the previous object is not deleted by this model.
+model FootageCover {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  footageId String   @unique @db.Uuid
+  objectKey String   @unique @db.VarChar(1024)
+  mimeType  String   @db.VarChar(127)
+  sizeBytes BigInt
+  width     Int
+  height    Int
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  footage Footage @relation(fields: [footageId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 }
 
 /// Distinguishes the public watermarked preview from private original variants.

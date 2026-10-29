@@ -1,7 +1,7 @@
 import {
   CustomerAuthorizationError,
   requireCurrentCustomer,
-} from "@/modules/auth/require-current-customer";
+} from "@/modules/auth/authorization/require-current-customer";
 
 export const dynamic = "force-dynamic";
 

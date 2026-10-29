@@ -1,11 +1,11 @@
 import { prisma } from "@/lib/db/client";
-import { resolveCurrentAdmin } from "@/modules/auth/resolve-current-admin";
+import { resolveCurrentAdmin } from "@/modules/auth/sessions/resolve-current-admin";
 import {
   AdminAccessDeniedView,
   AdminFootageCatalogView,
-} from "@/modules/footage/admin-footage-catalog-view";
-import { handleAdminFootageCatalogList } from "@/modules/footage/handle-admin-footage-catalog-list";
-import { createPrismaAdminFootageCatalogStore } from "@/modules/footage/prisma-admin-footage-catalog-store";
+} from "@/modules/footage/admin/catalog/admin-footage-catalog-view";
+import { handleAdminFootageCatalogList } from "@/modules/footage/admin/catalog/handle-admin-footage-catalog-list";
+import { createPrismaAdminFootageCatalogStore } from "@/modules/footage/admin/catalog/prisma-admin-footage-catalog-store";
 
 export const dynamic = "force-dynamic";
 

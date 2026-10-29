@@ -154,7 +154,15 @@ True cross-domain primitives may be shared when justified.
 
 # 7. React Props
 
-Use named props types when the component has non-trivial or reusable props.
+For application-owned reusable components, follow `instructions/components.md`:
+
+- use a named `*Props` type;
+- place public component props in a companion `*.types.ts` file;
+- accept props through a named `props` parameter and destructure inside the body.
+
+This convention is scoped to reusable UI components. It does not impose companion
+type files or a props-parameter style on unrelated backend functions or small private
+helpers.
 
 Example:
 
@@ -165,14 +173,17 @@ type FootageCardProps = {
   previewUrl: string;
 };
 
-export function FootageCard({ title, price, previewUrl }: FootageCardProps) {
+export function FootageCard(props: FootageCardProps) {
+  const { title, price, previewUrl } = props;
   // ...
 }
 ```
 
-Small local components may use concise inline props when that improves readability.
+Small private local components may use concise inline props when that improves
+readability. Generated shadcn primitives are intentional exceptions.
 
-Do not force every props type into a separate file.
+Do not force every private helper type into a separate file or mass-refactor existing
+components solely to apply this convention.
 
 ---
 

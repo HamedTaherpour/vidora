@@ -1,12 +1,12 @@
 import { prisma } from "@/lib/db/client";
-import { resolveCurrentAdmin } from "@/modules/auth/resolve-current-admin";
-import { AdminAccessDeniedView } from "@/modules/footage/admin-footage-catalog-view";
-import { AdminFootageEditView } from "@/modules/footage/admin-footage-edit-view";
-import { loadAdminFootageEdit } from "@/modules/footage/load-admin-footage-edit";
-import { createPrismaAdminFootageEditOptionsStore } from "@/modules/footage/prisma-admin-footage-edit-options-store";
-import { createPrismaAdminFootageStore } from "@/modules/footage/prisma-admin-footage-store";
-import { createPrismaAdminFootagePreviewStore } from "@/modules/media/admin-footage-preview-store";
-import { createPrismaAdminOriginalVariantStore } from "@/modules/media/prisma-admin-original-variants";
+import { resolveCurrentAdmin } from "@/modules/auth/sessions/resolve-current-admin";
+import { AdminAccessDeniedView } from "@/modules/footage/admin/catalog/admin-footage-catalog-view";
+import { AdminFootageEditView } from "@/modules/footage/admin/edit/admin-footage-edit-view";
+import { loadAdminFootageEdit } from "@/modules/footage/admin/edit/load-admin-footage-edit";
+import { createPrismaAdminFootageEditOptionsStore } from "@/modules/footage/admin/edit/prisma-admin-footage-edit-options-store";
+import { createPrismaAdminFootageStore } from "@/modules/footage/admin/mutations/prisma-admin-footage-store";
+import { createPrismaAdminFootagePreviewStore } from "@/modules/media/previews/admin-footage-preview-store";
+import { createPrismaAdminOriginalVariantStore } from "@/modules/media/originals/prisma-admin-original-variants";
 
 export const dynamic = "force-dynamic";
 

@@ -1,7 +1,7 @@
 import {
   AdminAuthorizationError,
   requireCurrentAdmin,
-} from "@/modules/auth/require-current-admin";
+} from "@/modules/auth/authorization/require-current-admin";
 
 export const dynamic = "force-dynamic";
 
