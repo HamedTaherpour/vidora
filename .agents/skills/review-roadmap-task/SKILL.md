@@ -501,6 +501,34 @@ Check:
 - RTL and accessibility requirements are preserved;
 - Design Contracts are followed where present.
 
+For UI changes, also verify the implementation's discovery and reuse evidence:
+
+- the completion report includes a `Component Reuse Plan` with existing component
+  paths inspected, selected components, new components and justification,
+  ownership decisions, and relevant bypass reasons;
+- relevant Admin or Storefront feature/domain components were inspected and
+  reused where appropriate;
+- application-level components and installed shadcn primitives were considered;
+- `.agents/skills/shadcn/SKILL.md` and current component documentation were
+  consulted when relevant;
+- raw styled controls did not unnecessarily replace available components or
+  semantic native HTML;
+- component responsibilities, state ownership, data ownership, and client
+  boundaries remain understandable;
+- new shared abstractions have a demonstrated reusable responsibility;
+- form, table, feedback, and media presentation are separated where that improves
+  clarity; and
+- RTL, accessibility, responsive, and interaction requirements are satisfied.
+
+Verify the reported plan against the actual repository and implementation diff.
+Missing or materially inaccurate reuse evidence is grounds for
+`CHANGES_REQUESTED`. For UI changes matching any approval trigger in
+`instructions/components.md`, verify that approval was obtained before
+implementation.
+
+Require concrete evidence for substantive findings. A successful build or
+passing tests does not substitute for this review.
+
 ## Functions and Types Review
 
 For TypeScript/public API changes, read:

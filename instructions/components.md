@@ -12,6 +12,60 @@ the project-local shadcn Skill, and any applicable files under `docs/design/`.
 - Route-specific composition components may remain beside their routes.
 - Do not create a shared abstraction for a single-use component without a concrete reason.
 
+## Mandatory discovery before UI work
+
+Before implementing or changing UI, agents must inspect the smallest relevant
+context and record a concise component reuse plan. The plan must identify:
+
+1. relevant existing feature/domain components in the owning Admin or Storefront
+   area;
+2. relevant application-level components;
+3. installed primitives under `src/components/ui` and the configured
+   `components.json` settings;
+4. components to reuse and how they will be composed;
+5. components to add, if any, with their ownership and responsibility; and
+6. unresolved design or architecture decisions that could affect the work.
+
+Use the following ownership order:
+
+1. reuse an existing feature/domain component when appropriate;
+2. reuse an existing application-level component when appropriate;
+3. compose existing shadcn/Base UI primitives;
+4. add an approved shadcn primitive if the requirement needs one; then
+5. create a new component only when the existing options do not meet the
+   responsibility.
+
+Consult the project-local shadcn Skill and current component documentation when
+shadcn usage, composition, or an added primitive is relevant. Do not recreate an
+existing component with raw styled HTML. Semantic native HTML remains appropriate
+when its native semantics are the correct choice.
+
+Do not introduce speculative shared abstractions. Shared components require a
+demonstrated reusable responsibility; feature-specific components remain owned by
+their feature.
+
+The plan must also consider whether form, table, feedback, and media presentation
+have understandable responsibilities; whether state, actions, and data have clear
+owners; and whether a client boundary is minimal and justified. Do not extract a
+component solely to reduce file length.
+
+For every UI task, include the plan in the final completion report under
+`Component Reuse Plan`. It must identify the existing component paths inspected,
+the components selected for reuse, any new components and their justification,
+important ownership decisions, and reasons for bypassing an available component
+when relevant. Do not create a separate documentation file solely for this plan.
+
+Require approval before implementation only when the UI task involves one or more
+of these objective triggers:
+
+- coordinated changes across multiple independent routes or application surfaces;
+- significant changes to shared client-state architecture;
+- a new shared abstraction affecting multiple features; or
+- a design-system or shared-component API change with broad impact.
+
+Small, localized, well-defined UI changes do not require an additional approval
+checkpoint after the reuse plan is prepared.
+
 Preserve the existing `src/modules` modular organization. Do not move Vidora code to
 a `src/features` structure because another project uses it.
 

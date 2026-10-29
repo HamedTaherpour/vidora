@@ -166,6 +166,40 @@ instructions/
 
 ---
 
+## AI-GOV-01 — Enforce UI Component Discovery and Reuse
+
+**Status:** READY_FOR_REVIEW
+
+### Depends On
+
+FND-02.
+
+### Objective
+
+Require AI-assisted UI work to discover, evaluate, and reuse existing feature,
+application, and shadcn components before introducing new UI.
+
+### Acceptance Criteria
+
+- component instructions require mandatory discovery of relevant feature,
+  application, and installed shadcn components before UI implementation;
+- component ownership follows reuse, composition, approved primitive addition,
+  then new-component creation only when justified;
+- UI implementation workflow records a concise reuse plan before coding and
+  includes the required `Component Reuse Plan` in the completion report;
+- approval is required only for the defined broad-impact UI triggers;
+- review workflow checks reuse, shadcn composition, component boundaries,
+  accessibility, RTL, responsive behavior, and interaction requirements;
+- no application code, dependency, or speculative shared abstraction is added.
+
+### Out of Scope
+
+- refactoring existing application UI;
+- changing the shadcn preset or installed primitives;
+- changing application behavior, dependencies, or tests.
+
+---
+
 ## FND-03 — Establish Quality Commands
 
 **Status:** DONE

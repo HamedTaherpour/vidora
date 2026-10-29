@@ -172,6 +172,35 @@ Understand:
 
 Do not begin by restructuring unrelated code.
 
+### UI discovery gate
+
+For any task that implements or changes UI, complete a concise reuse plan before
+editing. Inspect the relevant Admin or Storefront feature/domain components,
+application-level components, `src/components/ui`, `components.json`, and nearby
+tests. Consult `.agents/skills/shadcn/SKILL.md` and current component
+documentation when shadcn usage or composition is relevant.
+
+The plan must state:
+
+- relevant existing components found;
+- components to reuse and how they compose;
+- components to add, if necessary;
+- ownership and responsibility of each new component; and
+- unresolved design or architecture decisions.
+
+Follow the ownership order in `instructions/components.md`. Do not recreate an
+existing component with raw styled HTML or add a shared abstraction without a
+demonstrated reusable responsibility. Apply the objective approval triggers in
+`instructions/components.md` before implementation; small, localized,
+well-defined UI work continues after recording the plan without an unnecessary
+checkpoint.
+
+Use this workflow for UI tasks:
+
+```text
+Discover → Plan → Implement → Verify → Review
+```
+
 ---
 
 ## 4. Check for Blockers
@@ -335,6 +364,13 @@ Files changed:
 
 Tests added/updated:
 - ...
+
+Component Reuse Plan (UI tasks only):
+- Existing component paths inspected: ...
+- Components selected for reuse: ...
+- New components introduced and justification: ...
+- Important ownership decisions: ...
+- Reasons for bypassing available components, when relevant: ...
 
 Verification executed:
 - ...
