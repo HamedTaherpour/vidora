@@ -29,6 +29,17 @@ Validated configuration lives in:
 
 `DATABASE_URL` and `OTP_HASH_SECRET` are server-only. They must not use the `NEXT_PUBLIC_` prefix. Values with that prefix are inlined into the browser bundle and are visible to visitors. Kavenegar credentials are also server-only. They are validated when the SMS provider is constructed, not during application boot.
 
+For local page preview only, set `DEV_AUTH_BYPASS=true` in `.env.local` while
+running `next dev`, and configure `DEV_AUTH_BYPASS_RESOURCE=local` plus separate
+development `DEV_DATABASE_URL` and `DEV_STORAGE_*` values. The bypass refuses
+database or storage access when that explicit development configuration is
+missing or incomplete; it never falls back to production-named resources.
+It shows a small Admin notice and exposes the Admin catalog/edit pages with a
+deterministic in-memory identity. It never creates a session or database account;
+uploads, cover writes, metadata changes, publication changes, and other
+privileged mutations remain denied. Set it back to `false` or remove it to
+restore normal authentication testing.
+
 When a feature introduces configuration, add it to the matching schema in the same change. Application code should read `serverEnv` or `clientEnv` instead of using `process.env` directly.
 
 ## Database

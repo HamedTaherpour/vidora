@@ -1,6 +1,6 @@
 import {
   AdminAuthorizationError,
-  requireAuthenticatedAdmin,
+  requireAdminPageAccess,
   type AdminAuthorizationContext,
 } from "@/modules/auth/authorization/authorization";
 import {
@@ -32,7 +32,7 @@ export async function handleAdminFootageCatalogList({
   store,
 }: HandleAdminFootageCatalogListParams): Promise<AdminFootageCatalogListResult> {
   try {
-    requireAuthenticatedAdmin(admin);
+    requireAdminPageAccess(admin);
   } catch (error) {
     if (error instanceof AdminAuthorizationError) {
       return { status: "denied" };

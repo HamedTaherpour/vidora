@@ -24,6 +24,13 @@ const ADMIN = {
   expiresAt: NOW,
 };
 const ANONYMOUS = { status: "anonymous" as const };
+const DEVELOPMENT_ADMIN = {
+  status: "authenticated" as const,
+  adminId: "dev-admin-bypass",
+  phone: "+989000000000",
+  expiresAt: NOW,
+  isDevelopmentBypass: true,
+};
 
 const CATEGORY_A = {
   id: "11111111-1111-4111-8111-111111111111",
@@ -279,6 +286,16 @@ describe("handleAdminFootageCatalogList authorization", () => {
     if (result.status === "ok") {
       expect(result.catalog.items).toHaveLength(1);
     }
+  });
+
+  it("allows the explicit development identity to load the catalog", async () => {
+    await expect(
+      handleAdminFootageCatalogList({
+        admin: DEVELOPMENT_ADMIN,
+        searchParams: {},
+        store,
+      }),
+    ).resolves.toMatchObject({ status: "ok" });
   });
 });
 

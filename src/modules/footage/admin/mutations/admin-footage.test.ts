@@ -39,6 +39,13 @@ const ADMIN = {
   expiresAt: NOW,
 };
 const ANONYMOUS = { status: "anonymous" as const };
+const DEVELOPMENT_ADMIN = {
+  status: "authenticated" as const,
+  adminId: "dev-admin-bypass",
+  phone: "+989000000000",
+  expiresAt: NOW,
+  isDevelopmentBypass: true,
+};
 
 const CATEGORY_A = "11111111-1111-4111-8111-111111111111";
 const CATEGORY_B = "22222222-2222-4222-8222-222222222222";
@@ -670,6 +677,16 @@ describe("Admin Footage authorization boundary", () => {
 
     const row = await store.findById(created.id);
     expect(row?.status).toBe("DRAFT");
+  });
+
+  it("denies privileged mutations for the development page-preview identity", async () => {
+    const result = await handleAdminCreateDraftFootage({
+      admin: DEVELOPMENT_ADMIN,
+      body: validCreateBody(),
+      store: createMemoryStore(),
+    });
+
+    expect(result).toEqual({ status: "denied" });
   });
 
   it("allows Admin update/publish/unpublish and maps safe HTTP responses", async () => {

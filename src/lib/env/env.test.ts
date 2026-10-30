@@ -86,6 +86,7 @@ describe("server environment schema", () => {
     ).toEqual({
       DATABASE_URL: validUrl,
       OTP_HASH_SECRET: otpHashSecret,
+      DEV_AUTH_BYPASS: "false",
     });
   });
 
@@ -164,6 +165,20 @@ describe("server environment schema", () => {
         APP_ORIGIN: "https://shop.example",
       }).APP_ORIGIN,
     ).toBe("https://shop.example");
+  });
+
+  it("accepts the development auth bypass only as a server-only setting", () => {
+    expect(
+      parseServerEnv({
+        DATABASE_URL: validUrl,
+        OTP_HASH_SECRET: otpHashSecret,
+        NODE_ENV: "development",
+        DEV_AUTH_BYPASS: "true",
+      }).DEV_AUTH_BYPASS,
+    ).toBe("true");
+    expect(Object.keys(serverEnvSchema.shape)).not.toContain(
+      "NEXT_PUBLIC_DEV_AUTH_BYPASS",
+    );
   });
 
   it("requires APP_ORIGIN when NODE_ENV is production", () => {

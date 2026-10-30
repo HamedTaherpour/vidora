@@ -1,6 +1,14 @@
 # Vidora Storefront Component Contracts
 
-Status: READY_FOR_REVIEW contract for UI-02. This document defines the boundary for the first reusable Persian-first, RTL storefront components. It does not implement components, routes, queries, commerce, or media infrastructure.
+Status: READY_FOR_REVIEW contract for UI-02. This document preserves the
+behavioral, data, media, accessibility, and RTL boundary for the first reusable
+Persian-first storefront components. Its visual suggestions and any appearance
+derived from the existing implementation are not approved targets: the
+product-owner decision recorded in `UI-DESIGN-01` requires a Pexels-inspired
+MVP presentation rebuild. UI tasks may inspect this contract for behavior and
+constraints, then apply the approved new visual direction without changing its
+product/security responsibilities. This document does not implement components,
+routes, queries, commerce, or media infrastructure.
 
 ## Shared conventions
 

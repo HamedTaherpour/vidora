@@ -1,5 +1,6 @@
 import type { ResolvedAdmin } from "@/modules/auth/sessions/resolve-admin-session";
 import type { ResolvedCustomer } from "@/modules/auth/sessions/resolve-customer-session";
+import { isDevelopmentAuthBypassIdentity } from "@/modules/auth/development/dev-auth-bypass";
 
 /** Public auth boundary for server-side Admin authorization decisions. */
 export type AdminAuthorizationContext = ResolvedAdmin;
@@ -36,7 +37,10 @@ export class AdminAuthorizationError extends Error {
 export function requireAuthenticatedCustomer(
   customer: ResolvedCustomer,
 ): RequiredCustomer {
-  if (customer.status !== "authenticated") {
+  if (
+    customer.status !== "authenticated" ||
+    isDevelopmentAuthBypassIdentity(customer)
+  ) {
     throw new CustomerAuthorizationError();
   }
 
@@ -48,6 +52,18 @@ export function requireAuthenticatedCustomer(
  * A Customer session alone is not represented here and cannot satisfy this check.
  */
 export function requireAuthenticatedAdmin(admin: ResolvedAdmin): RequiredAdmin {
+  if (
+    admin.status !== "authenticated" ||
+    isDevelopmentAuthBypassIdentity(admin)
+  ) {
+    throw new AdminAuthorizationError();
+  }
+
+  return admin;
+}
+
+/** Page-preview access may use the explicit local development identity. */
+export function requireAdminPageAccess(admin: ResolvedAdmin): RequiredAdmin {
   if (admin.status !== "authenticated") {
     throw new AdminAuthorizationError();
   }

@@ -1,6 +1,6 @@
 import {
   AdminAuthorizationError,
-  requireAuthenticatedAdmin,
+  requireAdminPageAccess,
   type AdminAuthorizationContext,
 } from "@/modules/auth/authorization/authorization";
 import { footageIdSchema } from "@/modules/footage/admin/mutations/admin-footage-input";
@@ -63,7 +63,7 @@ export async function loadAdminFootageEdit({
   originalVariantStore,
 }: LoadAdminFootageEditParams): Promise<AdminFootageEditLoadResult> {
   try {
-    requireAuthenticatedAdmin(admin);
+    requireAdminPageAccess(admin);
   } catch (error) {
     if (error instanceof AdminAuthorizationError) {
       return { status: "denied" };

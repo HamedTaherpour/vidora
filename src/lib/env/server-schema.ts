@@ -4,7 +4,7 @@ import { z } from "zod";
 import { isAbsoluteHttpOrigin } from "../../modules/auth/browser/browser-auth-origin";
 import { EnvironmentConfigError, parseEnv, type EnvSource } from "./parse-env";
 
-function isPostgreSqlConnectionUrl(value: string): boolean {
+export function isPostgreSqlConnectionUrl(value: string): boolean {
   try {
     const url = new URL(value);
     return url.protocol === "postgresql:" || url.protocol === "postgres:";
@@ -32,6 +32,20 @@ const databaseUrlSchema = z.object({
 
 export const serverEnvSchema = databaseUrlSchema.extend({
   OTP_HASH_SECRET: z.string().min(32),
+  DEV_AUTH_BYPASS: z.enum(["true", "false"]).default("false"),
+  DEV_AUTH_BYPASS_RESOURCE: z.literal("local").optional(),
+  DEV_DATABASE_URL: z
+    .string()
+    .refine(isPostgreSqlConnectionUrl, {
+      message: "must be a postgresql:// or postgres:// connection URL",
+    })
+    .optional(),
+  DEV_STORAGE_ENDPOINT: z.string().url().optional(),
+  DEV_STORAGE_REGION: z.string().min(1).optional(),
+  DEV_STORAGE_BUCKET: z.string().min(1).optional(),
+  DEV_STORAGE_ACCESS_KEY: z.string().regex(/^\S+$/).optional(),
+  DEV_STORAGE_SECRET_KEY: z.string().regex(/^\S+$/).optional(),
+  DEV_STORAGE_FORCE_PATH_STYLE: z.enum(["true", "false"]).optional(),
   APP_ORIGIN: z
     .string()
     .refine(isAbsoluteHttpOrigin, {

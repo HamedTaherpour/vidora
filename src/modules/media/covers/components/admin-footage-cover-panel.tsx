@@ -16,6 +16,18 @@ import {
   COVER_SOURCE_MAX_BYTES,
   COVER_SOURCE_MIME_TYPES,
 } from "@/modules/media/covers/cover-policy";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { AdminFootageCoverPanelProps } from "./admin-footage-cover-panel.types";
 
 const COVER_WIDTH = 1280;
@@ -49,7 +61,7 @@ export function AdminFootageCoverPanel(props: AdminFootageCoverPanelProps) {
   const { footageId } = props;
   const router = useRouter();
   const imageRef = useRef<HTMLImageElement>(null);
-  const viewportRef = useRef<HTMLDialogElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{
     pointerId: number;
     x: number;
@@ -94,6 +106,11 @@ export function AdminFootageCoverPanel(props: AdminFootageCoverPanelProps) {
     setSourceUrl(URL.createObjectURL(file));
     setZoom(MIN_ZOOM);
     setOffset({ x: 0, y: 0 });
+  }
+
+  function clearSource() {
+    setSourceFile(null);
+    setSourceUrl(null);
   }
 
   function handlePointerDown(event: PointerEvent<HTMLImageElement>) {
@@ -193,8 +210,7 @@ export function AdminFootageCoverPanel(props: AdminFootageCoverPanelProps) {
         return;
       }
       setMessage("جلد با موفقیت ذخیره شد.");
-      setSourceFile(null);
-      setSourceUrl(null);
+      clearSource();
       router.refresh();
     } catch (error) {
       setError(
@@ -212,113 +228,113 @@ export function AdminFootageCoverPanel(props: AdminFootageCoverPanelProps) {
   };
 
   return (
-    <section className="flex flex-col gap-4 border-t border-border pt-6">
-      <header>
-        <h2 className="text-lg font-semibold">جلد فوتیج</h2>
-        <p className="text-sm text-muted-foreground">
+    <Card>
+      <CardHeader>
+        <CardTitle>جلد فوتیج</CardTitle>
+        <CardDescription>
           تصویر اولیه به JPEG با اندازه ۱۲۸۰×۷۲۰ و نسبت ثابت ۱۶:۹ تبدیل می‌شود.
-        </p>
-      </header>
-
-      <div className="flex aspect-video w-full max-w-2xl items-center justify-center overflow-hidden rounded-md bg-muted">
-        <img
-          src={`/api/admin/footage/${footageId}/cover`}
-          alt="جلد فعلی فوتیج"
-          className="h-full w-full object-cover"
-          onError={(event) => {
-            event.currentTarget.style.display = "none";
-          }}
-        />
-      </div>
-
-      <label className="flex flex-col gap-2 text-sm font-medium">
-        انتخاب تصویر جدید
-        <input
-          type="file"
-          accept={COVER_SOURCE_MIME_TYPES.join(",")}
-          disabled={busy}
-          onChange={(event) => handleFileChange(event.target.files?.[0])}
-        />
-      </label>
-
-      {sourceUrl ? (
-        <dialog
-          ref={viewportRef}
-          className="relative aspect-video w-full max-w-2xl overflow-hidden rounded-md border-2 border-primary bg-black"
-          role="dialog"
-          aria-label="برش جلد فوتیج"
-          aria-modal="true"
-          open
-        >
-          <h3 id="cover-crop-title" className="sr-only">
-            برش جلد فوتیج
-          </h3>
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        <div className="flex aspect-video w-full max-w-2xl items-center justify-center overflow-hidden rounded-md bg-muted">
           <img
-            ref={imageRef}
-            src={sourceUrl}
-            alt="پیش‌نمایش تصویر برای برش"
-            className="h-full w-full cursor-move object-cover outline-none"
-            style={imageStyle}
-            tabIndex={0}
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={() => {
-              dragRef.current = null;
+            src={`/api/admin/footage/${footageId}/cover`}
+            alt="جلد فعلی فوتیج"
+            className="h-full w-full object-cover"
+            onError={(event) => {
+              event.currentTarget.style.display = "none";
             }}
-            onKeyDown={handleKeyDown}
           />
-          <div className="pointer-events-none absolute inset-0 border-2 border-white/80" />
-          <p className="absolute bottom-2 start-2 rounded bg-black/70 px-2 py-1 text-xs text-white">
-            برای جابه‌جایی بکشید؛ با کلیدهای جهت‌دار نیز قابل کنترل است.
-          </p>
-        </dialog>
-      ) : null}
-
-      {sourceUrl ? (
-        <div className="flex max-w-2xl flex-col gap-3">
-          <label htmlFor="cover-zoom" className="text-sm font-medium">
-            بزرگ‌نمایی
-          </label>
-          <input
-            id="cover-zoom"
-            type="range"
-            min={MIN_ZOOM}
-            max={MAX_ZOOM}
-            step={0.05}
-            value={zoom}
-            onChange={(event) => setZoom(Number(event.target.value))}
-            disabled={busy}
-          />
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => void handleConfirm()}
-              disabled={busy}
-              className="rounded-md border border-primary bg-primary px-4 py-2 text-sm text-primary-foreground"
-            >
-              {busy ? "در حال ذخیره…" : "تأیید و ذخیره جلد"}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setSourceFile(null);
-                setSourceUrl(null);
-              }}
-              disabled={busy}
-              className="rounded-md border border-border px-4 py-2 text-sm"
-            >
-              انصراف
-            </button>
-          </div>
         </div>
-      ) : null}
 
-      {message ? <p role="status">{message}</p> : null}
-      {error ? (
-        <p role="alert" className="text-sm text-destructive">
-          {error}
-        </p>
-      ) : null}
-    </section>
+        <Field>
+          <FieldLabel htmlFor="cover-file">انتخاب تصویر جدید</FieldLabel>
+          <Input
+            id="cover-file"
+            type="file"
+            accept={COVER_SOURCE_MIME_TYPES.join(",")}
+            disabled={busy}
+            onChange={(event) => handleFileChange(event.target.files?.[0])}
+          />
+        </Field>
+
+        <Dialog
+          open={sourceUrl !== null}
+          onOpenChange={(open) => {
+            if (!open && !busy) clearSource();
+          }}
+        >
+          <DialogContent
+            ref={viewportRef}
+            showCloseButton={false}
+            className="relative aspect-video w-full max-w-2xl overflow-hidden rounded-md border-2 border-primary bg-black p-0"
+          >
+            <DialogTitle className="sr-only">برش جلد فوتیج</DialogTitle>
+            <img
+              ref={imageRef}
+              src={sourceUrl ?? ""}
+              alt="پیش‌نمایش تصویر برای برش"
+              className="h-full w-full cursor-move object-cover outline-none"
+              style={imageStyle}
+              tabIndex={0}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={() => {
+                dragRef.current = null;
+              }}
+              onKeyDown={handleKeyDown}
+            />
+            <div className="pointer-events-none absolute inset-0 border-2 border-white/80" />
+            <p className="absolute bottom-2 start-2 rounded bg-black/70 px-2 py-1 text-xs text-white">
+              برای جابه‌جایی بکشید؛ با کلیدهای جهت‌دار نیز قابل کنترل است.
+            </p>
+          </DialogContent>
+        </Dialog>
+
+        {sourceUrl ? (
+          <div className="flex max-w-2xl flex-col gap-3">
+            <label htmlFor="cover-zoom" className="text-sm font-medium">
+              بزرگ‌نمایی
+            </label>
+            <input
+              id="cover-zoom"
+              type="range"
+              min={MIN_ZOOM}
+              max={MAX_ZOOM}
+              step={0.05}
+              value={zoom}
+              onChange={(event) => setZoom(Number(event.target.value))}
+              disabled={busy}
+            />
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                onClick={() => void handleConfirm()}
+                disabled={busy}
+              >
+                {busy ? "در حال ذخیره…" : "تأیید و ذخیره جلد"}
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  clearSource();
+                }}
+                disabled={busy}
+                variant="outline"
+              >
+                انصراف
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
+        {message ? <p role="status">{message}</p> : null}
+        {error ? (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        ) : null}
+      </CardContent>
+    </Card>
   );
 }

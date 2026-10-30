@@ -1,14 +1,29 @@
 # Vidora Design Foundations
 
-## Approved direction
+## Visual-direction status
 
-Vidora uses a professional marketplace visual direction for a Persian-first video-footage storefront and its operational Admin area. V1 is light-only in product behavior. The approved dark tokens remain defined for future use, but no theme switcher is implemented.
+The visual direction and token values below are historical implementation
+context, not the approved target appearance. `UI-DESIGN-01` in
+[`../ROADMAP.md`](../ROADMAP.md) must establish and receive approval for the
+new MVP direction before Public or Admin UI work begins. Existing UI may be
+inspected for behavior, data contracts, and security boundaries only; it must
+not dictate the rebuilt appearance.
+
+The technical constraints in this document remain applicable unless explicitly
+superseded by approved design preparation: Persian-first `fa`/RTL, local
+Vazirmatn delivery, semantic tokens, logical CSS properties, the configured
+shadcn/Base UI stack, small client boundaries, accessibility, and no speculative
+component-library or theme-system changes. V1 remains light-only unless a later
+product decision changes that behavior.
 
 The design system uses Tailwind CSS v4, the existing `base-nova` shadcn style, Base UI primitives, and Lucide icons. Do not apply a shadcn preset or introduce another component library.
 
 ## Color tokens
 
-The following values are authoritative and must not be changed without a product-owner design decision.
+The following historical values remain the current implementation baseline. They
+must not be treated as the visual target or changed during a page task; any
+replacement is decided once, in approved `UI-DESIGN-01`, then applied by the
+bounded rebuild tasks.
 
 ```css
 :root {
@@ -95,7 +110,8 @@ The interface language is Persian (`fa`) and uses Vazirmatn for both Storefront 
 | H2    | 24px |        36px | `text-ui-h2`    |
 | H3    | 20px |        32px | `text-ui-h3`    |
 
-These roles are available for new UI. Existing screens should not be redesigned solely to force the scale onto unrelated work.
+These roles remain available as implementation context. The approved rebuild
+direction will determine whether they remain the visual scale for new UI.
 
 ## Spacing, radius, and breakpoints
 
@@ -123,6 +139,9 @@ Technical content that must remain LTR—such as slugs, URLs, file names, IDs, c
 
 ## Composition and governance
 
-Storefront composition uses `container-storefront` and is optimized for Persian discovery and purchase flows. Admin composition uses `container-admin` and remains operationally focused. Neither area is redesigned by the foundation task.
+Storefront composition uses `container-storefront`; Admin composition uses
+`container-admin`. The new direction must retain their RTL-safe intent or make
+an explicitly approved, scoped replacement. This historical foundation does not
+approve the current Storefront or Admin visual presentation.
 
 Design tokens are the default contract. A component may use a local value only when the value is required by an external format, media ratio, browser behavior, or an approved component contract. Such exceptions should remain local and be documented when they affect the visual system. Do not alter token values, add a theme switcher, apply presets, or add a second theming system without an approved design decision.

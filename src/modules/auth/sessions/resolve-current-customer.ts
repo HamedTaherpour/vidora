@@ -1,6 +1,12 @@
 import "server-only";
 
 import { prisma } from "@/lib/db/client";
+import {
+  DEVELOPMENT_USER_ID,
+  DEVELOPMENT_USER_PHONE,
+  developmentIdentityExpiry,
+  isDevelopmentAuthBypassEnabled,
+} from "@/modules/auth/development/dev-auth-bypass";
 import { readCustomerSessionToken } from "@/modules/auth/sessions/customer-session-cookie-store";
 import { createPrismaOtpVerificationStore } from "@/modules/auth/otp/prisma-otp-verification-store";
 import {
@@ -16,6 +22,16 @@ import {
 export async function resolveCurrentCustomer(
   now = new Date(),
 ): Promise<ResolvedCustomer> {
+  if (isDevelopmentAuthBypassEnabled()) {
+    return {
+      status: "authenticated",
+      userId: DEVELOPMENT_USER_ID,
+      phone: DEVELOPMENT_USER_PHONE,
+      expiresAt: developmentIdentityExpiry(now),
+      isDevelopmentBypass: true,
+    };
+  }
+
   const sessionToken = await readCustomerSessionToken();
   const store = createPrismaOtpVerificationStore(prisma);
 

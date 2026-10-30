@@ -71,7 +71,632 @@ Agents must not implement later roadmap tasks opportunistically.
 
 ---
 
-# Phase 0 — Foundation & Governance
+# 4. Current UI-First Execution Plan
+
+## Status and authority
+
+This section is the authoritative execution order for unfinished V1 work. The
+existing application's visual design is **not approved** and must not be used
+as the target appearance. Existing UI may be inspected for functional behavior,
+product requirements, data contracts, security boundaries, and reusable logic;
+it does not dictate the new presentation. The execution order is: approve a
+minimal MVP visual direction, approve public pages with deterministic fixtures,
+approve Admin pages with deterministic fixtures, connect approved pages to
+backend capabilities one at a time, complete production workflows, and finally
+perform release verification.
+
+The detailed task record below is retained as historical context and evidence
+of completed/ready infrastructure. It is **not** permission to resume an
+unfinished task out of the sequence in this section. Completed and
+`READY_FOR_REVIEW` work is preserved without changing its status; it may be
+used only through its existing public-safe/module boundaries.
+
+### Strict page approval gate
+
+For every page task below, implement only that page with deterministic fixtures;
+run focused tests plus relevant lint, typecheck, and build verification; obtain
+independent code review; provide local-preview instructions; and stop at
+`READY_FOR_REVIEW`. Do not start the next page or mark the task `DONE` until the
+product owner manually approves mobile and desktop layouts, RTL correctness,
+typography/spacing, main interactions, loading/empty/error states, and overall
+visual consistency. Passing tests alone does not complete a page.
+
+### Routes discovered at restructuring time
+
+| Surface                             | Implemented route               | Planning status                                                                                                                          |
+| ----------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Public catalog/home                 | `/`                             | Implemented as a database-backed published-footage list; not yet an approved complete public home page.                                  |
+| Public footage detail               | `/footage/[slug]`               | Planned in the component contract; route/query do not exist.                                                                             |
+| Public browse/search                | No dedicated route              | Planned; route must be selected from the catalog contract during implementation, without adding unsupported discovery behavior.          |
+| Customer session status             | `/session`, `/session/continue` | Implemented session-status surfaces; they are not a complete OTP UI.                                                                     |
+| Customer library, checkout, invoice | No routes                       | Planned product surfaces; dependent backend workflows are not implemented.                                                               |
+| Admin footage catalog               | `/admin/footage`                | Implemented operational surface.                                                                                                         |
+| Admin footage editor                | `/admin/footage/[id]/edit`      | Implemented operational surface.                                                                                                         |
+| Other Admin areas                   | No routes                       | Product requirements mention orders, payments/support, users, and blog, but their backend capability and routes are not yet implemented. |
+
+## UI fixture strategy
+
+The first implementation task, `UI-MOCK-01`, establishes the only mock-data
+approach authorized for the two UI phases:
+
+- typed, deterministic fixture factories live beside the owning public or Admin
+  UI module and use public view/DTO types where those types exist;
+- route composition receives fixture-backed view models through a narrow local
+  loader selected only by the UI-development boundary, never by a production
+  database query or public API route;
+- fixture sets include populated, empty, loading/pending, recoverable-error,
+  and unavailable media/action cases; Persian content is realistic but
+  contains no production records or credentials;
+- mocks must not import Prisma, storage credentials, private object keys,
+  payment secrets, or protected originals; they must be excluded from a normal
+  production data path;
+- a page's later integration task replaces its loader/adapter only, preserving
+  the approved component contract and visual states. No mocking framework is
+  authorized unless the first task establishes a concrete unmet need.
+
+## Phase 0 — MVP Visual Direction
+
+### UI-DESIGN-01 — Establish MVP Visual Direction
+
+**Status:** TODO
+
+**Depends On:** UI-01, UI-02, AI-GOV-01.
+
+**Objective:** Establish the small, coherent visual direction that governs the
+fixture-based UI rebuild without altering product, architecture, data, or
+security behavior.
+
+**Scope:** Document [Pexels Videos](https://www.pexels.com/videos/) as the
+primary Public reference for content-first video discovery patterns, and
+[shadcn/ui](https://ui.shadcn.com/) as the primary Admin reference for standard
+component and interaction patterns. Inspect existing foundations/contracts and
+identify their visual decisions that need replacement. Define practical
+typography, semantic color use, spacing, radius, containers, responsive rules,
+Persian RTL conventions, Public discovery/card/navigation conventions, Admin
+navigation/form/table/dialog/feedback conventions, shadcn reuse expectations,
+and a page-by-page visual review record.
+
+**Acceptance criteria:**
+
+- explicitly records that the existing visual design is not approved, while
+  retaining its functional and security contracts;
+- defines a simple MVP direction: Public is Pexels-inspired but never copies
+  branding, assets, or exact layouts; Admin follows standard shadcn/ui patterns;
+- establishes one minimal, coherent token/convention set and identifies which
+  existing visual foundations are superseded rather than creating a custom
+  design system;
+- preserves `fa`/RTL, mobile and desktop behavior, keyboard accessibility, and
+  deliberate loading, empty, error, and unavailable states;
+- documents shadcn primitive discovery/reuse through the existing component
+  governance, without requiring Figma, Storybook, a preset change, or a new
+  dependency;
+- defines the local-preview and manual visual-approval checklist consumed by
+  every `PUB-*` and `ADM-*` task.
+
+**Verification requirements:** review the result against `PROJECT.md`, current
+component contracts, and UI instructions; confirm no prohibited product feature
+is introduced; run documentation formatting and `git diff --check`; receive
+independent review and product-owner approval before `UI-MOCK-01` begins.
+
+**Explicit exclusions:** UI/code implementation, Figma, Storybook, dependency
+installation, a custom brand identity, a new design-system framework, copying
+Pexels/shadcn assets/layouts, API/schema/authentication/business-rule changes.
+
+## Phase 1 — Public UI with Mock Data
+
+### UI-MOCK-01 — Establish Typed UI Fixture Boundary
+
+**Status:** TODO
+**Depends On:** UI-DESIGN-01 approval, UI-01, UI-02.
+
+**Scope / route:** Shared fixture and local-loader convention for planned
+public and Admin UI routes; no production route or backend behavior changes.
+
+**Components and mock data:** define deterministic Persian fixture factories
+for published-footage cards/details, customer-session presentation, purchase
+presentation, library/invoice presentation, and current Admin footage
+views. Reuse the existing public component contracts and keep fixtures owned
+by the closest feature module.
+
+**Required states:** populated, empty, loading/pending, safe error, and media
+unavailable where applicable. The task does not invent business outcomes.
+
+**Responsive / RTL / accessibility:** fixture content must exercise long
+Persian text, mixed LTR technical values, narrow layouts, and accessible
+labels/status regions.
+
+**Acceptance and verification:** document the loader boundary, prove fixture
+determinism and type checking with focused tests, review that a production
+route cannot silently select mock data, and obtain a manual visual check of
+the representative fixture states.
+
+**Explicit exclusions:** no new mocking dependency, database/schema/API change,
+authentication bypass change, or product page implementation.
+
+### Public rebuild conventions
+
+Every `PUB-*` task below rebuilds presentation from the approved Phase 0
+direction; it is not a polish pass over the existing UI. Use Pexels-inspired
+content-first browsing patterns—prominent video imagery, clear discovery,
+simple navigation, practical search/filter controls, low visual clutter, and
+responsive grids—without copying Pexels branding, assets, exact layout, or
+unsupported product features. The Vidora single-item Buy Now model, published
+catalog rules, and all authorization/media constraints remain unchanged.
+
+---
+
+### PUB-01 — Public Shell and Home Presentation
+
+**Status:** TODO
+**Depends On:** UI-MOCK-01.
+
+**Scope / route:** Complete the public page composition at `/` using fixtures.
+It is the planned home/catalog entry surface, not permission to add marketing
+features absent from `PROJECT.md`.
+
+**Components and mock data:** compose the approved layout, navigation/footer
+only to the extent supported by existing destinations, and existing
+`PublicFootageListView`/`FootageCard` contracts with populated and empty
+catalog fixtures.
+
+**Pexels-inspired presentation:** content-led landing/catalog hierarchy,
+prominent cover-driven video cards, simple navigation, and a responsive
+discovery grid with restrained visual chrome.
+
+**Required states:** initial/populated, no published results, route-level
+loading, recoverable error, and unavailable cover/preview presentation.
+
+**Responsive / RTL / accessibility:** mobile and desktop containers, logical
+spacing, keyboard navigation, semantic landmarks, Persian labels, and safe
+mixed-script prices/technical text.
+
+**Acceptance and verification:** the full page follows design tokens and
+contracts, uses no live database dependency, has focused render/accessibility
+tests, receives independent review, and receives recorded desktop/mobile visual
+approval.
+
+**Explicit exclusions:** search/filter semantics, detail query, autoplay,
+commerce, and new public destinations without product support.
+
+---
+
+### PUB-02 — Browse, Search, and Filter UI
+
+**Status:** TODO
+**Depends On:** PUB-01.
+
+**Scope / route:** Add the planned public catalog browse/search surface. The
+exact route is selected from the existing catalog contract during implementation
+and recorded; no currently implemented dedicated route is claimed.
+
+**Components and mock data:** compose `SearchBar`, `FilterControls`, result
+list, and URL-state presentation with fixture-supplied approved options and
+results. Only category/tag/technical filters that the later catalog boundary
+can support may be visually represented.
+
+**Pexels-inspired presentation:** prominent practical search, clear result
+context, compact progressive filters, and uncluttered responsive discovery;
+only approved Vidora filters and URL state are shown.
+
+**Required states:** query results, no matches, initial catalog, invalid/empty
+URL state, loading navigation, and recoverable query error.
+
+**Responsive / RTL / accessibility:** desktop/mobile controls submit identical
+GET state, use real fields/buttons, preserve keyboard operation and Persian
+mixed-script readability.
+
+**Acceptance and verification:** URL state is shareable and fixture-only,
+desktop/mobile behavior is equivalent, focused component/route tests pass,
+independent review passes, and visual approval covers narrow and wide screens.
+
+**Explicit exclusions:** relevance algorithm, autocomplete, unapproved sort or
+filter, external search service, and database search implementation.
+
+---
+
+### PUB-03 — Footage Detail UI
+
+**Status:** TODO
+**Depends On:** PUB-01.
+
+**Scope / route:** Build the planned `/footage/[slug]` composition against a
+fixture-backed public detail view model. The route is planned, not currently
+implemented.
+
+**Components and mock data:** compose primary cover, `VideoPreview`, metadata,
+category/tags, available-quality presentation, and `BuyNowArea` using ready,
+unavailable, and invalid-slug fixture data. No private original data enters the
+view model.
+
+**Pexels-inspired presentation:** video-first media hierarchy, clear metadata
+and purchase decision area, and a focused detail layout rather than a copied
+reference-page layout.
+
+**Required states:** detail ready, preview unavailable/error, loading,
+not-found-safe presentation, and Buy Now anonymous/authenticated/unknown UI
+states.
+
+**Responsive / RTL / accessibility:** preserve video pixels, use native media
+controls, support keyboard actions and focus, and avoid overflow with Persian
+and LTR technical values.
+
+**Acceptance and verification:** detail behavior follows the approved component
+contract, has focused rendering/state tests, independent review, and recorded
+mobile/desktop visual approval.
+
+**Explicit exclusions:** slug/database resolution, real preview requests,
+order creation, payment, entitlement, or original download.
+
+---
+
+### PUB-04 — Customer Authentication and Continuation UI
+
+**Status:** TODO
+**Depends On:** PUB-03, UI-MOCK-01.
+
+**Scope / route:** Complete the customer-facing OTP/session presentation using
+the existing `/session` and `/session/continue` surfaces plus a planned
+customer authentication entry route if required by the approved UI flow.
+
+**Components and mock data:** fixture-backed phone/OTP step presentation,
+continuation status, validation, resend/pending/error states, and a validated
+internal return destination from detail.
+
+**Pexels-inspired presentation:** a deliberately simple, distraction-free
+customer continuation surface; it does not add social login or user-community
+behavior.
+
+**Required states:** phone entry, OTP entry, pending, cooldown/rate-limit-safe
+message, invalid/expired code, session restored, and generic safe failure.
+
+**Responsive / RTL / accessibility:** labelled native controls, input mode
+appropriate to a phone/code, logical layout, error announcements, keyboard
+flow, and Persian digits/text where designed.
+
+**Acceptance and verification:** no OTP value or internal error is rendered,
+continuation only represents a safe internal destination, focused tests pass,
+independent review passes, and visual approval is recorded.
+
+**Explicit exclusions:** changing OTP policy, API behavior, cookies, account
+recovery, or enabling the development bypass for customer flows.
+
+---
+
+### PUB-05 — Buy Now and Payment Journey UI
+
+**Status:** TODO
+**Depends On:** PUB-03, PUB-04.
+
+**Scope / route:** Fixture-only purchase handoff, pending/return, and result
+presentations for the single-footage Buy Now journey; real checkout and callback
+routes are planned later.
+
+**Components and mock data:** use `BuyNowArea` plus route-level confirmation,
+pending, failed, and verified-success view models with an authoritative
+fixture price and footage snapshot.
+
+**Pexels-inspired presentation:** clear single-item purchase handoff and status
+hierarchy with minimal clutter; it remains Vidora Buy Now, not a cart or
+subscription flow.
+
+**Required states:** anonymous handoff, authenticated idle/pending, provider
+return pending verification, declined/failed payment, verified completion, and
+safe generic error.
+
+**Responsive / RTL / accessibility:** explicit action buttons, disabled/pending
+semantics, status announcements, no optimistic financial-success claim, and
+readable Toman formatting.
+
+**Acceptance and verification:** browser input cannot define displayed
+authoritative fixture price, all states are visually approved, focused tests
+and independent review pass.
+
+**Explicit exclusions:** order/payment persistence, provider selection,
+callback verification, entitlement, invoice generation, cart, discounts, or
+subscriptions.
+
+---
+
+### PUB-06 — Customer Library, Downloads, and Invoice UI
+
+**Status:** TODO
+**Depends On:** PUB-04, PUB-05.
+
+**Scope / route:** Planned authenticated library, purchase detail/download, and
+invoice presentation routes using fixtures; no corresponding routes currently
+exist.
+
+**Components and mock data:** purchased-footage list, empty library, download
+variant affordances, invoice summary/render presentation, and support-safe
+masked phone fixture data.
+
+**Pexels-inspired presentation:** media-led purchased-item list and direct,
+readable file/invoice actions; no social collections, recommendations, or new
+download policy is implied.
+
+**Required states:** populated/empty library, loading, unauthenticated access
+presentation, unavailable file, download-request pending/denied/success
+presentation, invoice available/not-found-safe/error.
+
+**Responsive / RTL / accessibility:** semantic lists/tables where appropriate,
+accessible download/invoice controls, logical layout, and LTR isolation only
+for technical references.
+
+**Acceptance and verification:** no object key/signed URL/private file is in a
+fixture or DOM, no UI implies entitlement without server confirmation, focused
+tests, independent review, and mobile/desktop visual approval are complete.
+
+**Explicit exclusions:** protected download authorization, download history,
+legal invoice fields, or backend purchase lookup.
+
+---
+
+### PUB-07 — Public Blog and SEO Presentation UI
+
+**Status:** TODO
+**Depends On:** PUB-01, UI-MOCK-01.
+
+**Scope / route:** Planned public blog index/detail and metadata presentation;
+no public blog route or blog backend currently exists.
+
+**Components and mock data:** fixture-backed post cards/index/detail with safe
+Markdown presentation boundary, empty/loading/error states, and documented
+metadata examples.
+
+**Pexels-inspired presentation:** content-first article discovery and a quiet,
+readable article view; it does not add contributor/community capabilities.
+
+**Required states:** published list/detail, empty list, missing post, loading,
+and safe content-rendering failure.
+
+**Responsive / RTL / accessibility:** readable Persian long-form typography,
+heading hierarchy, semantic article structure, keyboard navigation, and mobile
+reading width.
+
+**Acceptance and verification:** no unpublished fixture is presented as public,
+focused tests/review pass, and visual approval is recorded.
+
+**Explicit exclusions:** schema, Markdown parser/dependency, Admin editor,
+sitemap/robots implementation, and claims about final SEO indexing behavior.
+
+## Phase 2 — Admin UI with Mock Data
+
+### ADM-01 — Admin Footage Catalog UI Completion
+
+**Status:** TODO
+**Depends On:** UI-MOCK-01, UI-WORKFLOW-VALIDATION-02.
+
+**Scope / route:** Refine the existing `/admin/footage` operational interface
+using Admin catalog fixtures while preserving the CAT-04 server behavior.
+
+**Components and mock data:** current catalog/table/list, draft/published
+status, search/pagination presentation, create/edit entry points, and fixtures
+for populated, empty, filtered, multi-page, loading, denied, and safe-error
+states.
+
+**shadcn/ui presentation:** rebuild the catalog as an operational Admin
+surface using standard navigation, table/list, filter, status, action, dialog,
+and feedback patterns; existing Admin styling is not a visual baseline.
+
+**Forms, responsive, accessibility:** use approved controls/tables, compact
+desktop operation plus usable narrow layouts, Persian RTL, labelled filters,
+keyboard access, and non-color-only status.
+
+**Acceptance and verification:** UI uses no live DB in its fixture mode,
+preserves authorization boundaries, has focused UI tests, independent review,
+and recorded visual approval.
+
+**Explicit exclusions:** bulk management, analytics, new role model, backend
+catalog query/mutation changes, or production data changes.
+
+---
+
+### ADM-02 — Admin Footage Editor and Media UI Completion
+
+**Status:** TODO
+**Depends On:** ADM-01, MEDIA-COVER-02, UI-WORKFLOW-VALIDATION-02.
+
+**Scope / route:** Refine the existing `/admin/footage/[id]/edit` editor
+against fixtures while preserving metadata, preview, cover, original-variant,
+publication, and direct-upload boundaries already implemented.
+
+**Components and mock data:** metadata form, category/tag selection, cover crop
+and replacement presentation, preview/original sections, publication status,
+and deterministic validation/upload/pending/failure fixtures.
+
+**shadcn/ui presentation:** rebuild the editor with practical grouped forms,
+field validation, cards/sections, confirmations where an existing action
+requires them, and standard feedback states; preserve every current security
+and media boundary.
+
+**Forms, responsive, accessibility:** explicit labels/validation summaries,
+keyboard-operable upload/crop controls, mobile-safe sections, Persian RTL, and
+no silent destructive replacement claim.
+
+**Acceptance and verification:** correct fixture states render without storage,
+no credentials/object keys are rendered, focused tests/review pass, and visual
+approval covers the editor's major states.
+
+**Explicit exclusions:** media schema/storage/API changes, automatic cleanup,
+new Admin roles, and changes to actual authorization or publication rules.
+
+---
+
+### ADM-03 — Admin Order and Payment Support UI
+
+**Status:** TODO
+**Depends On:** ADM-02.
+
+**Scope / route:** Build the planned Admin order/payment support lookup page
+with fixtures. No route currently exists; its route stays planned until the
+order/payment modules provide its owning backend contract.
+
+**Components and mock data:** order/payment table, support-safe detail panel,
+status/reference display, and deterministic populated, empty, loading, denied,
+not-found, and safe-error fixtures. Pagination and filters appear only if the
+future owning contract supports them.
+
+**shadcn/ui presentation:** standard operational navigation, table/list,
+detail, status, dialog, and feedback patterns without treating existing Admin
+styling as approved.
+
+**Responsive, RTL, accessibility:** operational desktop clarity, usable narrow
+views, semantic tables/forms, Persian labels, and keyboard interaction.
+
+**Acceptance and verification:** the page identifies its missing backend
+dependency, exposes no provider secrets or private payment data, has focused
+fixture tests, independent review, local-preview instructions, and recorded
+visual approval before `ADM-04` begins.
+
+**Explicit exclusions:** order/payment implementation, provider integration,
+refund policy, generic RBAC, or an Admin API solely for a mock screen.
+
+---
+
+### ADM-04 — Admin User Support Lookup UI
+
+**Status:** TODO
+**Depends On:** ADM-03.
+
+**Scope / route:** Build the planned Admin customer-support lookup page with
+fixtures. No route or owning backend capability currently exists.
+
+**Components and mock data:** fixture-backed lookup form, result list/detail,
+masked customer identifiers, empty/loading/not-found/denied/error states, and
+only fields the future support contract can safely expose.
+
+**shadcn/ui presentation:** standard labelled search/form, table/list/detail,
+empty state, and feedback patterns; existing Admin appearance is not a visual
+baseline.
+
+**Responsive, RTL, accessibility:** mobile-safe operational layout, semantic
+form/list structure, keyboard operation, Persian labels, logical spacing, and
+smallest-element LTR isolation for technical identifiers.
+
+**Acceptance and verification:** no fixture treats an invoice number alone as
+ownership proof, no sensitive data is unnecessarily shown, focused tests,
+independent review, local-preview instructions, and visual approval are
+complete before `ADM-05` begins.
+
+**Explicit exclusions:** user-account management, phone changes, Admin roles,
+customer data API/schema changes, or a new support policy.
+
+---
+
+### ADM-05 — Admin Blog Management UI
+
+**Status:** TODO
+**Depends On:** ADM-04.
+
+**Scope / route:** Build planned Admin blog list/edit presentation with
+fixtures. No Admin blog route or persistence capability currently exists.
+
+**Components and mock data:** post list, draft/published status, metadata form,
+safe content-editing presentation, validation, empty/loading/error states, and
+deterministic Persian post fixtures.
+
+**shadcn/ui presentation:** standard operational table/list, grouped form,
+validation, confirmation, and feedback patterns; it is a presentation rebuild,
+not a visual extension of the current Admin UI.
+
+**Responsive, RTL, accessibility:** keyboard-operable controls, labelled form
+fields, semantic status feedback, mobile-safe content editing, and Persian RTL
+long-form text behavior.
+
+**Acceptance and verification:** the UI neither claims a rich-text framework nor
+publishes fixture content, includes focused fixture tests, independent review,
+local-preview instructions, and recorded visual approval.
+
+**Explicit exclusions:** blog schema/API, Markdown parser/editor dependency,
+publication persistence, SEO generation, or a new Admin authorization model.
+
+## Phase 3 — Incremental Backend Integration
+
+Integration starts only after the relevant UI task is approved. Each task keeps
+the approved page contract, replaces fixtures through a server-side module
+adapter, preserves loading/empty/error behavior, and adds integration tests.
+
+| Task                                                | Depends on approved UI | Existing/relevant backend contract                                        | Integration scope                                                                                                          |
+| --------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| STORE-01                                            | PUB-01                 | `listPublishedFootage` and public catalog store                           | Replace home fixtures with published, cover-safe catalog data; retain empty/error states.                                  |
+| SEARCH-01                                           | PUB-02, STORE-01       | PostgreSQL/catalog module (to be implemented)                             | Add Persian-safe server query and URL parsing without an external search service.                                          |
+| SEARCH-02                                           | PUB-02, SEARCH-01      | Catalog metadata/query contract                                           | Add only approved filters and deterministic pagination/order.                                                              |
+| STORE-02                                            | PUB-03, SEARCH-02      | Public slug/detail DTO (to be implemented), existing preview/cover routes | Resolve only published footage and map safe detail/preview data.                                                           |
+| COM-02                                              | PUB-05, COM-01         | Future order module                                                       | Replace fixture Buy Now start with server-authoritative single-item order creation.                                        |
+| PAY-01 through PAY-03                               | PUB-05, COM-02         | Payment/order modules                                                     | Connect provider initiation, verified callback, and idempotent completion; fixture success never substitutes verification. |
+| LIB-01, DL-01, DL-02, INV-01, INV-02                | PUB-06, PAY-03         | Future entitlement/download/invoice modules and media storage boundary    | Integrate customer-scoped data, signed original access after authorization, download history, and historical invoice data. |
+| BLOG-01, BLOG-02, SEO-01                            | PUB-07, ADM-05         | Future blog module                                                        | Build Admin/blog persistence, replace approved public/Admin fixtures, then add technical SEO only for real public routes.  |
+| CAT-04 / CAT-03 / MEDIA-COVER-02 integration checks | ADM-01 / ADM-02        | Existing Admin module and media boundaries                                | Remove fixture loader only after live behavior preserves approved UI and authorization.                                    |
+
+`COM-01` remains a prerequisite for real commerce integration and now has a
+specific recorded product convention in `PROJECT.md`: integer Toman storage and
+display, with any provider conversion isolated at its boundary. Its task should
+verify/document the provider-facing conversion rather than reopen the product
+decision.
+
+## Phase 4 — Authentication, Authorization, and Remaining Production Workflows
+
+After page integrations, retain and sequence the existing work as follows:
+
+1. Complete `AUTH-03` through `AUTH-05` verification against the real customer
+   and separate Admin OTP/session flows; implement the approved customer UI
+   continuation boundary from `PUB-04` without changing OTP policy.
+2. Explicitly disable development authentication bypass for normal end-to-end
+   verification; test customer/Admin route and mutation denial paths, including
+   a customer attempting Admin access.
+3. Complete commerce and entitlement tasks `COM-02`, `PAY-01`–`PAY-03`,
+   `LIB-01`, `DL-01`–`DL-02`, and `INV-01`–`INV-02` in the Phase 3 order.
+   Negative-path tests must cover price tampering, callback-without-verification,
+   repeat completion, and non-purchaser original download denial.
+4. Complete `BLOG-01` and its supporting Admin/blog UI only after the public
+   blog UI contract is approved.
+
+## Phase 5 — Final Verification and Release
+
+After all integration tasks are approved, execute `PROD-01` through `PROD-05`:
+critical security review; Playwright coverage of customer OTP, browse/detail,
+verified purchase/library/download, Admin create/publish, and invoice retrieval;
+responsive/accessibility checks; performance and real database/storage checks;
+payment/provider and production-environment validation; backup/recovery; and
+business-owner launch approval. Development bypass must be off for release
+verification.
+
+## Preservation and dependency map
+
+| Existing work                                                                                 | Preserved status / revised role                                                                                                             |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| FND-01, FND-03, UI-02                                                                         | `DONE`; technical, behavioral, accessibility, and RTL contracts constrain UI work; their existing visual appearance does not.               |
+| FND-02, AI-GOV-01, FND-04, FND-05, DEV-ENV-01                                                 | `READY_FOR_REVIEW`; retained infrastructure/governance prerequisites, not UI work to be silently changed.                                   |
+| DATA-01, DATA-02, AUTH-01–AUTH-05, CAT-01–CAT-04, MEDIA-01–MEDIA-05, MEDIA-COVER-01–02, UI-01 | `READY_FOR_REVIEW`; retained module work used later through existing boundaries. UI-01 visual prescriptions are superseded by UI-DESIGN-01. |
+| STORE-01, STORE-02, SEARCH-01, SEARCH-02                                                      | Retained IDs; their executable scope is the Phase 3 page integration listed above, after `PUB-*` approval.                                  |
+| COM-01–02, PAY-01–03, LIB-01, DL-01–02, INV-01–02, BLOG-01–02, SEO-01                         | Retained IDs; sequenced after the associated approved UI and prerequisite modules.                                                          |
+| PROD-01–05                                                                                    | Retained IDs; final phase only.                                                                                                             |
+| UI-WORKFLOW-VALIDATION-02                                                                     | Retained local uncommitted roadmap task; Admin UI tasks depend on it and it is not rewritten or marked complete.                            |
+
+## Remaining product decisions
+
+- Selected payment provider and provider-facing monetary conversion details.
+- Final legal invoice/tax fields and final license/terms wording.
+- Entitlement behavior for files added after an earlier purchase.
+- Final public filter set and canonical browse route/URL schema.
+- Account recovery/phone-change behavior, refund eligibility, and download
+  limits remain undefined and must not be invented.
+- Image/media retention and cleanup policy remain unresolved.
+
+**Recommended first implementation task:** `UI-DESIGN-01`. It resolves the
+visual target and review standard before fixture architecture or any page is
+rebuilt.
+
+---
+
+# 5. Historical Detailed Task Record and Completed-Work Context
+
+The retained detailed records below preserve task history, acceptance context,
+and the existing uncommitted `UI-WORKFLOW-VALIDATION-02`/`DEV-ENV-01` entries.
+For unfinished tasks, the UI-first order and scope mapping in section 4 takes
+precedence where an older dependency or objective conflicts.
+
+# Historical Phase 0 — Foundation & Governance
 
 Goal:
 
@@ -200,6 +825,87 @@ application, and shadcn components before introducing new UI.
 
 ---
 
+## UI-WORKFLOW-VALIDATION-02 — Validate Controlled Admin Footage Editor UI Workflow
+
+**Status:** READY_FOR_REVIEW
+
+### Depends On
+
+AI-GOV-03 approval, and an auditable baseline of the Admin Footage Editor.
+
+### Objective
+
+Run one controlled implementation experiment against the Admin Footage Editor to
+verify that the approved UI-governance workflow leads an implementation agent to
+independently discover existing components, evaluate appropriate shadcn
+primitives, and make documented reuse decisions while preserving current editor
+behavior.
+
+### Scope
+
+- establish the experiment baseline by identifying the exact committed editor
+  state and the approved AI-GOV-03 governance state before implementation;
+- inspect the smallest relevant existing Admin Footage Editor, application UI,
+  installed primitives, `components.json`, and current shadcn documentation;
+- prepare a `Component Reuse Plan` before changing UI code, including auditable
+  control-pattern decisions and any justified native-HTML decisions;
+- make the smallest coherent Admin Footage Editor UI change necessary to test
+  the workflow, preserving its existing functional behavior and security
+  boundaries;
+- evaluate suitable shadcn primitives independently. Add a missing primitive
+  only when it is justified by the plan; semantic native HTML remains permitted
+  when it is the correct choice;
+- have an independent reviewer compare the plan and its stated decisions with
+  the actual diff, including any added primitive or retained native control.
+
+### Acceptance Criteria
+
+- the implementation record identifies the exact baseline commit and separately
+  identifies any approved governance changes applied to the experiment;
+- the Admin Footage Editor retains its existing metadata, preview, cover,
+  upload, and original-variant workflow behavior, including its existing access
+  controls and private-media constraints;
+- before implementation, the `Component Reuse Plan` records inspected feature,
+  application, and installed UI component paths, configured shadcn settings,
+  selected reuse/composition choices, ownership decisions, and unresolved
+  decisions;
+- for every relevant control pattern, the plan records the inspected existing
+  component, installed primitive where available, applicable official shadcn
+  candidate, and a justified reuse, add, or retain-native decision;
+- any new primitive is added only when the plan establishes that existing
+  components and semantic native HTML do not meet the requirement;
+- any retained native HTML is justified by its semantics rather than merely by
+  the absence of an installed primitive;
+- the implementation report includes the completed `Component Reuse Plan`,
+  verification evidence, and the baseline identity;
+- an independent review verifies the actual diff against the plan and returns
+  `APPROVED` or `CHANGES_REQUESTED` with evidence.
+
+### Explicit Exclusions
+
+- redesigning the Admin Footage Editor or changing its product behavior;
+- changing media, authorization, upload, preview, or original-file business
+  rules;
+- refactoring unrelated Admin or Storefront UI;
+- changing the shadcn preset, adding unrelated dependencies, or creating
+  speculative shared abstractions;
+- treating an existing uncommitted UI refactor as experiment evidence without a
+  separately attributable baseline and pre-implementation reuse plan.
+
+### Verification Requirements
+
+- inspect and record the clean baseline using Git status, the baseline commit,
+  and the approved AI-GOV-03 change identity before implementation;
+- execute the relevant static checks and focused UI/component tests available
+  for the changed area; report any check not run and why;
+- manually verify the preserved Admin Footage Editor workflows affected by the
+  diff, including responsive/RTL and accessible interaction behavior where
+  applicable;
+- run the canonical independent roadmap review workflow after the implementation
+  report is complete; the reviewer must inspect both the reuse plan and diff.
+
+---
+
 ## FND-03 — Establish Quality Commands
 
 **Status:** DONE
@@ -295,7 +1001,50 @@ Create typed and validated environment configuration.
 
 ---
 
-# Phase 1 — Database & Authentication
+## DEV-ENV-01 — Automated Local Development Setup
+
+**Status:** READY_FOR_REVIEW
+
+### Depends On
+
+FND-05, DATA-01, AUTH-05, CAT-04, and the development authentication resource policy.
+
+### Objective
+
+Provision an isolated local preview environment for safely navigating Admin pages
+with the explicit development authentication bypass enabled.
+
+### Requirements
+
+- register and use a separate local PostgreSQL database named `vidora_preview`;
+- preserve the existing `vidora_dev` database and production-named resources;
+- configure `.env.local` with explicit local development resource markers;
+- apply the existing Prisma migration history without reset or destructive changes;
+- keep development storage isolated from production storage, or verify that the
+  Admin page preview path does not require storage access;
+- preserve server-side authorization for all privileged mutations and uploads.
+
+### Acceptance Criteria
+
+- a separate local `vidora_preview` PostgreSQL database is provisioned and accessible;
+- the existing `vidora_dev` database remains unchanged;
+- `.env.local` enables the development authentication bypass with isolated resources;
+- development database and storage isolation are enforced;
+- Admin pages can be previewed without login;
+- privileged mutations remain protected by real authentication;
+- relevant tests and required quality checks pass.
+
+### Out of Scope
+
+- production database or storage changes;
+- authentication, registration, or OTP feature changes;
+- fake media credentials or fake footage records;
+- database reset, deletion, or destructive migration;
+- unrelated UI or governance changes.
+
+---
+
+# Historical Phase 1 — Database & Authentication
 
 Goal:
 
@@ -502,7 +1251,7 @@ Establish authorization boundaries for authenticated customers and the single V1
 
 ---
 
-# Phase 2 — Admin Catalog
+# Historical Phase 2 — Admin Catalog
 
 Goal:
 
@@ -613,7 +1362,7 @@ Complex analytics and bulk-management systems are out of scope.
 
 ---
 
-# Phase 3 — Media
+# Historical Phase 3 — Media
 
 Goal:
 
@@ -974,7 +1723,7 @@ Filter state is URL-friendly where appropriate.
 
 ---
 
-# Phase 5 — Buy Now & Payment
+# Historical Phase 5 — Buy Now & Payment
 
 Goal:
 
@@ -1098,7 +1847,7 @@ Relevant consistency behavior is covered by automated tests.
 
 ---
 
-# Phase 6 — Library, Downloads & Invoice
+# Historical Phase 6 — Library, Downloads & Invoice
 
 Goal:
 
@@ -1225,7 +1974,7 @@ Before production launch, required official/legal invoice fields must be confirm
 
 ---
 
-# Phase 7 — Blog & SEO
+# Historical Phase 7 — Blog & SEO
 
 Goal:
 
@@ -1314,7 +2063,7 @@ Public Footage and Blog pages expose appropriate server-rendered metadata and do
 
 ---
 
-# Phase 8 — Production Readiness & Launch
+# Historical Phase 8 — Production Readiness & Launch
 
 Goal:
 

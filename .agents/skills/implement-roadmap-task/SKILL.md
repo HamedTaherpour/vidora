@@ -186,7 +186,15 @@ The plan must state:
 - components to reuse and how they compose;
 - components to add, if necessary;
 - ownership and responsibility of each new component; and
-- unresolved design or architecture decisions.
+- unresolved design or architecture decisions;
+- for each relevant control pattern, the UI pattern, inspected existing
+  component, installed primitive (if any), official shadcn candidate (if
+  applicable), reuse/add/retain-native decision, and justification.
+
+When no suitable primitive is installed, perform the official shadcn candidate
+evaluation before modifying UI code. Do not treat an empty `src/components/ui`
+directory as sufficient justification for custom-styled native controls. Follow
+the semantic-native exceptions and approval rule in `instructions/components.md`.
 
 Follow the ownership order in `instructions/components.md`. Do not recreate an
 existing component with raw styled HTML or add a shared abstraction without a
@@ -371,6 +379,8 @@ Component Reuse Plan (UI tasks only):
 - New components introduced and justification: ...
 - Important ownership decisions: ...
 - Reasons for bypassing available components, when relevant: ...
+- Control-pattern decisions (pattern, inspected component, installed primitive,
+  official candidate, reuse/add/retain-native decision, justification): ...
 
 Verification executed:
 - ...

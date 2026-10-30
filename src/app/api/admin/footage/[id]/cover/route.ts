@@ -1,4 +1,8 @@
 import { prisma } from "@/lib/db/client";
+import {
+  requireAdminPageAccess,
+  requireAuthenticatedAdmin,
+} from "@/modules/auth/authorization/authorization";
 import { resolveCurrentAdmin } from "@/modules/auth/sessions/resolve-current-admin";
 import { createPrismaAdminFootageCoverStore } from "@/modules/media/covers/prisma-admin-footage-cover-store";
 import {
@@ -28,7 +32,9 @@ export async function GET(
   context: RouteContext,
 ): Promise<Response> {
   const admin = await resolveCurrentAdmin();
-  if (admin.status !== "authenticated") {
+  try {
+    requireAdminPageAccess(admin);
+  } catch {
     return new Response(null, { status: 403 });
   }
 
@@ -74,7 +80,9 @@ export async function POST(
   }
 
   const admin = await resolveCurrentAdmin();
-  if (admin.status !== "authenticated") {
+  try {
+    requireAuthenticatedAdmin(admin);
+  } catch {
     return Response.json({ status: "denied" }, { status: 403 });
   }
 

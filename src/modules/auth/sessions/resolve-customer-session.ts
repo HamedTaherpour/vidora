@@ -8,6 +8,7 @@ export type ResolvedCustomer =
       userId: string;
       phone: string;
       expiresAt: Date;
+      isDevelopmentBypass?: boolean;
     }
   | { status: "anonymous" };
 

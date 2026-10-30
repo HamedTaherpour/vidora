@@ -2,6 +2,7 @@ import "server-only";
 
 import { parseEnv } from "@/lib/env/parse-env";
 import { storageEnvSchema } from "@/lib/env/server-schema";
+import { resolveStorageEnvironment } from "@/modules/auth/development/dev-auth-resource-policy";
 import {
   createLiaraS3ObjectStorage,
   type LiaraS3ObjectStorage,
@@ -25,13 +26,14 @@ export function createObjectStorage(): ObjectStorage {
  * helpers used by connectivity verification.
  */
 export function createLiaraS3ObjectStorageFromEnv(): LiaraS3ObjectStorage {
+  const source = resolveStorageEnvironment(process.env);
   const env = parseEnv(storageEnvSchema, {
-    STORAGE_ENDPOINT: process.env.STORAGE_ENDPOINT,
-    STORAGE_REGION: process.env.STORAGE_REGION,
-    STORAGE_BUCKET: process.env.STORAGE_BUCKET,
-    STORAGE_ACCESS_KEY: process.env.STORAGE_ACCESS_KEY,
-    STORAGE_SECRET_KEY: process.env.STORAGE_SECRET_KEY,
-    STORAGE_FORCE_PATH_STYLE: process.env.STORAGE_FORCE_PATH_STYLE,
+    STORAGE_ENDPOINT: source.STORAGE_ENDPOINT,
+    STORAGE_REGION: source.STORAGE_REGION,
+    STORAGE_BUCKET: source.STORAGE_BUCKET,
+    STORAGE_ACCESS_KEY: source.STORAGE_ACCESS_KEY,
+    STORAGE_SECRET_KEY: source.STORAGE_SECRET_KEY,
+    STORAGE_FORCE_PATH_STYLE: source.STORAGE_FORCE_PATH_STYLE,
   });
 
   return createLiaraS3ObjectStorage({

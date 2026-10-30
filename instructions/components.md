@@ -31,14 +31,19 @@ Use the following ownership order:
 1. reuse an existing feature/domain component when appropriate;
 2. reuse an existing application-level component when appropriate;
 3. compose existing shadcn/Base UI primitives;
-4. add an approved shadcn primitive if the requirement needs one; then
+4. add the suitable official shadcn primitive if the requirement needs one; then
 5. create a new component only when the existing options do not meet the
    responsibility.
 
 Consult the project-local shadcn Skill and current component documentation when
-shadcn usage, composition, or an added primitive is relevant. Do not recreate an
-existing component with raw styled HTML. Semantic native HTML remains appropriate
-when its native semantics are the correct choice.
+shadcn usage, composition, or an added primitive is relevant. When no suitable
+primitive is installed, explicitly evaluate the suitable official shadcn
+candidate before deciding whether to add it or retain semantic native HTML.
+Absence from `src/components/ui` is not, by itself, a reason to retain a
+custom-styled native control. Do not recreate an existing component with raw
+styled HTML. Semantic native HTML remains appropriate when its native semantics
+are the correct choice, including forms, tables, native selects, live regions,
+and file inputs when justified.
 
 Do not introduce speculative shared abstractions. Shared components require a
 demonstrated reusable responsibility; feature-specific components remain owned by
@@ -48,6 +53,16 @@ The plan must also consider whether form, table, feedback, and media presentatio
 have understandable responsibilities; whether state, actions, and data have clear
 owners; and whether a client boundary is minimal and justified. Do not extract a
 component solely to reduce file length.
+
+For each relevant control pattern, the plan must include a concise auditable
+decision with:
+
+- UI pattern;
+- existing component inspected;
+- installed primitive, if available;
+- official shadcn candidate, if applicable;
+- decision: reuse, add, or retain native; and
+- justification.
 
 For every UI task, include the plan in the final completion report under
 `Component Reuse Plan`. It must identify the existing component paths inspected,
@@ -64,7 +79,9 @@ of these objective triggers:
 - a design-system or shared-component API change with broad impact.
 
 Small, localized, well-defined UI changes do not require an additional approval
-checkpoint after the reuse plan is prepared.
+checkpoint after the reuse plan is prepared. A localized, justified addition of
+an official shadcn primitive likewise does not require a separate approval
+checkpoint unless one of these objective triggers applies.
 
 Preserve the existing `src/modules` modular organization. Do not move Vidora code to
 a `src/features` structure because another project uses it.

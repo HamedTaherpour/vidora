@@ -370,6 +370,14 @@ CHANGES_REQUESTED
 
 Use `CHANGES_REQUESTED` when at least one finding must be fixed before the task can become `DONE`.
 
+For reviews involving UI component selection, `APPROVED` also requires the
+review report to include the `UI Component Reuse Verification Matrix` described
+in the Frontend Review section. The reviewer must identify the relevant control
+patterns independently from the implementation report. A missing, inaccurate,
+or unsupported matrix entry prevents approval. Use `CHANGES_REQUESTED` for a
+material component reuse violation. This requirement does not apply when UI
+component selection is not relevant to the reviewed changes.
+
 ---
 
 ## 18. Approved Handoff
@@ -389,6 +397,11 @@ Findings:
 
 Verification reviewed:
 - ...
+
+UI Component Reuse Verification Matrix (UI reviews only):
+| Control pattern | Actual file and component | Existing or candidate shadcn primitive | Decision (reuse/add/retain native) | Technical justification | Verification status | Concrete repository evidence |
+|---|---|---|---|---|---|---|
+| ... | ... | ... | ... | ... | ... | ... |
 
 Task may be marked DONE.
 ```
@@ -429,6 +442,11 @@ Acceptance criteria:
 
 Verification reviewed:
 - ...
+
+UI Component Reuse Verification Matrix (UI reviews only):
+| Control pattern | Actual file and component | Existing or candidate shadcn primitive | Decision (reuse/add/retain native) | Technical justification | Verification status | Concrete repository evidence |
+|---|---|---|---|---|---|---|
+| ... | ... | ... | ... | ... | ... | ... |
 
 Task should return to IN_PROGRESS.
 ```
@@ -503,16 +521,35 @@ Check:
 
 For UI changes, also verify the implementation's discovery and reuse evidence:
 
+- independently identify every relevant UI control pattern from the changed
+  files and diff; do not derive the pattern list solely from the implementation
+  report;
+- include a `UI Component Reuse Verification Matrix` in the final review report;
+  each row must record the control pattern, actual file and component, existing
+  or candidate shadcn primitive, decision (`reuse`, `add`, or `retain native`),
+  technical justification, verification status, and concrete repository
+  evidence;
+- do not approve a UI review when the matrix is missing, omits a relevant
+  control pattern, contains an inaccurate decision, or lacks repository evidence;
+
 - the completion report includes a `Component Reuse Plan` with existing component
   paths inspected, selected components, new components and justification,
-  ownership decisions, and relevant bypass reasons;
+  ownership decisions, relevant bypass reasons, and a control-pattern decision
+  for each relevant pattern containing the inspected component, installed
+  primitive, official shadcn candidate, decision, and justification;
 - relevant Admin or Storefront feature/domain components were inspected and
   reused where appropriate;
 - application-level components and installed shadcn primitives were considered;
 - `.agents/skills/shadcn/SKILL.md` and current component documentation were
   consulted when relevant;
+- each absent installed primitive has an evaluated official shadcn candidate or
+  a documented reason that semantic native HTML is the correct choice;
 - raw styled controls did not unnecessarily replace available components or
-  semantic native HTML;
+  semantic native HTML. Retaining a custom-styled control solely because no
+  shadcn primitive was installed is a review finding and requires
+  `CHANGES_REQUESTED` when an appropriate candidate was not evaluated;
+- forms, tables, native selects, live regions, and file inputs remain valid
+  native choices when their semantics are appropriate;
 - component responsibilities, state ownership, data ownership, and client
   boundaries remain understandable;
 - new shared abstractions have a demonstrated reusable responsibility;

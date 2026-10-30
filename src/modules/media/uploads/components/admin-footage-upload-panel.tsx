@@ -3,6 +3,18 @@
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+
 import {
   assertDirectStorageUrl,
   uploadFilePartsDirectly,
@@ -155,96 +167,92 @@ export function AdminFootageUploadPanel(props: AdminFootageUploadPanelProps) {
   }
 
   return (
-    <section className="flex flex-col gap-4 border-t border-border pt-6">
-      <header className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold">آپلود مستقیم فایل</h2>
-        <p className="text-sm text-muted-foreground">
+    <Card>
+      <CardHeader>
+        <CardTitle>آپلود مستقیم فایل</CardTitle>
+        <CardDescription>
           فایل بزرگ مستقیماً به فضای ذخیره‌سازی ارسال می‌شود؛ از سرور اپ عبور
           نمی‌کند.
-        </p>
-      </header>
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="upload-kind">نوع فایل</FieldLabel>
+              <select
+                id="upload-kind"
+                value={kind}
+                onChange={(event) => {
+                  const nextKind = parseUploadKind(event.target.value);
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="upload-kind" className="text-sm font-medium">
-            نوع فایل
-          </label>
-          <select
-            id="upload-kind"
-            value={kind}
-            onChange={(event) => {
-              const nextKind = parseUploadKind(event.target.value);
+                  if (nextKind === null) {
+                    setErrorText("نوع فایل انتخاب‌شده معتبر نیست.");
+                    return;
+                  }
 
-              if (nextKind === null) {
-                setErrorText("نوع فایل انتخاب‌شده معتبر نیست.");
-                return;
-              }
+                  setKind(nextKind);
+                }}
+                disabled={busy}
+                className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="PREVIEW">پیش‌نمایش</option>
+                <option value="ORIGINAL">فایل اصلی</option>
+              </select>
+            </Field>
 
-              setKind(nextKind);
-            }}
+            {kind === "ORIGINAL" ? (
+              <Field>
+                <FieldLabel htmlFor="upload-label">برچسب</FieldLabel>
+                <Input
+                  id="upload-label"
+                  value={label}
+                  onChange={(event) => setLabel(event.target.value)}
+                  disabled={busy}
+                  placeholder="مثلاً 1080p یا Master"
+                />
+              </Field>
+            ) : null}
+
+            <Field>
+              <FieldLabel htmlFor="upload-file">فایل</FieldLabel>
+              <Input
+                id="upload-file"
+                type="file"
+                disabled={busy}
+                onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+              />
+            </Field>
+          </FieldGroup>
+
+          <Button
+            type="submit"
             disabled={busy}
-            className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+            variant="outline"
+            className="w-fit"
           >
-            <option value="PREVIEW">پیش‌نمایش</option>
-            <option value="ORIGINAL">فایل اصلی</option>
-          </select>
-        </div>
+            {busy ? "در حال آپلود…" : "شروع آپلود"}
+          </Button>
+        </form>
 
-        {kind === "ORIGINAL" ? (
-          <div className="flex flex-col gap-1">
-            <label htmlFor="upload-label" className="text-sm font-medium">
-              برچسب
-            </label>
-            <input
-              id="upload-label"
-              value={label}
-              onChange={(event) => setLabel(event.target.value)}
-              disabled={busy}
-              placeholder="مثلاً 1080p یا Master"
-              className="rounded-md border border-input bg-background px-3 py-2 text-sm"
-            />
-          </div>
+        {progressText ? (
+          <p role="status" className="text-sm">
+            {progressText}
+          </p>
         ) : null}
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="upload-file" className="text-sm font-medium">
-            فایل
-          </label>
-          <input
-            id="upload-file"
-            type="file"
-            disabled={busy}
-            onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-            className="text-sm"
-          />
-        </div>
+        {resultText ? (
+          <p role="status" className="text-sm">
+            {resultText}
+          </p>
+        ) : null}
 
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-fit rounded-md border border-input bg-background px-4 py-2 text-sm"
-        >
-          {busy ? "در حال آپلود…" : "شروع آپلود"}
-        </button>
-      </form>
-
-      {progressText ? (
-        <p role="status" className="text-sm">
-          {progressText}
-        </p>
-      ) : null}
-
-      {resultText ? (
-        <p role="status" className="text-sm">
-          {resultText}
-        </p>
-      ) : null}
-
-      {errorText ? (
-        <p role="alert" className="text-sm text-destructive">
-          {errorText}
-        </p>
-      ) : null}
-    </section>
+        {errorText ? (
+          <Alert variant="destructive">
+            <AlertDescription>{errorText}</AlertDescription>
+          </Alert>
+        ) : null}
+      </CardContent>
+    </Card>
   );
 }

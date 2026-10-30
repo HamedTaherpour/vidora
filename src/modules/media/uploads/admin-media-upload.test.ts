@@ -61,6 +61,16 @@ function anonymousAdmin(): AdminAuthorizationContext {
   return { status: "anonymous" };
 }
 
+function developmentBypassAdmin(): AdminAuthorizationContext {
+  return {
+    status: "authenticated",
+    adminId: "dev-admin-bypass",
+    phone: "+989000000000",
+    expiresAt: new Date("2026-12-01T00:00:00.000Z"),
+    isDevelopmentBypass: true,
+  };
+}
+
 function makeRecord(
   overrides: Partial<AdminMediaUploadRecord> = {},
 ): AdminMediaUploadRecord {
@@ -754,6 +764,56 @@ describe("Admin media upload authorization and origin protection", () => {
     await expect(
       handleAdminAbortMediaUpload({
         admin: anonymousAdmin(),
+        uploadId: UPLOAD_ID,
+        store,
+        storage,
+      }),
+    ).resolves.toEqual({ status: "denied" });
+  });
+
+  it("denies the development page-preview identity for all upload operations", async () => {
+    const store = createMemoryStore([makeRecord()]);
+    const storage = createFakeStorage();
+    const admin = developmentBypassAdmin();
+
+    await expect(
+      handleAdminInitiateMediaUpload({
+        admin,
+        body: {
+          footageId: FOOTAGE_ID,
+          kind: "ORIGINAL",
+          label: "1080p",
+          sizeBytes: 1000,
+          mimeType: "video/mp4",
+        },
+        store,
+        storage,
+      }),
+    ).resolves.toEqual({ status: "denied" });
+
+    await expect(
+      handleAdminSignMediaUploadPart({
+        admin,
+        uploadId: UPLOAD_ID,
+        body: { partNumber: 1 },
+        store,
+        storage,
+      }),
+    ).resolves.toEqual({ status: "denied" });
+
+    await expect(
+      handleAdminCompleteMediaUpload({
+        admin,
+        uploadId: UPLOAD_ID,
+        body: { parts: [{ partNumber: 1, etag: '"a"' }] },
+        store,
+        storage,
+      }),
+    ).resolves.toEqual({ status: "denied" });
+
+    await expect(
+      handleAdminAbortMediaUpload({
+        admin,
         uploadId: UPLOAD_ID,
         store,
         storage,
