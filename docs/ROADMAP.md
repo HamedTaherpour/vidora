@@ -666,7 +666,8 @@ verification.
 | Existing work                                                                                 | Preserved status / revised role                                                                                                             |
 | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | FND-01, FND-03, UI-02                                                                         | `DONE`; technical, behavioral, accessibility, and RTL contracts constrain UI work; their existing visual appearance does not.               |
-| FND-02, AI-GOV-01, FND-04, FND-05, DEV-ENV-01                                                 | `READY_FOR_REVIEW`; retained infrastructure/governance prerequisites, not UI work to be silently changed.                                   |
+| FND-02, AI-GOV-01, FND-04, FND-05                                                             | `READY_FOR_REVIEW`; retained infrastructure/governance prerequisites, not UI work to be silently changed.                                   |
+| DEV-ENV-01                                                                                    | `IN_PROGRESS`; bypass/resource policy exists, but isolated `vidora_preview` provisioning and storage-isolation evidence is not established. |
 | DATA-01, DATA-02, AUTH-01–AUTH-05, CAT-01–CAT-04, MEDIA-01–MEDIA-05, MEDIA-COVER-01–02, UI-01 | `READY_FOR_REVIEW`; retained module work used later through existing boundaries. UI-01 visual prescriptions are superseded by UI-DESIGN-01. |
 | STORE-01, STORE-02, SEARCH-01, SEARCH-02                                                      | Retained IDs; their executable scope is the Phase 3 page integration listed above, after `PUB-*` approval.                                  |
 | COM-01–02, PAY-01–03, LIB-01, DL-01–02, INV-01–02, BLOG-01–02, SEO-01                         | Retained IDs; sequenced after the associated approved UI and prerequisite modules.                                                          |
@@ -686,6 +687,55 @@ verification.
 **Recommended first implementation task:** `UI-DESIGN-01`. It resolves the
 visual target and review standard before fixture architecture or any page is
 rebuilt.
+
+## Roadmap status audit — baseline `17500a1`
+
+Audit date: 2026-10-30. The baseline commit contains the legitimate
+implementation, tests, governance, UI workflow, and documentation changes
+present in the worktree. The required verification evidence is:
+
+- `pnpm format:check` — passed;
+- `pnpm lint` — passed with three existing `@next/next/no-img-element` warnings;
+- `pnpm typecheck` — passed;
+- `pnpm test` — 34 files and 302 tests passed;
+- `pnpm build` — passed;
+- `git diff --check` — passed.
+
+No independent review report, product-owner visual approval, or task-specific
+approval record was found in the repository. Therefore implementation evidence
+does not by itself promote a task from `READY_FOR_REVIEW` to `DONE`.
+
+| Task ID                   | Previous         | New              | Repository evidence                                                                                                          | Status decision                                                                        |
+| ------------------------- | ---------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| FND-02                    | READY_FOR_REVIEW | READY_FOR_REVIEW | Governance files and repository rules exist.                                                                                 | Keep: no independent approval evidence.                                                |
+| AI-GOV-01                 | READY_FOR_REVIEW | READY_FOR_REVIEW | Component-discovery governance and reviewer skill changes exist.                                                             | Keep: no independent approval evidence.                                                |
+| UI-WORKFLOW-VALIDATION-02 | READY_FOR_REVIEW | READY_FOR_REVIEW | Admin editor decomposition, primitives, and focused tests exist.                                                             | Keep: required independent workflow review is not recorded.                            |
+| FND-04                    | READY_FOR_REVIEW | READY_FOR_REVIEW | CI workflow and quality commands exist.                                                                                      | Keep: no independent approval evidence.                                                |
+| FND-05                    | READY_FOR_REVIEW | READY_FOR_REVIEW | Typed server/client environment schema and example exist.                                                                    | Keep: no independent approval evidence.                                                |
+| DEV-ENV-01                | READY_FOR_REVIEW | IN_PROGRESS      | Development bypass/resource policy exists; no verifiable isolated `vidora_preview` provisioning or storage-isolation record. | Downgrade: acceptance criteria are partially evidenced, not merely awaiting review.    |
+| DATA-01                   | READY_FOR_REVIEW | READY_FOR_REVIEW | Prisma/PostgreSQL configuration and tests exist.                                                                             | Keep: no independent approval evidence.                                                |
+| DATA-02                   | READY_FOR_REVIEW | READY_FOR_REVIEW | Core schema/migrations and persistence tests exist.                                                                          | Keep: no independent approval evidence.                                                |
+| AUTH-01                   | READY_FOR_REVIEW | READY_FOR_REVIEW | Better Auth rejection and selected application-owned approach are documented.                                                | Keep: no independent approval evidence.                                                |
+| AUTH-02                   | READY_FOR_REVIEW | READY_FOR_REVIEW | Iranian phone normalization implementation and tests exist.                                                                  | Keep: no independent approval evidence.                                                |
+| AUTH-03                   | READY_FOR_REVIEW | READY_FOR_REVIEW | OTP request/provider/rate-policy implementation and tests exist.                                                             | Keep: no independent approval evidence.                                                |
+| AUTH-04                   | READY_FOR_REVIEW | READY_FOR_REVIEW | OTP verification/session implementation and tests exist.                                                                     | Keep: no independent approval evidence.                                                |
+| AUTH-05                   | READY_FOR_REVIEW | READY_FOR_REVIEW | Separate customer/Admin authorization and boundary tests exist.                                                              | Keep: no independent approval evidence.                                                |
+| CAT-01                    | READY_FOR_REVIEW | READY_FOR_REVIEW | Footage schema, mutations, and tests exist.                                                                                  | Keep: no independent approval evidence.                                                |
+| CAT-02                    | READY_FOR_REVIEW | READY_FOR_REVIEW | Category/tag schema and classification tests exist.                                                                          | Keep: no independent approval evidence.                                                |
+| CAT-03                    | READY_FOR_REVIEW | READY_FOR_REVIEW | Admin Footage CRUD mutations, authorization, and tests exist.                                                                | Keep: no independent approval evidence.                                                |
+| CAT-04                    | READY_FOR_REVIEW | READY_FOR_REVIEW | Admin catalog route/module, search/pagination behavior, and tests exist.                                                     | Keep: no independent approval evidence.                                                |
+| MEDIA-01                  | READY_FOR_REVIEW | READY_FOR_REVIEW | Footage file model and schema tests exist.                                                                                   | Keep: no independent approval evidence.                                                |
+| MEDIA-02                  | READY_FOR_REVIEW | READY_FOR_REVIEW | S3-compatible storage boundary and tests exist.                                                                              | Keep: no independent approval evidence.                                                |
+| MEDIA-03                  | READY_FOR_REVIEW | READY_FOR_REVIEW | Direct multipart upload flow, authorization, and tests exist.                                                                | Keep: no independent approval evidence.                                                |
+| MEDIA-04                  | READY_FOR_REVIEW | READY_FOR_REVIEW | Preview management/delivery and tests exist.                                                                                 | Keep: no independent approval evidence.                                                |
+| MEDIA-05                  | READY_FOR_REVIEW | READY_FOR_REVIEW | Original variant management and tests exist.                                                                                 | Keep: no independent approval evidence.                                                |
+| MEDIA-COVER-01            | READY_FOR_REVIEW | READY_FOR_REVIEW | Cover contract and media policy are documented.                                                                              | Keep: no independent approval evidence.                                                |
+| MEDIA-COVER-02            | READY_FOR_REVIEW | READY_FOR_REVIEW | Cover crop route, storage, UI, and focused tests exist.                                                                      | Keep: no independent approval evidence.                                                |
+| UI-01                     | READY_FOR_REVIEW | READY_FOR_REVIEW | Design foundations, tokens, and RTL documentation/tests exist.                                                               | Keep: visual direction is now superseded pending `UI-DESIGN-01`; no approval evidence. |
+
+`FND-01`, `FND-03`, and `UI-02` remain `DONE` unchanged. All `TODO` tasks
+remain `TODO`; no missing product feature was implemented or promoted by this
+audit.
 
 ---
 
