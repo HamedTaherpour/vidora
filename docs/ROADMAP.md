@@ -530,7 +530,7 @@ and protected downloads remain future integration dependencies.
 
 ### PUB-06 — Customer Library, Downloads, and Invoice UI
 
-**Status:** TODO
+**Status:** DONE
 **Depends On:** PUB-04, PUB-05.
 
 **Scope / route:** Planned authenticated library, purchase detail/download, and
@@ -559,6 +559,37 @@ tests, independent review, and mobile/desktop visual approval are complete.
 
 **Explicit exclusions:** protected download authorization, download history,
 legal invoice fields, or backend purchase lookup.
+
+**PUB-06B Minimal approval (2026-10-31):** The product owner approved Minimal
+for the Library, Purchase Detail/Downloads, and Invoice screens, including the
+compact two-column mobile, three-column tablet, four-column desktop, and
+optional five-column wide-desktop Library grid. Commerce and Editorial are not
+promoted.
+
+Final fixture-backed routes:
+
+- `/library?scenario=populated`
+- `/library/PUR-2026-00041?scenario=populated&fileState=available`
+- `/library/PUR-2026-00041/invoice?scenario=populated`
+
+These routes remain explicitly labelled fixture previews until real customer
+authentication and customer-scoped data integration exists. They do not create
+sessions, entitlements, signed URLs, original-file access, or official legal
+invoices. Supported fixture states remain populated, one-purchase, empty,
+loading, error, unauthenticated, unavailable file, access denied, purchase not
+found, and fixture invoice.
+
+Remaining dependencies are the real customer library query, entitlement and
+protected-download authorization, secure media delivery, historical invoice
+data, and official invoice/legal fields in LIB-01, DL-01/DL-02, and INV-01/
+INV-02.
+
+**PUB-06C final approval record (2026-10-31):** Minimal is approved for all
+three screens. Final route verification, fixture-state coverage, safe
+`/login?returnTo=/library` continuation, full quality checks, and browser
+navigation checks passed. PUB-06 UI scope is complete; real authentication,
+customer-scoped lookup, entitlement verification, protected downloads, and
+official invoice issuance remain deferred to the listed dependencies.
 
 ---
 
