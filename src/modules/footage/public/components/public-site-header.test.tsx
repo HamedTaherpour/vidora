@@ -20,7 +20,7 @@ describe("PublicSiteHeader", () => {
     expect(html).toContain('data-slot="public-site-header"');
     expect(html).toContain("data-sticky-header");
     expect(html).toContain("دسته‌بندی‌ها");
-    expect(html).toContain('href="/footage"');
+    expect(html).toContain('href="/search"');
     expect(html).toContain('href="/login"');
     expect(html).toContain("ورود به حساب");
     expect(html).toContain('aria-label="باز کردن منوی ناوبری"');
@@ -33,7 +33,7 @@ describe("PublicSiteHeader", () => {
 
   it("builds real homepage category destinations", () => {
     expect(createPublicCategoryHref("طبیعت")).toBe(
-      "/footage?category=%D8%B7%D8%A8%DB%8C%D8%B9%D8%AA",
+      "/search?category=%D8%B7%D8%A8%DB%8C%D8%B9%D8%AA",
     );
   });
 });

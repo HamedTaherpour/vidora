@@ -3,7 +3,7 @@
 Status: `READY_FOR_REVIEW` — production promotion complete
 
 This began as a fixture-backed design exploration for the Public Footage
-Explorer. The approved Classic Sidebar is now the production `/footage` route;
+Explorer. The approved Classic Sidebar is now the production `/search` route;
 the approved homepage remains unchanged apart from navigation destinations.
 
 ## Capability matrix
@@ -43,13 +43,13 @@ state.
 
 ## Homepage deep-link proposal
 
-- Hero search: `/footage?q=خیابان+بارانی+تهران`
-- Category link: `/footage?category=nature`
+- Hero search: `/search?q=خیابان+بارانی+تهران`
+- Category link: `/search?category=nature`
 - Featured footage: deferred until explicit featured metadata exists.
 - Recently added: deferred until explicit publication-date metadata exists.
 
 Homepage search, category, and general footage links now use the production
-route. Featured and recently-added collection semantics remain deferred because
+search route. Featured and recently-added collection semantics remain deferred because
 the current domain model has no truthful metadata for them.
 
 ## R1 layout and variant differentiation
@@ -79,14 +79,14 @@ The selected Classic route now places the single sorting control inside the
 right filter sidebar, including the mobile Sheet, and uses Lucide icons beside
 the search, category, price, duration, and sorting section labels.
 
-Production promotion to `/footage` is complete for this task. The broader
+Production promotion to `/search` is complete for this task. The broader
 Public review gate and any future database-backed catalog integration remain
 separate approvals.
 
 ## Production route
 
 The temporary Classic, Modern, and Minimal preview routes were removed after
-production verification. The production Classic route keeps the shared parser,
+production verification. The production Classic `/search` route keeps the shared parser,
 discovery engine, fixtures, card, URL state, pagination, empty state, and
 responsive behavior. On mobile the filter sidebar becomes an accessible shadcn
 Sheet with an active-filter count and explicit apply/clear/close actions. On
@@ -99,3 +99,20 @@ Classic Sidebar is selected because its explicit grouping and comfortable
 spacing make the filter model easiest to scan in Persian RTL. Its final
 refinements keep sorting discoverable beside the other controls without adding
 another toolbar control.
+
+## 06C route and interaction refinement
+
+The canonical production discovery route is now `/search`. The former browse
+route `/footage` remains as a lightweight permanent redirect that preserves the
+supported explorer query parameters; `/footage/[slug]` detail routes are
+unchanged.
+
+The Classic Sidebar now uses a catalog-derived dual-thumb price slider with
+local drag state and URL commits on interaction completion. Search commits
+after 400ms of inactivity, while category, duration, sorting, badge removal,
+clear-all, and price reset apply immediately. The compact results toolbar shows
+localized removable badges for every non-default search/filter/sort selection.
+
+Featured and recently-added homepage sections still use honest generic browse
+fallbacks because the current public domain model has no reliable featured flag
+or publication timestamp. No metadata or SEO-01 behavior was added.

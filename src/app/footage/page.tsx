@@ -1,35 +1,26 @@
-import type { Metadata } from "next";
+import { permanentRedirect } from "next/navigation";
 
-import { serializeFootageExplorerQuery } from "@/modules/footage/public/explorer/footage-explorer";
-import { FootageExplorerView } from "@/modules/footage/public/explorer/footage-explorer-view";
-import { preparePublicFootageExplorer } from "@/modules/footage/public/explorer/prepare-public-footage-explorer";
-
-export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  title: "کشف فوتیج | ویدورا",
-  description: "جست‌وجو و فیلتر فوتیج‌های حرفه‌ای ویدورا.",
-};
-
-type FootageExplorerPageProps = {
+type LegacyFootagePageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default async function FootageExplorerPage({
-  searchParams,
-}: FootageExplorerPageProps) {
-  const params = await searchParams;
-  const { categories, query, result } = preparePublicFootageExplorer(params);
+export default async function LegacyFootagePage(props: LegacyFootagePageProps) {
+  const params = await props.searchParams;
+  const search = new URLSearchParams();
 
-  return (
-    <FootageExplorerView
-      key={serializeFootageExplorerQuery(query)}
-      variant="classic"
-      query={query}
-      categories={categories}
-      footage={result.items}
-      filteredCount={result.filteredCount}
-      totalPages={result.totalPages}
-    />
-  );
+  for (const key of [
+    "q",
+    "category",
+    "minPrice",
+    "maxPrice",
+    "duration",
+    "sort",
+    "page",
+  ]) {
+    const value = params[key];
+    if (typeof value === "string") search.set(key, value);
+    else if (Array.isArray(value) && value[0]) search.set(key, value[0]);
+  }
+
+  permanentRedirect(search.toString() ? `/search?${search}` : "/search");
 }

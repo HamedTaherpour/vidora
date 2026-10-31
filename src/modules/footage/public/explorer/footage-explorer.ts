@@ -27,7 +27,39 @@ export type FootageExplorerResult = {
   totalPages: number;
 };
 
+export type FootagePriceBounds = {
+  min: number;
+  max: number;
+  step: number;
+};
+
 export const EXPLORER_PAGE_SIZE = 12;
+
+/** Derives the slider bounds and a stable price increment from catalog prices. */
+export function getFootagePriceBounds(
+  footage: ReadonlyArray<PublicFootageCatalogItem>,
+): FootagePriceBounds {
+  const prices = footage.map((item) => item.priceToman).sort((a, b) => a - b);
+  const min = prices[0] ?? 0;
+  const max = prices.at(-1) ?? min;
+  const step = prices.slice(1).reduce((current, price, index) => {
+    const difference = price - prices[index];
+    return difference > 0
+      ? greatestCommonDivisor(current, difference)
+      : current;
+  }, 0);
+
+  return { min, max, step: step || 1_000 };
+}
+
+function greatestCommonDivisor(first: number, second: number) {
+  let left = Math.abs(first);
+  let right = Math.abs(second);
+  while (right !== 0) {
+    [left, right] = [right, left % right];
+  }
+  return left;
+}
 
 const DURATION_OPTIONS = ["all", "short", "medium", "long"] as const;
 

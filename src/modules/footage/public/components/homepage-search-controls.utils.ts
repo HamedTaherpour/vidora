@@ -6,7 +6,7 @@ export function createHomepageSearchControlsKey(
   return `${query}\u0000${scenario ?? ""}`;
 }
 
-/** Builds the production footage explorer URL from homepage search state. */
+/** Builds the production search URL from homepage search state. */
 export function createHomepageUrl({
   query,
   category,
@@ -18,7 +18,7 @@ export function createHomepageUrl({
   if (query.trim()) params.set("q", query.trim());
   if (category) params.set("category", category);
   const search = params.toString();
-  return search ? `/footage?${search}` : "/footage";
+  return search ? `/search?${search}` : "/search";
 }
 
 /** Builds the URL used when submitting the current draft search query. */

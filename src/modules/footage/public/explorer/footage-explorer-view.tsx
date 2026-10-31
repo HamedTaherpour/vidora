@@ -11,7 +11,13 @@ import {
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,12 +42,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FootageCard } from "@/modules/footage/public/components/footage-card/footage-card";
+import { formatTomanDisplay } from "@/modules/footage/format-toman-display";
+import { Slider } from "@/components/ui/slider";
 import {
   createFootageExplorerHref,
   EXPLORER_SORTS,
   getExplorerActiveFilterCount,
   hasActiveExplorerFilters,
   serializeFootageExplorerQuery,
+  type FootagePriceBounds,
   type FootageExplorerQuery,
   type ExplorerSort,
 } from "./footage-explorer";
@@ -54,9 +63,20 @@ type FootageExplorerViewProps = {
   variant: FootageExplorerVariant;
   query: FootageExplorerQuery;
   categories: PublicFootageCategoryOption[];
+  priceBounds: FootagePriceBounds;
   footage: PublicFootageCatalogItem[];
   filteredCount: number;
   totalPages: number;
+};
+
+type FilterHandlers = {
+  onSearchChange: (value: string) => void;
+  onCategoryChange: (value: string) => void;
+  onPriceChange: (value: [number, number]) => void;
+  onPriceCommit: (value: [number, number]) => void;
+  onPriceReset: () => void;
+  onDurationChange: (value: FootageExplorerQuery["duration"]) => void;
+  onSortChange: (value: ExplorerSort) => void;
 };
 
 const sortLabels: Record<ExplorerSort, string> = {
@@ -74,58 +94,45 @@ const durationLabels = {
   long: "بلند؛ بیشتر از ۶۰ ثانیه",
 } as const;
 
-function submitQuery(
-  event: FormEvent<HTMLFormElement>,
-  router: ReturnType<typeof useRouter>,
-  onDone?: () => void,
-) {
-  event.preventDefault();
-  const formData = new FormData(event.currentTarget);
-  const next: FootageExplorerQuery = {
-    query: String(formData.get("q") ?? "").trim(),
-    category: readCategory(String(formData.get("category") ?? "")),
-    minPrice: parseOptionalNumber(formData.get("minPrice")),
-    maxPrice: parseOptionalNumber(formData.get("maxPrice")),
-    duration: readDuration(String(formData.get("duration") ?? "all")),
-    sort: readSort(String(formData.get("sort") ?? "relevance")),
-    page: 1,
-  };
-  const params = serializeFootageExplorerQuery(next);
-  router.push(params ? `?${params}` : "?");
-  onDone?.();
+function formatPriceRange(query: FootageExplorerQuery) {
+  const minimum = query.minPrice;
+  const maximum = query.maxPrice;
+  if (minimum !== undefined && maximum !== undefined) {
+    return `قیمت: ${formatTomanDisplay(minimum)} تا ${formatTomanDisplay(maximum)}`;
+  }
+  if (minimum !== undefined) return `قیمت: از ${formatTomanDisplay(minimum)}`;
+  return `قیمت: تا ${formatTomanDisplay(maximum ?? 0)}`;
 }
 
-function parseOptionalNumber(value: FormDataEntryValue | null) {
-  const text = String(value ?? "").trim();
-  if (!/^\d+$/.test(text)) return undefined;
-  const number = Number(text);
-  return Number.isSafeInteger(number) ? number : undefined;
+function getSliderValues(
+  query: FootageExplorerQuery,
+  priceBounds: FootagePriceBounds,
+): [number, number] {
+  const minimum = Math.min(
+    priceBounds.max,
+    Math.max(priceBounds.min, query.minPrice ?? priceBounds.min),
+  );
+  const maximum = Math.min(
+    priceBounds.max,
+    Math.max(priceBounds.min, query.maxPrice ?? priceBounds.max),
+  );
+  return minimum <= maximum ? [minimum, maximum] : [maximum, minimum];
 }
 
-function readDuration(value: string): FootageExplorerQuery["duration"] {
-  return value === "short" || value === "medium" || value === "long"
-    ? value
-    : "all";
-}
-
-function readSort(value: string): ExplorerSort {
-  return EXPLORER_SORTS.includes(value as ExplorerSort)
-    ? (value as ExplorerSort)
-    : "relevance";
-}
-
-function readCategory(value: string) {
-  return value === "all" ? "" : value;
+function hasActiveExplorerSelections(query: FootageExplorerQuery) {
+  return hasActiveExplorerFilters(query) || query.sort !== "relevance";
 }
 
 function SearchField({
   query,
   id = "explorer-filter-search",
   icon,
+  onChange,
 }: {
   query: string;
   id?: string;
   icon?: ReactNode;
+  onChange: (value: string) => void;
 }) {
   return (
     <Field>
@@ -134,7 +141,8 @@ function SearchField({
         id={id}
         name="q"
         type="search"
-        defaultValue={query}
+        value={query}
+        onChange={(event) => onChange(event.currentTarget.value)}
         placeholder="موضوع، شهر یا حال‌وهوا"
       />
     </Field>
@@ -146,14 +154,20 @@ function CategoryField({
   categories,
   id = "explorer-category",
   icon,
+  onChange,
 }: Pick<FootageExplorerViewProps, "query" | "categories"> & {
   id?: string;
   icon?: ReactNode;
+  onChange: (value: string) => void;
 }) {
   return (
     <Field>
       <FieldLabel htmlFor={id}>{icon}دسته‌بندی</FieldLabel>
-      <Select name="category" defaultValue={query.category || "all"}>
+      <Select
+        name="category"
+        value={query.category || "all"}
+        onValueChange={(value) => onChange(value ?? "all")}
+      >
         <SelectTrigger id={id} className="w-full">
           <SelectValue>
             {query.category
@@ -179,42 +193,54 @@ function CategoryField({
 
 function PriceFields({
   query,
-  compact = false,
-}: Pick<FootageExplorerViewProps, "query"> & { compact?: boolean }) {
+  priceBounds,
+  value,
+  id,
+  onChange,
+  onCommit,
+  onReset,
+}: Pick<FootageExplorerViewProps, "query" | "priceBounds"> & {
+  value: [number, number];
+  id: string;
+  onChange: (value: [number, number]) => void;
+  onCommit: (value: [number, number]) => void;
+  onReset: () => void;
+}) {
   return (
-    <div className={compact ? "grid grid-cols-2 gap-2" : "flex flex-col gap-5"}>
-      <Field>
-        <FieldLabel
-          htmlFor={
-            compact ? "explorer-min-price-compact" : "explorer-min-price"
-          }
+    <div className="flex flex-col gap-3">
+      <FieldLabel htmlFor={id}>محدوده قیمت</FieldLabel>
+      <Slider
+        id={id}
+        aria-label="محدوده قیمت فوتیج"
+        value={value}
+        min={priceBounds.min}
+        max={priceBounds.max}
+        step={priceBounds.step}
+        locale="fa-IR"
+        minStepsBetweenValues={0}
+        thumbCollisionBehavior="none"
+        getAriaLabel={(index) => (index === 0 ? "حداقل قیمت" : "حداکثر قیمت")}
+        getAriaValueText={(formattedValue, _, index) =>
+          (index === 0 ? "حداقل" : "حداکثر") + " " + formattedValue + " تومان"
+        }
+        onValueChange={(next) => onChange(next as [number, number])}
+        onValueCommitted={(next) => onCommit(next as [number, number])}
+      />
+      <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+        <span>{formatTomanDisplay(value[0])}</span>
+        <span>{formatTomanDisplay(value[1])}</span>
+      </div>
+      {(query.minPrice !== undefined || query.maxPrice !== undefined) && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="self-start"
+          onClick={onReset}
         >
-          حداقل قیمت (تومان)
-        </FieldLabel>
-        <Input
-          id={compact ? "explorer-min-price-compact" : "explorer-min-price"}
-          name="minPrice"
-          inputMode="numeric"
-          defaultValue={query.minPrice ?? ""}
-          placeholder="مثلاً ۲۵۰۰۰۰"
-        />
-      </Field>
-      <Field>
-        <FieldLabel
-          htmlFor={
-            compact ? "explorer-max-price-compact" : "explorer-max-price"
-          }
-        >
-          حداکثر قیمت (تومان)
-        </FieldLabel>
-        <Input
-          id={compact ? "explorer-max-price-compact" : "explorer-max-price"}
-          name="maxPrice"
-          inputMode="numeric"
-          defaultValue={query.maxPrice ?? ""}
-          placeholder="مثلاً ۵۰۰۰۰۰"
-        />
-      </Field>
+          حذف محدوده قیمت
+        </Button>
+      )}
     </div>
   );
 }
@@ -223,14 +249,26 @@ function DurationField({
   query,
   id = "explorer-duration",
   icon,
+  onChange,
 }: Pick<FootageExplorerViewProps, "query"> & {
   id?: string;
   icon?: ReactNode;
+  onChange: (value: FootageExplorerQuery["duration"]) => void;
 }) {
   return (
     <Field>
       <FieldLabel htmlFor={id}>{icon}مدت</FieldLabel>
-      <Select name="duration" defaultValue={query.duration}>
+      <Select
+        name="duration"
+        value={query.duration}
+        onValueChange={(value) =>
+          onChange(
+            value === "short" || value === "medium" || value === "long"
+              ? value
+              : "all",
+          )
+        }
+      >
         <SelectTrigger id={id} className="w-full">
           <SelectValue>{durationLabels[query.duration]}</SelectValue>
         </SelectTrigger>
@@ -251,11 +289,23 @@ function DurationField({
 function SortField({
   query,
   icon,
-}: Pick<FootageExplorerViewProps, "query"> & { icon?: ReactNode }) {
+  onChange,
+}: Pick<FootageExplorerViewProps, "query"> & {
+  icon?: ReactNode;
+  onChange: (value: ExplorerSort) => void;
+}) {
   return (
     <Field>
       <FieldLabel htmlFor="classic-sort">{icon}مرتب‌سازی</FieldLabel>
-      <Select name="sort" defaultValue={query.sort}>
+      <Select
+        name="sort"
+        value={query.sort}
+        onValueChange={(value) => {
+          if (EXPLORER_SORTS.includes(value as ExplorerSort)) {
+            onChange(value as ExplorerSort);
+          }
+        }}
+      >
         <SelectTrigger id="classic-sort" className="w-full">
           <SelectValue>{sortLabels[query.sort]}</SelectValue>
         </SelectTrigger>
@@ -276,11 +326,18 @@ function SortField({
 function ClassicFilterFields({
   query,
   categories,
-}: Pick<FootageExplorerViewProps, "query" | "categories">) {
+  priceBounds,
+  priceValue,
+  idPrefix,
+  ...handlers
+}: Pick<FootageExplorerViewProps, "query" | "categories" | "priceBounds"> &
+  FilterHandlers & { priceValue: [number, number]; idPrefix: string }) {
   return (
     <FieldGroup>
       <SearchField
         query={query.query}
+        id={`${idPrefix}-search`}
+        onChange={handlers.onSearchChange}
         icon={
           <Search className="size-4 text-muted-foreground" aria-hidden="true" />
         }
@@ -289,6 +346,8 @@ function ClassicFilterFields({
         <CategoryField
           query={query}
           categories={categories}
+          id={`${idPrefix}-category`}
+          onChange={handlers.onCategoryChange}
           icon={
             <LayoutGrid
               className="size-4 text-muted-foreground"
@@ -302,11 +361,21 @@ function ClassicFilterFields({
           <Wallet className="size-4 text-muted-foreground" aria-hidden="true" />
           قیمت
         </div>
-        <PriceFields query={query} />
+        <PriceFields
+          query={query}
+          priceBounds={priceBounds}
+          value={priceValue}
+          id={`${idPrefix}-price-range`}
+          onChange={handlers.onPriceChange}
+          onCommit={handlers.onPriceCommit}
+          onReset={handlers.onPriceReset}
+        />
       </div>
       <div className="border-t border-border pt-5">
         <DurationField
           query={query}
+          id={`${idPrefix}-duration`}
+          onChange={handlers.onDurationChange}
           icon={
             <Clock3
               className="size-4 text-muted-foreground"
@@ -318,6 +387,7 @@ function ClassicFilterFields({
       <div className="border-t border-border pt-5">
         <SortField
           query={query}
+          onChange={handlers.onSortChange}
           icon={
             <ArrowDownUp
               className="size-4 text-muted-foreground"
@@ -333,11 +403,20 @@ function ClassicFilterFields({
 function ModernFilterFields({
   query,
   categories,
-}: Pick<FootageExplorerViewProps, "query" | "categories">) {
+  priceBounds,
+  priceValue,
+  idPrefix,
+  ...handlers
+}: Pick<FootageExplorerViewProps, "query" | "categories" | "priceBounds"> &
+  FilterHandlers & { priceValue: [number, number]; idPrefix: string }) {
   return (
     <div className="flex flex-col divide-y divide-border">
       <div className="pb-4">
-        <SearchField query={query.query} id="modern-filter-search" />
+        <SearchField
+          query={query.query}
+          id={`${idPrefix}-search`}
+          onChange={handlers.onSearchChange}
+        />
       </div>
       <details open className="group py-4">
         <summary className="cursor-pointer list-none font-medium marker:hidden">
@@ -350,7 +429,8 @@ function ModernFilterFields({
           <CategoryField
             query={query}
             categories={categories}
-            id="modern-category"
+            id={`${idPrefix}-category`}
+            onChange={handlers.onCategoryChange}
           />
         </div>
       </details>
@@ -362,7 +442,15 @@ function ModernFilterFields({
           </span>
         </summary>
         <div className="pt-3">
-          <PriceFields query={query} compact />
+          <PriceFields
+            query={query}
+            priceBounds={priceBounds}
+            value={priceValue}
+            id={`${idPrefix}-price-range`}
+            onChange={handlers.onPriceChange}
+            onCommit={handlers.onPriceCommit}
+            onReset={handlers.onPriceReset}
+          />
         </div>
       </details>
       <details className="group py-4">
@@ -373,7 +461,11 @@ function ModernFilterFields({
           </span>
         </summary>
         <div className="pt-3">
-          <DurationField query={query} id="modern-duration" />
+          <DurationField
+            query={query}
+            id={`${idPrefix}-duration`}
+            onChange={handlers.onDurationChange}
+          />
         </div>
       </details>
     </div>
@@ -383,19 +475,41 @@ function ModernFilterFields({
 function MinimalFilterFields({
   query,
   categories,
-}: Pick<FootageExplorerViewProps, "query" | "categories">) {
+  priceBounds,
+  priceValue,
+  idPrefix,
+  ...handlers
+}: Pick<FootageExplorerViewProps, "query" | "categories" | "priceBounds"> &
+  FilterHandlers & { priceValue: [number, number]; idPrefix: string }) {
   return (
     <div className="flex flex-col gap-3 text-sm">
-      <SearchField query={query.query} id="minimal-filter-search" />
+      <SearchField
+        query={query.query}
+        id={`${idPrefix}-search`}
+        onChange={handlers.onSearchChange}
+      />
       <CategoryField
         query={query}
         categories={categories}
-        id="minimal-category"
+        id={`${idPrefix}-category`}
+        onChange={handlers.onCategoryChange}
       />
       <div className="grid grid-cols-2 gap-2">
-        <PriceFields query={query} compact />
+        <PriceFields
+          query={query}
+          priceBounds={priceBounds}
+          value={priceValue}
+          id={`${idPrefix}-price-range`}
+          onChange={handlers.onPriceChange}
+          onCommit={handlers.onPriceCommit}
+          onReset={handlers.onPriceReset}
+        />
       </div>
-      <DurationField query={query} id="minimal-duration" />
+      <DurationField
+        query={query}
+        id={`${idPrefix}-duration`}
+        onChange={handlers.onDurationChange}
+      />
     </div>
   );
 }
@@ -403,26 +517,54 @@ function MinimalFilterFields({
 function FilterPanel({
   query,
   categories,
+  priceBounds,
+  priceValue,
+  idPrefix,
   onSubmit,
   className,
   children,
   variant,
-}: Pick<FootageExplorerViewProps, "query" | "categories"> & {
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
-  className?: string;
-  children?: ReactNode;
-  variant: FootageExplorerVariant;
-}) {
+  ...handlers
+}: Pick<FootageExplorerViewProps, "query" | "categories" | "priceBounds"> &
+  FilterHandlers & {
+    priceValue: [number, number];
+    idPrefix: string;
+    onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+    className?: string;
+    children?: ReactNode;
+    variant: FootageExplorerVariant;
+  }) {
   return (
     <form className={className} onSubmit={onSubmit}>
       {variant === "classic" && (
-        <ClassicFilterFields query={query} categories={categories} />
+        <ClassicFilterFields
+          query={query}
+          categories={categories}
+          priceBounds={priceBounds}
+          priceValue={priceValue}
+          idPrefix={idPrefix}
+          {...handlers}
+        />
       )}
       {variant === "modern" && (
-        <ModernFilterFields query={query} categories={categories} />
+        <ModernFilterFields
+          query={query}
+          categories={categories}
+          priceBounds={priceBounds}
+          priceValue={priceValue}
+          idPrefix={idPrefix}
+          {...handlers}
+        />
       )}
       {variant === "minimal" && (
-        <MinimalFilterFields query={query} categories={categories} />
+        <MinimalFilterFields
+          query={query}
+          categories={categories}
+          priceBounds={priceBounds}
+          priceValue={priceValue}
+          idPrefix={idPrefix}
+          {...handlers}
+        />
       )}
       {children}
     </form>
@@ -432,26 +574,50 @@ function FilterPanel({
 function ActiveFilters({
   query,
   categories,
-}: Pick<FootageExplorerViewProps, "query" | "categories">) {
-  if (!hasActiveExplorerFilters(query)) return null;
+  onRemove,
+}: Pick<FootageExplorerViewProps, "query" | "categories"> & {
+  onRemove: (filter: keyof FootageExplorerQuery) => void;
+}) {
+  if (!hasActiveExplorerSelections(query)) {
+    return null;
+  }
   const categoryLabel = categories.find(
     (item) => item.value === query.category,
   )?.labelFa;
+  const removableBadge = (
+    filter: keyof FootageExplorerQuery,
+    label: string,
+  ) => (
+    <Badge key={filter} variant="secondary" className="gap-1 pe-1">
+      <span>{label}</span>
+      <button
+        type="button"
+        aria-label={`حذف ${label}`}
+        onClick={() => onRemove(filter)}
+        className="inline-flex size-5 items-center justify-center rounded-full hover:bg-background/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <X className="size-3" aria-hidden="true" />
+      </button>
+    </Badge>
+  );
+
   return (
     <div
       className="flex flex-wrap items-center gap-2"
       aria-label="فیلترهای فعال"
     >
-      {query.query && <Badge variant="secondary">جست‌وجو: {query.query}</Badge>}
-      {categoryLabel && (
-        <Badge variant="secondary">دسته: {categoryLabel}</Badge>
-      )}
-      {(query.minPrice !== undefined || query.maxPrice !== undefined) && (
-        <Badge variant="secondary">محدوده قیمت</Badge>
-      )}
-      {query.duration !== "all" && (
-        <Badge variant="secondary">{durationLabels[query.duration]}</Badge>
-      )}
+      {query.query && removableBadge("query", `جست‌وجو: ${query.query}`)}
+      {categoryLabel &&
+        removableBadge("category", `دسته‌بندی: ${categoryLabel}`)}
+      {(query.minPrice !== undefined || query.maxPrice !== undefined) &&
+        removableBadge("minPrice", formatPriceRange(query))}
+      {query.duration !== "all" &&
+        removableBadge(
+          "duration",
+          `مدت‌زمان: ${durationLabels[query.duration]}`,
+        )}
+      {query.sort !== "relevance" &&
+        removableBadge("sort", `مرتب‌سازی: ${sortLabels[query.sort]}`)}
     </div>
   );
 }
@@ -483,25 +649,123 @@ function EmptyResults({ query }: Pick<FootageExplorerViewProps, "query">) {
 }
 
 export function FootageExplorerView(props: FootageExplorerViewProps) {
-  const { variant, query, categories, footage, filteredCount, totalPages } =
-    props;
+  const {
+    variant,
+    query,
+    categories,
+    priceBounds,
+    footage,
+    filteredCount,
+    totalPages,
+  } = props;
   const router = useRouter();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [searchDraft, setSearchDraft] = useState(query.query);
+  const [priceDraft, setPriceDraft] = useState<[number, number]>(
+    getSliderValues(query, priceBounds),
+  );
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchRevisionRef = useRef(0);
   const activeFilterCount = getExplorerActiveFilterCount(query);
   const shellClass = variant === "minimal" ? "bg-muted/20" : "bg-background";
 
-  function handleFilterSubmit(event: FormEvent<HTMLFormElement>) {
-    submitQuery(event, router, () => setMobileFiltersOpen(false));
+  useEffect(() => {
+    const syncTimer = setTimeout(() => setSearchDraft(query.query), 0);
+    return () => clearTimeout(syncTimer);
+  }, [query.query]);
+
+  useEffect(() => {
+    const syncTimer = setTimeout(
+      () => setPriceDraft(getSliderValues(query, priceBounds)),
+      0,
+    );
+    return () => clearTimeout(syncTimer);
+  }, [priceBounds, query]);
+
+  useEffect(() => {
+    if (searchDraft === query.query) return;
+    const revision = searchRevisionRef.current;
+    searchTimerRef.current = setTimeout(() => {
+      if (revision !== searchRevisionRef.current) return;
+      const next = serializeFootageExplorerQuery({
+        ...query,
+        query: searchDraft,
+        page: 1,
+      });
+      const current = serializeFootageExplorerQuery(query);
+      if (next !== current) router.replace(next ? `?${next}` : "?");
+    }, 400);
+
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    };
+  }, [query, router, searchDraft]);
+
+  function cancelPendingSearch() {
+    searchRevisionRef.current += 1;
+    if (searchTimerRef.current) {
+      clearTimeout(searchTimerRef.current);
+      searchTimerRef.current = null;
+    }
   }
 
-  function handleSort(value: string | null) {
-    if (!value) return;
-    router.push(
-      createFootageExplorerHref(query, {
-        sort: value as ExplorerSort,
-        page: 1,
-      }),
-    );
+  function replaceDiscoveryState(overrides: Partial<FootageExplorerQuery>) {
+    cancelPendingSearch();
+    const next = serializeFootageExplorerQuery({
+      ...query,
+      query: searchDraft,
+      ...overrides,
+      page: 1,
+    });
+    const current = serializeFootageExplorerQuery(query);
+    if (next !== current) router.replace(next ? `?${next}` : "?");
+  }
+
+  function handleFilterSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    replaceDiscoveryState({});
+  }
+
+  function handlePriceCommit(value: [number, number]) {
+    replaceDiscoveryState({
+      minPrice: value[0] <= priceBounds.min ? undefined : value[0],
+      maxPrice: value[1] >= priceBounds.max ? undefined : value[1],
+    });
+  }
+
+  function handlePriceReset() {
+    setPriceDraft([priceBounds.min, priceBounds.max]);
+    replaceDiscoveryState({ minPrice: undefined, maxPrice: undefined });
+  }
+
+  function handleRemoveFilter(filter: keyof FootageExplorerQuery) {
+    if (filter === "minPrice" || filter === "maxPrice") {
+      handlePriceReset();
+      return;
+    }
+    if (filter === "query") {
+      setSearchDraft("");
+      replaceDiscoveryState({ query: "" });
+      return;
+    }
+    if (filter === "category") {
+      replaceDiscoveryState({ category: "" });
+      return;
+    }
+    if (filter === "duration") {
+      replaceDiscoveryState({ duration: "all" });
+      return;
+    }
+    if (filter === "sort") {
+      replaceDiscoveryState({ sort: "relevance" });
+    }
+  }
+
+  function handleClearAll() {
+    cancelPendingSearch();
+    setSearchDraft("");
+    setPriceDraft([priceBounds.min, priceBounds.max]);
+    if (serializeFootageExplorerQuery(query)) router.replace("?");
   }
 
   return (
@@ -516,14 +780,25 @@ export function FootageExplorerView(props: FootageExplorerViewProps) {
             aria-labelledby="explorer-results-heading"
           >
             <div className="mb-4 flex min-h-10 flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-3">
-                <p
-                  id="explorer-results-heading"
-                  className="text-sm text-muted-foreground"
-                >
+              <ActiveFilters
+                query={query}
+                categories={categories}
+                onRemove={handleRemoveFilter}
+              />
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-muted-foreground">
                   {filteredCount.toLocaleString("fa-IR")} نتیجه
                 </p>
-                <ActiveFilters query={query} categories={categories} />
+                {hasActiveExplorerSelections(query) && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearAll}
+                  >
+                    پاک کردن همه
+                  </Button>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <Sheet
@@ -553,18 +828,34 @@ export function FootageExplorerView(props: FootageExplorerViewProps) {
                     <FilterPanel
                       query={query}
                       categories={categories}
+                      priceBounds={priceBounds}
+                      priceValue={priceDraft}
                       onSubmit={handleFilterSubmit}
+                      onSearchChange={setSearchDraft}
+                      onCategoryChange={(value) =>
+                        replaceDiscoveryState({
+                          category: value === "all" ? "" : value,
+                        })
+                      }
+                      onPriceChange={setPriceDraft}
+                      onPriceCommit={handlePriceCommit}
+                      onPriceReset={handlePriceReset}
+                      onDurationChange={(value) =>
+                        replaceDiscoveryState({ duration: value })
+                      }
+                      onSortChange={(value) =>
+                        replaceDiscoveryState({ sort: value })
+                      }
+                      idPrefix="mobile-explorer"
                       className="flex flex-col gap-6 px-4"
                       variant={variant}
                     >
-                      <Button type="submit">اعمال فیلترها</Button>
-                      {hasActiveExplorerFilters(query) && (
+                      {hasActiveExplorerSelections(query) && (
                         <Button
                           type="button"
                           variant="ghost"
                           onClick={() => {
-                            setMobileFiltersOpen(false);
-                            router.push("?");
+                            handleClearAll();
                           }}
                         >
                           پاک کردن همه
@@ -579,25 +870,6 @@ export function FootageExplorerView(props: FootageExplorerViewProps) {
                     </SheetFooter>
                   </SheetContent>
                 </Sheet>
-                {variant !== "classic" && (
-                  <Select value={query.sort} onValueChange={handleSort}>
-                    <SelectTrigger
-                      aria-label="مرتب‌سازی"
-                      className="w-44 bg-card"
-                    >
-                      <SelectValue>{sortLabels[query.sort]}</SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {Object.entries(sortLabels).map(([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                )}
               </div>
             </div>
             {footage.length === 0 ? (
@@ -644,7 +916,23 @@ export function FootageExplorerView(props: FootageExplorerViewProps) {
             <FilterPanel
               query={query}
               categories={categories}
+              priceBounds={priceBounds}
+              priceValue={priceDraft}
               onSubmit={handleFilterSubmit}
+              onSearchChange={setSearchDraft}
+              onCategoryChange={(value) =>
+                replaceDiscoveryState({
+                  category: value === "all" ? "" : value,
+                })
+              }
+              onPriceChange={setPriceDraft}
+              onPriceCommit={handlePriceCommit}
+              onPriceReset={handlePriceReset}
+              onDurationChange={(value) =>
+                replaceDiscoveryState({ duration: value })
+              }
+              onSortChange={(value) => replaceDiscoveryState({ sort: value })}
+              idPrefix="desktop-explorer"
               className={
                 variant === "classic"
                   ? "flex flex-col gap-6"
@@ -657,17 +945,12 @@ export function FootageExplorerView(props: FootageExplorerViewProps) {
               <div
                 className={`flex flex-col gap-2 ${variant === "classic" ? "border-t border-border pt-5" : "pt-3"}`}
               >
-                <Button
-                  type="submit"
-                  size={variant === "minimal" ? "sm" : "default"}
-                >
-                  اعمال فیلترها
-                </Button>
-                {hasActiveExplorerFilters(query) && (
+                {hasActiveExplorerSelections(query) && (
                   <Button
                     type="button"
                     variant="ghost"
-                    onClick={() => router.push("?")}
+                    size={variant === "minimal" ? "sm" : "default"}
+                    onClick={handleClearAll}
                   >
                     پاک کردن همه
                   </Button>

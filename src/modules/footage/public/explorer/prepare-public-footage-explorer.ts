@@ -1,6 +1,7 @@
 import type { PublicFootageCategoryOption } from "@/modules/footage/public/catalog/public-footage-catalog-store";
 import {
   discoverPublicFootage,
+  getFootagePriceBounds,
   parseFootageExplorerQuery,
 } from "./footage-explorer";
 import { publicFootageFixtures } from "@/modules/ui-mock/fixtures/public-footage";
@@ -22,6 +23,7 @@ export function preparePublicFootageExplorer(
   const categories = getPublicFootageCategories();
   const query = parseFootageExplorerQuery(params, categories);
   const result = discoverPublicFootage(publicFootageFixtures, query);
+  const priceBounds = getFootagePriceBounds(publicFootageFixtures);
 
-  return { categories, query, result };
+  return { categories, priceBounds, query, result };
 }

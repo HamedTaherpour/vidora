@@ -85,7 +85,7 @@ export function PublicSiteHeader({ categories }: PublicSiteHeaderProps) {
                   </NavigationMenuContent>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                  <NavigationMenuLink render={<Link href="/footage" />}>
+                  <NavigationMenuLink render={<Link href="/search" />}>
                     فوتیج‌ها
                   </NavigationMenuLink>
                 </NavigationMenuItem>
@@ -123,7 +123,7 @@ export function PublicSiteHeader({ categories }: PublicSiteHeaderProps) {
                 className="flex flex-col gap-1 px-4"
               >
                 <SheetClose
-                  render={<Link href="/footage" />}
+                  render={<Link href="/search" />}
                   nativeButton={false}
                   className="rounded-lg px-3 py-2 text-start text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >

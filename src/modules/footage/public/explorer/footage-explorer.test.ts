@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { publicFootageFixtures } from "@/modules/ui-mock/fixtures/public-footage";
 import {
   discoverPublicFootage,
+  getFootagePriceBounds,
   getExplorerActiveFilterCount,
   parseFootageExplorerQuery,
   serializeFootageExplorerQuery,
@@ -16,6 +17,14 @@ const categories = publicFootageFixtures
   );
 
 describe("footage explorer query contract", () => {
+  it("derives price bounds and a catalog-based slider step", () => {
+    expect(getFootagePriceBounds(publicFootageFixtures)).toEqual({
+      min: 220000,
+      max: 450000,
+      step: 5000,
+    });
+  });
+
   it("normalizes Persian text and rejects unsupported or invalid values", () => {
     expect(
       parseFootageExplorerQuery(

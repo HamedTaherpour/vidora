@@ -107,7 +107,7 @@ visual consistency. Passing tests alone does not complete a page.
 | ----------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Public catalog/home                 | `/`                         | Fixture-backed homepage with approved Hero/Header, search/category controls, responsive gallery, URL pagination, and preview interactions; not a database-backed catalog integration. |
 | Public footage detail               | `/footage/[slug]`           | Fixture-backed Commerce detail composition exists; production detail query and backend-connected integration remain pending.                                                          |
-| Public browse/search                | `/`                         | Homepage hero owns fixture-backed search and category filtering; no dedicated browse route.                                                                                           |
+| Public browse/search                | `/search`                   | Fixture-backed Classic Sidebar search route with URL-owned filters, sorting, pagination, and legacy `/footage` browse redirect.                                                       |
 | Customer authentication             | `/login`, `/login/continue` | Minimal fixture-backed phone/OTP presentation; `/session` compatibility routes redirect to the public login routes.                                                                   |
 | Customer library, checkout, invoice | No routes                   | Planned product surfaces; dependent backend workflows are not implemented.                                                                                                            |
 | Admin footage catalog               | `/admin/footage`            | Implemented operational surface.                                                                                                                                                      |
@@ -754,7 +754,7 @@ screen or begin Admin work.
 **Depends On:** VIDORA-PUB-HOME-FINAL-04, PUB-01, PUB-02, PUB-02R, PUB-02S,
 UI-MOCK-01.
 
-**Owner request:** Add a dedicated Public footage discovery page at `/footage`.
+**Owner request:** Add a dedicated Public footage discovery page at `/search`.
 This task is registered for future implementation and is not implemented by
 the homepage closeout.
 
@@ -769,21 +769,24 @@ preserve filters across refresh and direct navigation.
 pagination. The implementation must define typed validation, canonical
 deterministic serialization, and pagination reset when relevant filters change.
 It must preserve homepage deep links: featured footage, recently added footage,
-category links, and hero search must navigate to `/footage` with appropriate
+category links, and hero search must navigate to `/search` with appropriate
 parameters. Do not invent popularity, ratings, sales statistics, technical
 metadata, a backend API, or a database schema.
 
 **Layout / responsive behavior:** Desktop uses a viewport-safe sticky filter
-card on the right, a footage grid on the left, and a results toolbar with sort
-and result count. Mobile uses a responsive grid, accessible filter Sheet or
-Drawer, search and sorting controls, and clear/apply actions.
+card on the right, a footage grid on the left, and a compact results toolbar
+with localized active badges and result count. Sorting remains in the sidebar.
+Mobile uses a responsive grid, accessible filter Sheet, search and sorting
+controls, and automatic updates without an Apply action.
 
 **Review gate:** The first implementation phase provided three reviewable
 design variants: Classic Sidebar, Modern Explorer, and Minimal Marketplace.
 The owner selected Classic Sidebar; Modern Explorer and Minimal Marketplace
 were not selected. Classic is now promoted to production at `/footage`, with
 sorting in the sidebar and Lucide section icons. The temporary preview routes
-were removed after production verification. This task remains subject to the
+were removed after production verification. The legacy `/footage` browse route
+permanently redirects to `/search` while detail routes remain under
+`/footage/[slug]`. This task remains subject to the
 comprehensive Public review gate and before Admin development begins.
 
 **Out of scope:** Production catalog/database integration, Admin work, and
