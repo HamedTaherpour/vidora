@@ -17,6 +17,8 @@ describe("FootageDetailPage", () => {
     expect(html).toContain("controls");
     expect(html).toContain("خرید تکی فوتیج");
     expect(html).toContain("ورود و ادامه خرید");
+    expect(html).toContain("returnTo=%2Fpurchase%2F");
+    expect(html).toContain("customer%3Dauthenticated");
     expect(html).toContain("وضعیت حساب نامشخص");
     expect(html).not.toContain("objectKey");
     expect(html).not.toContain("signedUrl");
@@ -28,7 +30,7 @@ describe("FootageDetailPage", () => {
 
     expect(html).toContain("پیش‌نمایش فعلاً آماده پخش نیست");
     expect(html).not.toContain("<video");
-    expect(html).toContain("این پیش‌نمایش فقط رابط کاربری است");
+    expect(html).toContain("پرداخت در این مرحله شبیه‌سازی‌شده است");
   });
 
   it("returns null for an invalid slug", () => {

@@ -483,7 +483,7 @@ recovery, or enabling the development bypass for customer flows.
 
 ### PUB-05 — Buy Now and Payment Journey UI
 
-**Status:** TODO
+**Status:** DONE
 **Depends On:** PUB-03, PUB-04.
 
 **Scope / route:** Fixture-only purchase handoff, pending/return, and result
@@ -513,6 +513,18 @@ and independent review pass.
 **Explicit exclusions:** order/payment persistence, provider selection,
 callback verification, entitlement, invoice generation, cart, discounts, or
 subscriptions.
+
+**Final fixture UI approval:** The product owner approved Commerce as the final
+purchase presentation. It is available at `/purchase/[slug]` for a single
+footage item, with two independent order/payment cards, the corrected Alert
+layout, and no variant selector or comparison controls. Buy Now preserves the
+footage destination through `/login?returnTo=...`; the fixture continuation uses
+the `customer=authenticated` marker only for deterministic UI review. Optional
+`state=review|initiating|init-failed|pending|returned|verification-pending|verification-failed|failure|success`
+values cover the preserved fixture state presentations. Invalid or unavailable
+footage is rejected safely, and prices come from the server-selected fixture.
+Real authentication/session state, orders, payments, invoices, entitlements,
+and protected downloads remain future integration dependencies.
 
 ---
 

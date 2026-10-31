@@ -14,7 +14,7 @@ type FootageBuyNowStatesProps = {
 
 export function FootageBuyNowStates(props: FootageBuyNowStatesProps) {
   const { footage } = props;
-  const authenticationHref = `/login?returnTo=${encodeURIComponent(`/footage/${footage.slug}`)}`;
+  const authenticationHref = `/login?returnTo=${encodeURIComponent(`/purchase/${footage.slug}?customer=authenticated`)}`;
 
   return (
     <Card className="gap-0">
@@ -75,8 +75,8 @@ export function FootageBuyNowStates(props: FootageBuyNowStatesProps) {
           </Alert>
         </div>
         <p className="text-xs leading-5 text-muted-foreground">
-          این پیش‌نمایش فقط رابط کاربری است و سفارش، پرداخت یا دسترسی به فایل
-          اصلی ایجاد نمی‌کند.
+          پرداخت در این مرحله شبیه‌سازی‌شده است و سفارش، پرداخت یا دسترسی به
+          فایل اصلی ایجاد نمی‌کند.
         </p>
       </CardContent>
     </Card>
