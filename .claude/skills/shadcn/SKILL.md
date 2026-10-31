@@ -7,6 +7,20 @@ allowed-tools: Bash(npx shadcn@latest *), Bash(pnpm dlx shadcn@latest *), Bash(b
 
 # shadcn/ui
 
+## Vidora project boundary
+
+For this repository, `instructions/components.md` is the canonical source for
+component ownership and colocated helper/type/constant conventions. Follow it
+when composing or adding shadcn/Base UI components: keep pure exported helpers
+out of component implementation files, keep meaningful component-specific types
+and constants colocated, use named handlers for nontrivial JSX events, extract
+only cohesive stateful interactions into custom hooks, and preserve the
+narrowest justified client boundary. Component-owned supporting files must use
+the owning component filename prefix, and exported types, constants, and pure
+helpers must have meaningful JSDoc; the canonical details remain in
+`instructions/components.md`.
+Do not duplicate or override those conventions in this Skill.
+
 A framework for building ui, components and design systems. Components are added as source code to the user's project via the CLI.
 
 > **IMPORTANT:** Run all CLI commands using the project's package runner: `npx shadcn@latest`, `pnpm dlx shadcn@latest`, or `bunx --bun shadcn@latest` — based on the project's `packageManager`. Examples below use `npx shadcn@latest` but substitute the correct runner for the project.
@@ -27,6 +41,9 @@ The JSON above contains the project config and installed components. Use `npx sh
 4. **Use semantic colors.** `bg-primary`, `text-muted-foreground` — never raw values like `bg-blue-500`.
 
 ## Critical Rules
+
+Typography follows the repository foundations: use standard Tailwind
+`text-*` and `leading-*` utilities instead of project-specific font-size aliases.
 
 These rules are **always enforced**. Each links to a file with Incorrect/Correct code pairs.
 
@@ -138,7 +155,7 @@ These are the most common patterns that differentiate correct shadcn/ui code. Fo
 | Data display               | `Table`, `Card`, `Badge`, `Avatar`                                                                  |
 | Navigation                 | `Sidebar`, `NavigationMenu`, `Breadcrumb`, `Tabs`, `Pagination`                                     |
 | Overlays                   | `Dialog` (modal), `Sheet` (side panel), `Drawer` (bottom sheet), `AlertDialog` (confirmation)       |
-| Feedback                   | `toast` (Base UI), `sonner` (Radix/Aria), `Alert`, `Progress`, `Skeleton`, `Spinner`                 |
+| Feedback                   | `toast` (Base UI), `sonner` (Radix/Aria), `Alert`, `Progress`, `Skeleton`, `Spinner`                |
 | Command palette            | `Command` inside `Dialog`                                                                           |
 | Charts                     | `Chart` (wraps Recharts)                                                                            |
 | Layout                     | `Card`, `Separator`, `Resizable`, `ScrollArea`, `Accordion`, `Collapsible`                          |

@@ -21,7 +21,9 @@ describe("UI mock fixtures", () => {
   });
 
   it("keeps public category fixtures ordered and complete", () => {
-    expect(publicFootageFixtures.map((item) => item.category.slug)).toEqual([
+    expect(
+      publicFootageFixtures.slice(0, 8).map((item) => item.category.slug),
+    ).toEqual([
       "nature",
       "urban",
       "travel",
@@ -34,6 +36,7 @@ describe("UI mock fixtures", () => {
     expect(
       new Set(publicFootageFixtures.map((item) => item.category.slug)).size,
     ).toBe(8);
+    expect(publicFootageFixtures.length).toBeGreaterThanOrEqual(24);
   });
 
   it("keeps protected media fields out of public fixtures", () => {

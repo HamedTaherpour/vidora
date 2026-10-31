@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Cpu, Leaf, Plane, Search, X } from "lucide-react";
+import { Building2, Cpu, Layers, Leaf, Plane, Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
@@ -16,81 +16,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import type { HomepageSearchControlsProps } from "./homepage-search-controls.types";
+import {
+  createHomepageCategoryUrl,
+  createHomepageClearUrl,
+  createHomepageSearchUrl,
+  hasHomepageClearableState,
+} from "./homepage-search-controls.utils";
 
-type HomepageSearchControlsProps = {
-  query: string;
-  category: string;
-  categories: Array<{ value: string; labelFa: string }>;
-  scenario?: string;
-};
+export {
+  createHomepageCategoryUrl,
+  createHomepageClearUrl,
+  createHomepageSearchControlsKey,
+  createHomepageSearchUrl,
+  createHomepageUrl,
+  hasHomepageClearableState,
+} from "./homepage-search-controls.utils";
 
 const suggestedCategoryIcons = [Leaf, Building2, Plane, Cpu] as const;
-
-export function createHomepageSearchControlsKey(
-  query: string,
-  scenario?: string,
-) {
-  return `${query}\u0000${scenario ?? ""}`;
-}
-
-export function createHomepageUrl({
-  query,
-  category,
-  scenario,
-}: {
-  query: string;
-  category: string;
-  scenario?: string;
-}) {
-  const params = new URLSearchParams();
-  if (query.trim()) params.set("q", query.trim());
-  if (category) params.set("category", category);
-  if (scenario) params.set("scenario", scenario);
-  const search = params.toString();
-  return search ? `/?${search}` : "/";
-}
-
-export function createHomepageSearchUrl({
-  draftQuery,
-  category,
-  scenario,
-}: {
-  draftQuery: string;
-  category: string;
-  scenario?: string;
-}) {
-  return createHomepageUrl({ query: draftQuery, category, scenario });
-}
-
-export function createHomepageCategoryUrl({
-  query,
-  category,
-  scenario,
-}: {
-  query: string;
-  category: string;
-  scenario?: string;
-}) {
-  return createHomepageUrl({ query, category, scenario });
-}
-
-export function createHomepageClearUrl(scenario?: string) {
-  return createHomepageUrl({ query: "", category: "", scenario });
-}
-
-export function hasHomepageClearableState({
-  query,
-  category,
-  draftQuery,
-}: {
-  query: string;
-  category: string;
-  draftQuery: string;
-}) {
-  return Boolean(
-    category || query.trim().length > 0 || draftQuery.trim().length > 0,
-  );
-}
 
 export function HomepageSearchControls(props: HomepageSearchControlsProps) {
   const { query, category, categories, scenario } = props;
@@ -119,16 +62,20 @@ export function HomepageSearchControls(props: HomepageSearchControlsProps) {
     router.push(createHomepageClearUrl(scenario));
   }
 
+  function handleSuggestedCategoryClick(value: string, isActive: boolean) {
+    handleCategoryChange(isActive ? "" : value);
+  }
+
   const suggestedCategories = categories.slice(0, 4);
 
   return (
     <Card className="w-full lg:w-4xl mx-auto block p-0">
-      <CardContent className="px-2.5">
+      <CardContent className="px-3">
         <form
           action="/"
           method="get"
           onSubmit={handleSubmit}
-          className="grid w-full pt-2.5 grid-cols-[auto_auto_minmax(0,1fr)] gap-2 sm:flex sm:items-center"
+          className="grid w-full pt-3 grid-cols-[auto_auto_minmax(0,1fr)] gap-2 sm:flex sm:items-center"
           aria-label="جست‌وجو و فیلتر فوتیج"
         >
           <label className="order-4 col-span-full flex items-center gap-2 px-3 pt-2 text-sm font-medium sm:order-none sm:col-span-auto sm:pt-0">
@@ -202,16 +149,19 @@ export function HomepageSearchControls(props: HomepageSearchControlsProps) {
         <section
           aria-labelledby="suggested-categories-heading"
           id="homepage-categories"
-          className="mt-3 flex flex-col gap-3 border-t border-border/70 pt-3 py-2.5"
+          className="mt-3 flex flex-col gap-3 border-t border-border/70 py-3"
           data-slot="suggested-categories"
         >
-          <h2
-            id="suggested-categories-heading"
-            className="text-sm font-bold text-muted-foreground text-right"
-          >
-            دسته‌بندی‌های پیشنهادی
-          </h2>
-          <ul className="grid grid-cols-4 gap-2 rounded-2xl bg-muted py-1.5">
+          <div className="flex flex-row gap-x-2 items-center">
+            <Layers className="size-8 text-accent bg-accent-foreground/10 rounded-full p-1.5" />
+            <h2
+              id="suggested-categories-heading"
+              className="text-sm font-bold text-muted-foreground text-right"
+            >
+              دسته‌بندی‌های پیشنهادی
+            </h2>
+          </div>
+          <ul className="grid grid-cols-4 gap-2 rounded-xl bg-muted py-1.5 border px-1.5">
             {suggestedCategories.map((option, index) => {
               const Icon = suggestedCategoryIcons[index];
               const isActive = category === option.value;
@@ -227,7 +177,7 @@ export function HomepageSearchControls(props: HomepageSearchControlsProps) {
                     aria-pressed={isActive}
                     aria-label={`دسته‌بندی ${option.labelFa}`}
                     onClick={() =>
-                      handleCategoryChange(isActive ? "" : option.value)
+                      handleSuggestedCategoryClick(option.value, isActive)
                     }
                     className="gap-2.5 w-full"
                   >

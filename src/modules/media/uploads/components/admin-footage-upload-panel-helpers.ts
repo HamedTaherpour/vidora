@@ -1,3 +1,4 @@
+/** API statuses returned while initiating, signing, or completing an upload. */
 export type UploadApiErrorStatus =
   | "denied"
   | "rejected"
@@ -8,15 +9,19 @@ export type UploadApiErrorStatus =
   | "upload_not_active"
   | "upload_completion_failed";
 
+/** Normalized failure reasons used to select an upload error message. */
 export type UploadFailureReason =
   UploadApiErrorStatus | "invalid_response" | "unknown";
 
+/** Supported upload payload kinds accepted by the admin upload workflow. */
 export type UploadKind = "PREVIEW" | "ORIGINAL";
 
+/** Converts an untrusted upload-kind value into a supported upload kind. */
 export function parseUploadKind(value: string): UploadKind | null {
   return value === "PREVIEW" || value === "ORIGINAL" ? value : null;
 }
 
+/** Error carrying the safe customer-facing message for an upload-panel failure. */
 export class UploadPanelError extends Error {
   readonly userMessage: string;
 
@@ -56,6 +61,7 @@ type CompletedUpload = {
   uploadStatus: "READY";
 };
 
+/** Structured response returned after validating an upload-initiation payload. */
 export type InitiateUploadResponse =
   | {
       status: "ok";
@@ -63,6 +69,7 @@ export type InitiateUploadResponse =
     }
   | { status: UploadFailureReason };
 
+/** Structured response returned after validating a signed-part payload. */
 export type SignPartResponse =
   | {
       status: "ok";
@@ -70,6 +77,7 @@ export type SignPartResponse =
     }
   | { status: UploadFailureReason };
 
+/** Structured response returned after validating an upload-completion payload. */
 export type CompleteUploadResponse =
   | {
       status: "ok";
@@ -181,6 +189,7 @@ function isCompletedUpload(value: unknown): value is CompletedUpload {
   );
 }
 
+/** Validates an unknown response at the upload-initiation boundary. */
 export function parseInitiateUploadResponse(
   value: unknown,
 ): InitiateUploadResponse {
@@ -197,6 +206,7 @@ export function parseInitiateUploadResponse(
   return { status, upload: value.upload };
 }
 
+/** Validates an unknown response at the multipart-part signing boundary. */
 export function parseSignPartResponse(value: unknown): SignPartResponse {
   const status = responseStatus(value);
 
@@ -211,6 +221,7 @@ export function parseSignPartResponse(value: unknown): SignPartResponse {
   return { status, part: value.part };
 }
 
+/** Validates an unknown response at the upload-completion boundary. */
 export function parseCompleteUploadResponse(
   value: unknown,
 ): CompleteUploadResponse {
@@ -227,6 +238,7 @@ export function parseCompleteUploadResponse(
   return { status, completed: value.completed };
 }
 
+/** Maps a normalized upload failure and phase to a customer-facing message. */
 export function uploadFailureMessage(
   reason: UploadFailureReason,
   phase: "initiate" | "sign" | "complete" | "upload",

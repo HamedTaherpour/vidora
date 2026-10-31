@@ -5,8 +5,10 @@ import {
   useEffect,
   useRef,
   useState,
+  type ChangeEvent,
   type KeyboardEvent,
   type PointerEvent,
+  type SyntheticEvent,
 } from "react";
 
 import {
@@ -111,6 +113,26 @@ export function AdminFootageCoverPanel(props: AdminFootageCoverPanelProps) {
   function clearSource() {
     setSourceFile(null);
     setSourceUrl(null);
+  }
+
+  function handleCurrentCoverError(event: SyntheticEvent<HTMLImageElement>) {
+    event.currentTarget.style.display = "none";
+  }
+
+  function handleDialogOpenChange(open: boolean) {
+    if (!open && !busy) clearSource();
+  }
+
+  function handleCropPointerUp() {
+    dragRef.current = null;
+  }
+
+  function handleZoomChange(event: ChangeEvent<HTMLInputElement>) {
+    setZoom(Number(event.target.value));
+  }
+
+  function handleCancel() {
+    clearSource();
   }
 
   function handlePointerDown(event: PointerEvent<HTMLImageElement>) {
@@ -241,9 +263,7 @@ export function AdminFootageCoverPanel(props: AdminFootageCoverPanelProps) {
             src={`/api/admin/footage/${footageId}/cover`}
             alt="جلد فعلی فوتیج"
             className="h-full w-full object-cover"
-            onError={(event) => {
-              event.currentTarget.style.display = "none";
-            }}
+            onError={handleCurrentCoverError}
           />
         </div>
 
@@ -258,12 +278,7 @@ export function AdminFootageCoverPanel(props: AdminFootageCoverPanelProps) {
           />
         </Field>
 
-        <Dialog
-          open={sourceUrl !== null}
-          onOpenChange={(open) => {
-            if (!open && !busy) clearSource();
-          }}
-        >
+        <Dialog open={sourceUrl !== null} onOpenChange={handleDialogOpenChange}>
           <DialogContent
             ref={viewportRef}
             showCloseButton={false}
@@ -279,9 +294,7 @@ export function AdminFootageCoverPanel(props: AdminFootageCoverPanelProps) {
               tabIndex={0}
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
-              onPointerUp={() => {
-                dragRef.current = null;
-              }}
+              onPointerUp={handleCropPointerUp}
               onKeyDown={handleKeyDown}
             />
             <div className="pointer-events-none absolute inset-0 border-2 border-white/80" />
@@ -303,7 +316,7 @@ export function AdminFootageCoverPanel(props: AdminFootageCoverPanelProps) {
               max={MAX_ZOOM}
               step={0.05}
               value={zoom}
-              onChange={(event) => setZoom(Number(event.target.value))}
+              onChange={handleZoomChange}
               disabled={busy}
             />
             <div className="flex gap-2">
@@ -316,9 +329,7 @@ export function AdminFootageCoverPanel(props: AdminFootageCoverPanelProps) {
               </Button>
               <Button
                 type="button"
-                onClick={() => {
-                  clearSource();
-                }}
+                onClick={handleCancel}
                 disabled={busy}
                 variant="outline"
               >

@@ -2,6 +2,21 @@ import { FootageCard } from "@/modules/footage/public/components/footage-card/fo
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { PublicFootageListViewProps } from "@/modules/footage/public/components/footage-list/public-footage-list-view.types";
+import {
+  paginatePublicFootage,
+  parsePublicPage,
+} from "@/modules/footage/public/catalog/filter-public-footage";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { createPublicFootagePageHref } from "./public-footage-list-view.utils";
+
+export { createPublicFootagePageHref } from "./public-footage-list-view.utils";
 
 export function PublicFootageListView(props: PublicFootageListViewProps) {
   const {
@@ -10,7 +25,12 @@ export function PublicFootageListView(props: PublicFootageListViewProps) {
     query = "",
     category = "",
     messageFa,
+    requestedPage = 1,
   } = props;
+  const paged = paginatePublicFootage(
+    footage,
+    parsePublicPage(String(requestedPage)),
+  );
 
   if (scenario === "loading") {
     return (
@@ -39,13 +59,13 @@ export function PublicFootageListView(props: PublicFootageListViewProps) {
   }
 
   return (
-    <div className="container-storefront flex flex-col gap-8 py-10 md:gap-12 md:py-16">
+    <div className="container-storefront flex flex-col gap-8 py-10 md:gap-12 md:py-4">
       {scenario === "unavailable" && (
         <div
           className="rounded-2xl border border-dashed border-border bg-muted/50 p-6 text-center"
           role="status"
         >
-          <h2 className="text-ui-h2 font-semibold">
+          <h2 className="text-2xl leading-9 font-semibold">
             فوتیج‌ها فعلاً در دسترس نیستند
           </h2>
           <p className="mt-2 text-muted-foreground">
@@ -67,11 +87,72 @@ export function PublicFootageListView(props: PublicFootageListViewProps) {
           <h2 id="public-footage-heading" className="sr-only">
             فهرست فوتیج‌ها
           </h2>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {footage.map((item) => (
+          <div className="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
+            {paged.items.map((item) => (
               <FootageCard key={item.id} footage={item} />
             ))}
           </div>
+          {paged.totalPages > 1 && (
+            <Pagination className="mt-8 flex justify-center">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    disabled={paged.page === 1}
+                    render={
+                      <a
+                        href={createPublicFootagePageHref(
+                          paged.page - 1,
+                          query,
+                          category,
+                          scenario,
+                        )}
+                      />
+                    }
+                    nativeButton={false}
+                  />
+                </PaginationItem>
+                {Array.from(
+                  { length: paged.totalPages },
+                  (_, index) => index + 1,
+                ).map((page) => (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      isActive={page === paged.page}
+                      render={
+                        <a
+                          href={createPublicFootagePageHref(
+                            page,
+                            query,
+                            category,
+                            scenario,
+                          )}
+                        />
+                      }
+                      nativeButton={false}
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    disabled={paged.page === paged.totalPages}
+                    render={
+                      <a
+                        href={createPublicFootagePageHref(
+                          paged.page + 1,
+                          query,
+                          category,
+                          scenario,
+                        )}
+                      />
+                    }
+                    nativeButton={false}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
         </section>
       )}
     </div>

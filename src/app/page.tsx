@@ -1,13 +1,5 @@
 import { PublicHomePage } from "@/modules/footage/public/components/public-home-page";
-import {
-  loadPublicFootageMock,
-  publicFootageFixtures,
-} from "@/modules/ui-mock/fixtures/public-footage";
-import {
-  filterPublicFootage,
-  normalizePublicCategory,
-  parsePublicBrowseQuery,
-} from "@/modules/footage/public/catalog/filter-public-footage";
+import { preparePublicHomeCatalog } from "@/modules/footage/public/catalog/prepare-public-home";
 import {
   UI_MOCK_SCENARIOS,
   type UiMockScenario,
@@ -16,7 +8,12 @@ import {
 export const dynamic = "force-dynamic";
 
 type HomeProps = {
-  searchParams: Promise<{ q?: string; category?: string; scenario?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    category?: string;
+    scenario?: string;
+    page?: string;
+  }>;
 };
 
 function parseScenario(value: string | undefined): UiMockScenario {
@@ -34,30 +31,18 @@ export default async function Home(props: HomeProps) {
   )
     ? scenarioParam
     : undefined;
-  const result = loadPublicFootageMock(scenario);
-  const query = parsePublicBrowseQuery(params);
-  const categories = Array.from(
-    new Map(
-      (result.data ?? publicFootageFixtures).map((item) => [
-        item.category.slug,
-        item.category.nameFa,
-      ]),
-    ),
-  ).map(([value, labelFa]) => ({ value, labelFa }));
-  const category = normalizePublicCategory(query.category, categories);
-  const footage = result.data
-    ? filterPublicFootage(result.data, { query: query.query, category })
-    : [];
+  const catalog = preparePublicHomeCatalog(scenario, params);
 
   return (
     <PublicHomePage
-      footage={footage}
+      footage={catalog.footage}
       scenario={scenario}
-      query={query.query}
-      category={category}
-      categories={categories}
+      query={catalog.query}
+      category={catalog.category}
+      categories={catalog.categories}
       scenarioParam={normalizedScenarioParam}
-      messageFa={"messageFa" in result ? result.messageFa : undefined}
+      messageFa={catalog.messageFa}
+      requestedPage={Number.parseInt(params.page ?? "1", 10) || 1}
     />
   );
 }

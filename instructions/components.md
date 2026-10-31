@@ -88,12 +88,38 @@ a `src/features` structure because another project uses it.
 
 ## shadcn and Base UI
 
+Typography uses the standard Tailwind font-size and line-height utilities
+documented in `docs/design/foundations.md`; do not add project-specific font-size
+aliases when the standard scale is sufficient.
+
 - Read `.agents/skills/shadcn/SKILL.md` before implementing or changing shadcn-based UI.
 - Use the configured shadcn MCP/registry where available; do not guess a registry.
 - Verify compatibility with the configured Base UI primitives and `components.json`.
 - Prefer official primitives and composition over recreating controls.
 - Do not rewrite generated primitives merely to enforce application naming or TypeScript conventions.
 - Use approved semantic tokens and the design foundations.
+
+## UI component selection and review checklist
+
+Before implementing a UI pattern:
+
+1. Identify the required interaction and semantic boundary.
+2. Inspect the installed primitives under `src/components/ui` and the
+   configured Base UI/shadcn settings.
+3. Evaluate the relevant official shadcn pattern, including a component that
+   is not installed yet when it may fit the requirement.
+4. Reuse installed components when they are suitable; use Tailwind for
+   composition, sizing, spacing, and responsive adjustments.
+5. Add or implement a custom primitive only when the existing options do not
+   meet the responsibility, and record the reason in the task handoff.
+
+During review, check for unnecessary native controls where an installed
+primitive is required, duplicated shadcn patterns, manual separators where
+`Separator` is appropriate, and custom card/input compositions that should use
+an existing primitive. Also verify RTL order, accessibility and focus, keyboard
+operation, responsive overflow, and state ownership. Native semantic HTML is
+still appropriate when it is the better technical boundary; this checklist
+does not mandate shadcn for every element.
 
 ## Shared components
 
@@ -104,6 +130,65 @@ application-level API, or a consistency benefit that would otherwise be repeated
 - `Responsive*` naming is not mandatory without a real responsive behavior contract.
 - Barrel exports are not required universally.
 - Use direct imports by default unless a deliberate public module boundary justifies a barrel.
+
+## Component-local helpers, types, and constants
+
+When a component needs an exported pure helper, place that helper in a colocated
+`<component-name>.utils.ts` file and import it into the component. Keep small
+private details local when they are not reused; do not create an empty or one-off
+utility file. React components, hooks, and framework-specific exports stay in
+their component files.
+
+Use `<component-name>.types.ts` for meaningful reusable types owned by one
+component or component group, and `<component-name>.constants.ts` for reusable
+component-specific constants. Trivial private types and one-off values may
+remain local. Utility tests use `<component-name>.utils.test.ts`; component tests
+use `<component-name>.test.tsx`. A component-specific hook keeps its named
+`use-<feature-name>.ts` filename, with a matching `use-<feature-name>.test.ts`
+when it has dedicated tests.
+
+Every component-owned supporting file must begin with the exact kebab-case name
+of its owning component. Do not use ambiguous generic filenames such as
+`utils.ts`, `types.ts`, or `constants.ts` inside component directories. A hook is
+a separately named unit, and genuinely module-level/shared files are exempt.
+Preserve framework-required names such as `page.tsx`, `layout.tsx`,
+`loading.tsx`, and `route.ts`. Do not create files solely to satisfy naming
+symmetry.
+
+Exported TypeScript types/interfaces, reusable constants, utility functions, and
+public helper APIs require meaningful JSDoc. Explain purpose, behavior, units,
+and important constraints; use `@param`, `@returns`, or `@throws` when they add
+useful information. Private declarations need documentation only for
+non-obvious contracts, units, invariants, or behavior. Avoid boilerplate JSDoc
+on trivial implementation details.
+
+Genuinely cross-domain helpers, types, and constants belong at the nearest
+existing shared or module boundary rather than inside a component folder.
+
+Component files should remain focused on rendering and interaction. Split
+independently meaningful UI responsibilities into cohesive components, while
+avoiding extraction that only reduces line count or fragments a single behavior.
+
+## Editorial text highlights
+
+`src/modules/footage/public/components/text-highlight.tsx` exports
+`TextHighlight`, a small public-storefront presentation component for selected
+words or short phrases in headings and promotional text. It accepts React
+children, so apply it only around the phrase to emphasize:
+
+```tsx
+داستانت رو با <TextHighlight>ویدیو</TextHighlight> بساز
+```
+
+Use this optional pattern sparingly when editorial emphasis improves hierarchy.
+Do not use it for every heading or paragraph, interactive controls, long blocks
+of copy, or content where emphasis would obscure meaning. It preserves inline
+flow, keeps short phrases together, uses `dir="auto"` for Persian and
+mixed-direction phrases, and remains ordinary readable text for assistive
+technology. It uses an editor-selection treatment with semantic text, surface,
+boundary, and handle colors, plus two decorative selection handles. Keep enough
+surrounding line height for Persian glyphs and diacritics; do not apply
+overflow clipping to its parent.
 
 ## Props and type files
 
@@ -139,6 +224,57 @@ stylistic consistency.
 - Use `useEffect` only for external synchronization.
 - Use `useMemo` and `useCallback` only when justified.
 - Name internal handlers `handleX` and callback props `onX`.
+
+## Event handlers
+
+Keep JSX declarative. Nontrivial event logic should live in a named component-
+local handler and be passed by reference:
+
+```tsx
+function handleTimeUpdate(event: React.SyntheticEvent<HTMLVideoElement>) {
+  const { currentTime, duration } = event.currentTarget;
+  const progress =
+    duration > 0 && Number.isFinite(duration)
+      ? (currentTime / duration) * 100
+      : 0;
+
+  setProgress(Math.min(Math.max(progress, 0), 100));
+}
+
+return <video onTimeUpdate={handleTimeUpdate} />;
+```
+
+Use `handle` plus the event or action name, such as `handleSubmit`,
+`handleCategoryChange`, `handlePreviewPointerDown`, `handleVideoError`, or
+`handlePageChange`. Use explicit TypeScript event types where inference does not
+make the boundary clear. Do not export component-specific handlers without a
+real public use, and do not move handlers that depend on state, refs, effects,
+or lifecycle into `utils.ts`.
+
+Avoid anonymous JSX callbacks containing state updates, branching,
+calculations, or side effects. A narrow inline adapter is acceptable when it
+only forwards an argument to a named handler, for example
+`onClick={() => handleSelect(item.id)}`. Prefer a direct handler reference when
+one is possible, and do not add wrappers or `useCallback` without a concrete
+need for referential stability.
+
+## Custom hooks for cohesive interaction
+
+Consider a dedicated custom hook when one component owns a meaningful
+combination of related state, timers, browser APIs, refs, effects/cleanup,
+pointer or touch interaction, media lifecycle, or complex event handlers. The
+hook should own one cohesive interaction lifecycle while the component remains
+primarily responsible for rendering and composition.
+
+Do not create hooks for trivial state or one-line interactions. Hooks must obey
+the Rules of Hooks and must not be placed in generic utility files. Pure
+formatting and calculations remain utilities; shared domain types remain at
+their owning module boundary.
+
+Extracting a hook does not make a component a Server Component. A component
+calling a client hook remains client-rendered. To reduce hydration, isolate the
+smallest interactive subtree behind a dedicated Client Component boundary when
+the static surrounding UI can remain server-rendered.
 
 ## Accessibility and RTL
 

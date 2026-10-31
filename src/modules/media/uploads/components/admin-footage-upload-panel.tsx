@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -166,6 +166,18 @@ export function AdminFootageUploadPanel(props: AdminFootageUploadPanelProps) {
     }
   }
 
+  function handleUploadKindChange(event: ChangeEvent<HTMLSelectElement>) {
+    const nextKind = parseUploadKind(event.target.value);
+
+    if (nextKind === null) {
+      setErrorText("نوع فایل انتخاب‌شده معتبر نیست.");
+      return;
+    }
+
+    setErrorText(null);
+    setKind(nextKind);
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -183,16 +195,7 @@ export function AdminFootageUploadPanel(props: AdminFootageUploadPanelProps) {
               <select
                 id="upload-kind"
                 value={kind}
-                onChange={(event) => {
-                  const nextKind = parseUploadKind(event.target.value);
-
-                  if (nextKind === null) {
-                    setErrorText("نوع فایل انتخاب‌شده معتبر نیست.");
-                    return;
-                  }
-
-                  setKind(nextKind);
-                }}
+                onChange={handleUploadKindChange}
                 disabled={busy}
                 className="rounded-md border border-input bg-background px-3 py-2 text-sm"
               >

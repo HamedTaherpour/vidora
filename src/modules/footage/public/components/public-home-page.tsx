@@ -16,6 +16,7 @@ export function PublicHomePage(props: PublicHomePageProps) {
     categories,
     scenarioParam,
     messageFa,
+    requestedPage = 1,
   } = props;
 
   return (
@@ -30,7 +31,7 @@ export function PublicHomePage(props: PublicHomePageProps) {
               data-slot="hero-copy"
               className="flex max-w-3xl flex-col items-center gap-5"
             >
-              <h1 className="text-ui-h1 font-extrabold tracking-tight text-background md:text-5xl md:leading-tight">
+              <h1 className="text-3xl leading-10 font-extrabold tracking-tight text-background md:text-5xl md:leading-tight">
                 برای هر ایده، <TextHighlight>فوتیج</TextHighlight>‌ مناسب رو
                 انتخاب کن و داستانت رو بساز
               </h1>
@@ -43,6 +44,7 @@ export function PublicHomePage(props: PublicHomePageProps) {
                   render={<a href="#footage-listing" />}
                   nativeButton={false}
                   size="lg"
+                  variant="accent"
                   className="px-6 w-auto"
                 >
                   مشاهده فوتیج‌ها
@@ -76,15 +78,18 @@ export function PublicHomePage(props: PublicHomePageProps) {
       >
         <div className="container-storefront flex items-center justify-between gap-4 pt-10 md:pt-14">
           <div>
-            <p className="text-ui-small font-medium text-primary">
+            <p className="text-xs leading-5 font-medium text-primary">
               کتابخانه عمومی
             </p>
-            <h2 id="catalog-heading" className="mt-1 text-ui-h2 font-bold">
+            <h2
+              id="catalog-heading"
+              className="mt-1 text-2xl leading-9 font-bold"
+            >
               فوتیج‌های منتخب
             </h2>
           </div>
           {scenario === "populated" && (
-            <span className="text-ui-small text-muted-foreground">
+            <span className="text-xs leading-5 text-muted-foreground">
               {footage.length} نتیجه
             </span>
           )}
@@ -95,6 +100,7 @@ export function PublicHomePage(props: PublicHomePageProps) {
           query={query}
           category={category}
           messageFa={messageFa}
+          requestedPage={requestedPage}
         />
       </section>
 

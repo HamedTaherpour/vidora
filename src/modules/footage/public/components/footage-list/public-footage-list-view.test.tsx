@@ -2,7 +2,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { FootageCard } from "@/modules/footage/public/components/footage-card/footage-card";
-import { PublicFootageListView } from "@/modules/footage/public/components/footage-list/public-footage-list-view";
+import {
+  createPublicFootagePageHref,
+  PublicFootageListView,
+} from "@/modules/footage/public/components/footage-list/public-footage-list-view";
 
 const footage = {
   id: "footage-1",
@@ -16,6 +19,7 @@ const footage = {
     altFa: "نمایش طبیعت",
   },
   preview: { status: "ready" as const },
+  durationSeconds: 24,
 };
 
 describe("FootageCard", () => {
@@ -25,10 +29,11 @@ describe("FootageCard", () => {
     expect(html).toContain("نمایش طبیعت");
     expect(html).toContain("طبیعت");
     expect(html).toContain("تومان");
+    expect(html).toContain("۰۰:۲۴");
     expect(html).toContain('href="/footage/nature-1"');
     expect(html).toContain("پیش‌نمایش آماده است");
     expect(html).toContain('<span dir="ltr">۱۲۰٬۰۰۰</span>');
-    expect(html).toContain("<span>تومان</span>");
+    expect(html).toContain("تومان");
     expect(html).toContain(
       'aria-label="نمایش طبیعت — طبیعت — پیش‌نمایش آماده است"',
     );
@@ -78,6 +83,15 @@ describe("FootageCard", () => {
 });
 
 describe("PublicFootageListView", () => {
+  it("uses the gallery anchor only for intentional pagination navigation", () => {
+    expect(createPublicFootagePageHref(2, "", "")).toBe(
+      "/?page=2#footage-listing",
+    );
+    expect(createPublicFootagePageHref(1, "بارانی", "urban")).toBe(
+      "/?q=%D8%A8%D8%A7%D8%B1%D8%A7%D9%86%DB%8C&category=urban#footage-listing",
+    );
+  });
+
   it("renders the empty state", () => {
     const html = renderToStaticMarkup(<PublicFootageListView footage={[]} />);
 
@@ -100,8 +114,8 @@ describe("PublicFootageListView", () => {
     );
 
     expect(html).toContain("container-storefront");
-    expect(html).toContain("sm:grid-cols-2");
-    expect(html).toContain("lg:grid-cols-3");
-    expect(html).toContain("xl:grid-cols-4");
+    expect(html).toContain("grid-cols-2");
+    expect(html).toContain("md:grid-cols-3");
+    expect(html).toContain("lg:grid-cols-4");
   });
 });

@@ -19,14 +19,11 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import type { PublicSiteHeaderProps } from "./public-site-header.types";
+import { createPublicCategoryHref } from "./public-site-header.utils";
 
-export type PublicSiteHeaderProps = {
-  categories: ReadonlyArray<{ value: string; labelFa: string }>;
-};
-
-export function createPublicCategoryHref(value: string) {
-  return `/?category=${encodeURIComponent(value)}`;
-}
+export type { PublicSiteHeaderProps } from "./public-site-header.types";
+export { createPublicCategoryHref } from "./public-site-header.utils";
 
 function HeaderLoginButton() {
   return (

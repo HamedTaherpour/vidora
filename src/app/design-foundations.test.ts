@@ -13,6 +13,10 @@ const componentsConfig = readFileSync(
   new URL("../../components.json", import.meta.url),
   "utf8",
 );
+const foundations = readFileSync(
+  new URL("../../docs/design/foundations.md", import.meta.url),
+  "utf8",
+);
 
 describe("approved design foundations", () => {
   it("preserves the approved light and dark semantic tokens", () => {
@@ -47,9 +51,9 @@ describe("approved design foundations", () => {
   });
 
   it("exposes semantic typography and container utilities", () => {
-    expect(globalsCss).toContain("@utility text-ui-small");
-    expect(globalsCss).toContain("@utility text-ui-body");
-    expect(globalsCss).toContain("@utility text-ui-h1");
+    expect(globalsCss).not.toContain("text-ui-");
+    expect(foundations).toContain("text-xs leading-5");
+    expect(foundations).toContain("text-sm leading-6");
     expect(globalsCss).toContain("@utility container-storefront");
     expect(globalsCss).toContain("@utility container-admin");
     expect(globalsCss).toContain("max-width: 80rem");

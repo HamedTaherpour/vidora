@@ -4,8 +4,21 @@ import { publicFootageFixtures } from "@/modules/ui-mock/fixtures/public-footage
 import {
   filterPublicFootage,
   normalizePublicCategory,
+  paginatePublicFootage,
+  parsePublicPage,
   parsePublicBrowseQuery,
 } from "@/modules/footage/public/catalog/filter-public-footage";
+
+describe("public pagination", () => {
+  it("shows twelve items per page and clamps invalid pages", () => {
+    expect(paginatePublicFootage(publicFootageFixtures, 1).items).toHaveLength(
+      12,
+    );
+    expect(paginatePublicFootage(publicFootageFixtures, 99).page).toBe(3);
+    expect(parsePublicPage("-4")).toBe(1);
+    expect(parsePublicPage("2")).toBe(2);
+  });
+});
 
 describe("filterPublicFootage", () => {
   it("matches Persian title text and category together", () => {
@@ -38,7 +51,7 @@ describe("filterPublicFootage", () => {
         query: "   ",
         category: "",
       }),
-    ).toHaveLength(8);
+    ).toHaveLength(publicFootageFixtures.length);
   });
 
   it("trims URL-owned query values", () => {

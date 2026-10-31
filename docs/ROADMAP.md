@@ -302,6 +302,43 @@ of the final homepage remains required before this task can be marked `DONE`.
 
 ---
 
+### PUB-02S — Homepage Footage Gallery
+
+**Status:** READY_FOR_REVIEW
+**Depends On:** PUB-01, PUB-02R.
+
+**Scope / route:** Refine the homepage footage listing at `/` with a fixture-backed
+12-item page, responsive 2/3/4-column grid, URL-aware pagination, and scroll-to-
+gallery behavior. Preserve the approved Hero, Header, search, category, and
+existing `#footage-listing` anchor.
+
+**Components and mock data:** reuse `PublicFootageListView` and `FootageCard`;
+add accessible pagination and narrow client-side preview interaction only where
+needed. Expand typed public fixtures to at least 24 varied items with stable
+Unsplash thumbnails and reachable, lightweight MP4 preview sources.
+
+**Required states:** populated, empty, filtered no-match, invalid/clamped page,
+partial final page, unavailable media, preview playback failure, and pagination
+boundaries.
+
+**Responsive / RTL / accessibility:** use a cinematic 16:9 thumbnail, 2/3/4
+columns at mobile/tablet/desktop, keyboard-accessible links and pagination,
+muted desktop hover previews after a short delay, touch long-press previews,
+reduced-motion fallback, and no horizontal overflow.
+
+**Acceptance and verification:** exactly 12 items per page when available;
+filters and search reset pagination; query state is shareable and Back/Forward
+safe; page changes scroll to the gallery section without obscuring its heading;
+only an intentional active preview loads/plays at a time; focused tests, lint,
+typecheck, build, diff checks, independent review, and desktop/mobile visual
+approval are recorded. Leave the task `READY_FOR_REVIEW` until visual approval.
+
+**Explicit exclusions:** detail-route work, Hero/Header redesign, backend/API or
+database changes, purchasing/authentication, infinite scroll, media processing,
+and a component-folder architecture refactor.
+
+---
+
 ### PUB-03 — Footage Detail UI
 
 **Status:** TODO

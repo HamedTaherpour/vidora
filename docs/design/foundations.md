@@ -102,13 +102,18 @@ Use the semantic utilities (`bg-background`, `text-foreground`, `bg-primary`, `b
 
 The interface language is Persian (`fa`) and uses Vazirmatn for both Storefront and Admin. The local asset `src/assets/fonts/Vazirmatn[wght].woff2` is copied from the official `vazirmatn` 33.0.3 distribution and supports weights 100–900, including the approved weights 400, 500, 600, and 700. The accompanying `src/assets/fonts/OFL.txt` preserves the SIL Open Font License 1.1 notice. There is no runtime Google Fonts or CDN dependency.
 
-| Role  | Size | Line height | Utility         |
-| ----- | ---: | ----------: | --------------- |
-| Small | 12px |        20px | `text-ui-small` |
-| Body  | 14px |        24px | `text-ui-body`  |
-| H1    | 32px |        44px | `text-ui-h1`    |
-| H2    | 24px |        36px | `text-ui-h2`    |
-| H3    | 20px |        32px | `text-ui-h3`    |
+| Role  | Size | Line height | Utility               |
+| ----- | ---: | ----------: | --------------------- |
+| Small | 12px |        20px | `text-xs leading-5`   |
+| Body  | 14px |        24px | `text-sm leading-6`   |
+| H1    | 30px |        40px | `text-3xl leading-10` |
+| H2    | 24px |        36px | `text-2xl leading-9`  |
+| H3    | 20px |        32px | `text-xl leading-8`   |
+
+Use standard Tailwind font-size and line-height utilities. Do not introduce
+project-specific font-size aliases when the Tailwind scale already provides the
+required size. The H1 role uses `text-3xl` as the closest standard scale value;
+use `text-4xl` only when a component contract explicitly calls for 36px.
 
 These roles remain available as implementation context. The approved rebuild
 direction will determine whether they remain the visual scale for new UI.
