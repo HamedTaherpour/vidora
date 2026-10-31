@@ -593,17 +593,20 @@ official invoice issuance remain deferred to the listed dependencies.
 
 ---
 
-### PUB-07 — Public Blog and SEO Presentation UI
+### PUB-07 — Public Blog Presentation UI
 
-**Status:** TODO
+**Status:** DONE
 **Depends On:** PUB-01, UI-MOCK-01.
 
-**Scope / route:** Planned public blog index/detail and metadata presentation;
-no public blog route or blog backend currently exists.
+**Scope / route:** Fixture-backed public blog index/detail presentation at
+`/blog` and `/blog/[slug]`; no blog backend or real publishing capability
+exists. This task remains separate from technical SEO and crawler
+infrastructure.
 
-**Components and mock data:** fixture-backed post cards/index/detail with safe
-Markdown presentation boundary, empty/loading/error states, and documented
-metadata examples.
+**Components and mock data:** fixture-backed post cards/index/detail with a
+safe content-rendering boundary, empty/loading/error states, and documented
+metadata examples. The fixture boundary must remain clearly separate from
+publishable editorial content.
 
 **Pexels-inspired presentation:** content-first article discovery and a quiet,
 readable article view; it does not add contributor/community capabilities.
@@ -612,14 +615,35 @@ readable article view; it does not add contributor/community capabilities.
 and safe content-rendering failure.
 
 **Responsive / RTL / accessibility:** readable Persian long-form typography,
-heading hierarchy, semantic article structure, keyboard navigation, and mobile
-reading width.
+heading hierarchy, semantic article structure, keyboard navigation, mobile
+reading width, and the owner-approved Minimal design. Commerce and Editorial
+variants were review-only alternatives and are not part of the final UI.
 
-**Acceptance and verification:** no unpublished fixture is presented as public,
-focused tests/review pass, and visual approval is recorded.
+**Acceptance and verification:** no fixture is represented as genuine published
+editorial content; populated, empty, loading, error, and missing-article states
+are covered; category filtering and internal navigation work; focused tests,
+browser review, and repository quality checks pass; and Minimal is approved as
+the final UI.
 
-**Explicit exclusions:** schema, Markdown parser/dependency, Admin editor,
-sitemap/robots implementation, and claims about final SEO indexing behavior.
+**Explicit exclusions:** Markdown parser/dependency, CMS or blog backend, Admin
+editor, schema, metadata generation, sitemap/robots implementation, crawler
+policy changes, and claims about final SEO indexing or AI-search visibility.
+
+**PUB-07C final approval record (2026-10-31):** The owner approved Minimal for
+the entire fixture-only public blog experience. The final routes are:
+
+- `/blog`
+- `/blog/[slug]`
+
+Supported review state examples are `/blog?category=technical`,
+`/blog?scenario=empty`, `/blog?scenario=loading`, `/blog?scenario=error`, and
+`/blog/missing-article`. The final routes remain explicitly non-indexable and
+clearly label fixture content as non-published. Commerce and Editorial variants,
+the variant selector, and the temporary `/blog/preview` route were removed.
+Fixture-only pages remain `noindex`, fixture articles are not included in a
+public sitemap, and real publishing, CMS/backend integration, and SEO-01
+infrastructure remain deferred. PUB-07 UI acceptance is complete; SEO-01 is
+unchanged and remains a separate task.
 
 ## Phase 2 — Admin UI with Mock Data
 
@@ -778,17 +802,18 @@ Integration starts only after the relevant UI task is approved. Each task keeps
 the approved page contract, replaces fixtures through a server-side module
 adapter, preserves loading/empty/error behavior, and adds integration tests.
 
-| Task                                                | Depends on approved UI | Existing/relevant backend contract                                        | Integration scope                                                                                                          |
-| --------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| STORE-01                                            | PUB-01                 | `listPublishedFootage` and public catalog store                           | Replace home fixtures with published, cover-safe catalog data; retain empty/error states.                                  |
-| SEARCH-01                                           | PUB-02, STORE-01       | PostgreSQL/catalog module (to be implemented)                             | Add Persian-safe server query and URL parsing without an external search service.                                          |
-| SEARCH-02                                           | PUB-02, SEARCH-01      | Catalog metadata/query contract                                           | Add only approved filters and deterministic pagination/order.                                                              |
-| STORE-02                                            | PUB-03, SEARCH-02      | Public slug/detail DTO (to be implemented), existing preview/cover routes | Resolve only published footage and map safe detail/preview data.                                                           |
-| COM-02                                              | PUB-05, COM-01         | Future order module                                                       | Replace fixture Buy Now start with server-authoritative single-item order creation.                                        |
-| PAY-01 through PAY-03                               | PUB-05, COM-02         | Payment/order modules                                                     | Connect provider initiation, verified callback, and idempotent completion; fixture success never substitutes verification. |
-| LIB-01, DL-01, DL-02, INV-01, INV-02                | PUB-06, PAY-03         | Future entitlement/download/invoice modules and media storage boundary    | Integrate customer-scoped data, signed original access after authorization, download history, and historical invoice data. |
-| BLOG-01, BLOG-02, SEO-01                            | PUB-07, ADM-05         | Future blog module                                                        | Build Admin/blog persistence, replace approved public/Admin fixtures, then add technical SEO only for real public routes.  |
-| CAT-04 / CAT-03 / MEDIA-COVER-02 integration checks | ADM-01 / ADM-02        | Existing Admin module and media boundaries                                | Remove fixture loader only after live behavior preserves approved UI and authorization.                                    |
+| Task                                                | Depends on approved UI | Existing/relevant backend contract                                        | Integration scope                                                                                                                     |
+| --------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| STORE-01                                            | PUB-01                 | `listPublishedFootage` and public catalog store                           | Replace home fixtures with published, cover-safe catalog data; retain empty/error states.                                             |
+| SEARCH-01                                           | PUB-02, STORE-01       | PostgreSQL/catalog module (to be implemented)                             | Add Persian-safe server query and URL parsing without an external search service.                                                     |
+| SEARCH-02                                           | PUB-02, SEARCH-01      | Catalog metadata/query contract                                           | Add only approved filters and deterministic pagination/order.                                                                         |
+| STORE-02                                            | PUB-03, SEARCH-02      | Public slug/detail DTO (to be implemented), existing preview/cover routes | Resolve only published footage and map safe detail/preview data.                                                                      |
+| COM-02                                              | PUB-05, COM-01         | Future order module                                                       | Replace fixture Buy Now start with server-authoritative single-item order creation.                                                   |
+| PAY-01 through PAY-03                               | PUB-05, COM-02         | Payment/order modules                                                     | Connect provider initiation, verified callback, and idempotent completion; fixture success never substitutes verification.            |
+| LIB-01, DL-01, DL-02, INV-01, INV-02                | PUB-06, PAY-03         | Future entitlement/download/invoice modules and media storage boundary    | Integrate customer-scoped data, signed original access after authorization, download history, and historical invoice data.            |
+| BLOG-01, BLOG-02                                    | PUB-07, ADM-05         | Future blog module                                                        | Build Admin/blog persistence and replace approved public/Admin fixtures.                                                              |
+| SEO-01                                              | STORE-02, BLOG-02      | Existing public footage and blog routes                                   | Add technical SEO, structured data, robots, sitemap, and crawler/indexing verification only for genuinely public, publishable routes. |
+| CAT-04 / CAT-03 / MEDIA-COVER-02 integration checks | ADM-01 / ADM-02        | Existing Admin module and media boundaries                                | Remove fixture loader only after live behavior preserves approved UI and authorization.                                               |
 
 `COM-01` remains a prerequisite for real commerce integration and now has a
 specific recorded product convention in `PROJECT.md`: integer Toman storage and
@@ -2284,23 +2309,57 @@ STORE-02, BLOG-02.
 
 ### Objective
 
-Provide the minimum technical SEO required for launch.
+Provide the technical public-discoverability foundation for the real public
+Footage and Blog routes after their server-side integrations are available.
 
 ### Scope
 
-Evaluate and implement as appropriate:
+Implement with Next.js App Router metadata and routing conventions:
 
-- metadata;
-- canonical URLs;
-- sitemap;
-- robots configuration;
-- structured data;
-- Open Graph metadata;
-- crawl/index behavior.
+- meaningful server-rendered public HTML;
+- unique titles and descriptions;
+- validated canonical URLs;
+- Open Graph and appropriate social metadata;
+- Persian `lang`/RTL metadata, semantic headings, descriptive image alt text,
+  responsive images, and genuine publication/modification dates;
+- crawlable internal links and proper public 404 handling;
+- robots and sitemap behavior for genuinely publishable public content;
+- schema.org structured data only when it matches visible content, using
+  absolute canonical URLs from validated site configuration;
+- public article and Footage discoverability without login.
+
+Temporary previews, fixture-only or unpublished content, and private customer,
+purchase, library, invoice, authentication, Admin, and development-preview
+routes must remain non-indexable. Do not introduce a CMS or separate backend.
+
+Review crawler boundaries explicitly: intended public pages must be crawlable
+by OAI-SearchBot and Googlebot, while GPTBot remains a separate training-crawler
+policy decision and must not be changed by this task. Do not broadly allow
+every crawler or create `llms.txt` without a separately approved consumer and
+maintenance plan.
+
+Document deployment-level CDN, WAF, bot-protection, hosting, and crawler checks
+that cannot be proven locally.
 
 ### Acceptance Criteria
 
-Public Footage and Blog pages expose appropriate server-rendered metadata and do not accidentally expose admin/private surfaces to indexing.
+- Public Footage and Blog pages expose meaningful server-rendered metadata,
+  canonical URLs, Open Graph data, and appropriate Persian RTL metadata.
+- Robots and sitemap include only intended public content and keep private,
+  unpublished, fixture-only, and preview surfaces non-indexable.
+- Structured data is valid, uses absolute canonical URLs, and matches visible
+  content without invented authors, credentials, dates, addresses, citations,
+  testimonials, or legal claims.
+- Public article text and Footage discovery paths are available without login,
+  with meaningful internal links and semantic content structure.
+- Focused tests cover metadata/canonical generation, safe URL generation,
+  JSON-LD consistency, indexing boundaries, preview `noindex`, sitemap
+  inclusion/exclusion, crawler-policy boundaries, and public 404 behavior.
+- Documentation records deployment verification requirements and states that
+  indexing, ChatGPT Search discovery, rankings, recommendations, and citations
+  cannot be guaranteed.
+- SEO-01 remains TODO until implementation review and the required public
+  content infrastructure are approved.
 
 ---
 
