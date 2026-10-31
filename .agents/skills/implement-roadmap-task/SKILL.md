@@ -157,6 +157,9 @@ It provides the mandatory preflight, component reuse, colocated-file naming,
 JSDoc, and final UI audit. Treat its `Component Reuse Plan` as part of the
 implementation workflow, not as optional report formatting.
 
+Do not edit UI files until that plan has been completed. Keep the plan in the
+completion report; do not create a separate planning artifact for it.
+
 For storefront/UI work, read relevant approved files under:
 
 ```text

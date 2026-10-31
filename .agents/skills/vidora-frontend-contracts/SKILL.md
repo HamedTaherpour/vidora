@@ -1,105 +1,84 @@
 ---
 name: vidora-frontend-contracts
-description: Apply Vidora's frontend contracts when implementing or reviewing React/Next.js UI so component reuse, ownership, colocated types/constants/utilities/tests, JSDoc, accessibility, RTL, and client boundaries are verified before handoff.
+description: Apply Vidora's frontend contracts when implementing or reviewing React/Next.js UI so component reuse, ownership, companion-file conventions, and UI verification happen before handoff.
 ---
 
 # Vidora Frontend Contracts
 
-Use this skill for any task that creates or changes a React component, page, layout,
-hook, UI utility, frontend test, shadcn composition, or Tailwind styling in Vidora.
-It is a workflow guardrail, not a replacement for canonical repository policy.
+Use this skill for React/Next.js pages, layouts, components, hooks, UI
+utilities, frontend tests, shadcn composition, or Tailwind styling in Vidora.
+This is an execution workflow. Canonical rules remain in the repository
+instructions; do not reinterpret or duplicate them here.
 
-## Load the source of truth
+## Load canonical policy
 
-Before editing, read the relevant canonical files:
+Before editing, load the relevant sources:
 
-- `AGENTS.md` and the task in `docs/ROADMAP.md`;
+- `AGENTS.md`, the user-provided task/spec, and the relevant roadmap context;
 - `instructions/project-organization.md`;
 - `instructions/components.md`;
 - `instructions/frontend-implementation.md`;
 - `instructions/functions-and-types.md`;
-- `docs/design/foundations.md` and `docs/design/storefront-component-contracts.md` for storefront UI;
-- `.agents/skills/shadcn/SKILL.md` when shadcn/Base UI or `components.json` is relevant.
+- approved files under `docs/design/` for storefront UI;
+- `.agents/skills/shadcn/SKILL.md` when shadcn/Base UI is involved.
 
-Canonical documentation wins if this skill and another project rule conflict.
-Stop on unresolved product, design, or architecture decisions; do not invent a
-convenient default.
+If sources conflict or a product/design/architecture decision is undefined,
+stop and report it. Canonical instructions win over this workflow.
 
-## Preflight: discover before composing
+## Before implementation: evidence first
 
-Complete a concise reuse plan before writing UI code. Inspect:
+Do not edit UI files until a concise `Component Reuse Plan` exists. Inspect and
+record actual repository paths for:
 
-1. the closest feature/domain components and their tests;
-2. `src/components/ui` and `components.json`;
-3. the applicable design contract and existing tokens;
-4. the nearest module directory that owns the behavior;
-5. the smallest appropriate Server/Client boundary.
+1. the closest feature/domain component and its tests;
+2. relevant shared application components;
+3. installed primitives under `src/components/ui` and `components.json`;
+4. the applicable design contract/tokens;
+5. the owning module and the smallest justified Server/Client seam.
 
-For each control or surface, record the pattern, inspected existing component,
-installed primitive, official shadcn candidate when applicable, decision (`reuse`,
-`add`, or `retain native`), and technical reason. A missing installed primitive
-is not itself a reason to hand-roll a styled control.
+For each relevant control or surface, record `reuse`, `add`, or `retain native`,
+the existing component or official shadcn candidate considered, and the reason.
+Absence from `src/components/ui` is not sufficient evidence for hand-rolled UI.
 
-Completion criterion: the plan names the actual repository paths inspected and
-every new component has an owner and a single UI responsibility.
+Completion criterion: every new component has a clear owner, one responsibility,
+and repository evidence for its reuse decision. Keep this plan in the handoff;
+do not create a separate planning artifact.
 
-## Component contract
+## During implementation: apply, do not redesign
 
-Prefer an existing domain component, then an application component, then an
-installed shadcn/Base UI primitive, then the suitable official primitive, and
-only then a new custom component. Compose; do not recreate a known component
-with a styled `div` or `span`.
+Use the canonical component, frontend, organization, and functions/types
+instructions at the relevant decision point. In particular, verify the actual
+rules for:
 
-For each new application-owned reusable component:
+- composing existing primitives rather than replacing them with styled markup;
+- component ownership and the project's `*.types.ts`, `*.constants.ts`,
+  `*.utils.ts`, and test naming conventions;
+- JSDoc on applicable exported component-owned APIs;
+- semantic native HTML where it is the correct boundary;
+- minimal client islands, explicit event flows, accessibility, RTL, responsive
+  behavior, and semantic design tokens.
 
-- keep it under its owning module unless it is genuinely cross-domain;
-- define a named public `ComponentNameProps` in `component-name.types.ts`;
-- accept a named `props` parameter and destructure inside the body;
-- keep reusable component constants in `component-name.constants.ts`;
-- keep exported pure helpers in `component-name.utils.ts`;
-- name utility tests `component-name.utils.test.ts` and component tests
-  `component-name.test.tsx`;
-- prefix every component-owned support file with the exact component basename;
-- add meaningful JSDoc to exported types, constants, utilities, and public helper
-  APIs; explain purpose, behavior, units, and constraints where relevant;
-- keep private one-off values/types local when extraction would add noise.
+Keep business logic out of presentation components. Do not add abstractions,
+files, effects, or client boundaries merely for symmetry or convenience.
+Generated shadcn primitives retain their intended conventions.
 
-Do not create files merely for symmetry. Do not use generic component-folder
-names such as `utils.ts`, `types.ts`, or `constants.ts`. Generated shadcn
-primitives are intentional exceptions.
+## Before handoff or review
 
-## Rendering and styling contract
+Inspect the actual diff, not only the implementation report. Verify:
 
-- Keep Server Components as the default and make the smallest client island
-  necessary for browser state, events, or APIs.
-- Keep business logic, persistence, authorization, and provider work outside
-  presentation components.
-- Use semantic HTML and existing primitives for controls, feedback, cards,
-  fields, dialogs, separators, empty states, skeletons, and badges.
-- Use semantic design tokens and logical RTL properties; do not introduce
-  arbitrary visual values when the design foundation already defines a token.
-- Keep nontrivial JSX event logic in named `handleX` functions.
-- Use effects only for external synchronization, not derived state or event
-  orchestration.
-- Preserve stable keys, keyboard behavior, visible focus, accessible names,
-  responsive behavior, and Persian/RTL semantics.
+- the reuse decisions against concrete repository evidence;
+- ownership and companion-file/test naming;
+- applicable JSDoc and public contracts;
+- Server/Client boundaries, imports, hooks/effects, and state ownership;
+- accessibility, keyboard behavior, RTL, responsive states, and design tokens;
+- relevant tests and any documented exception.
 
-## Verification gate
+For implementation, include `Component Reuse Plan` in the handoff. For review,
+independently build a `UI Component Reuse Verification Matrix`; do not copy the
+implementer's plan as proof. Static checks cannot reliably decide whether a
+particular `div` is a layout wrapper or an incorrectly recreated component.
 
-Before handoff, inspect the actual diff and run the narrowest relevant tests plus
-typecheck/lint as required by the task. Audit every changed UI file for:
-
-- an existing component that should have been reused;
-- raw styled controls or card-like surfaces replacing an available component;
-- misplaced public types, constants, utilities, or tests;
-- missing or meaningless JSDoc on exported component-owned APIs;
-- unnecessary `use client`, effects, state duplication, or internal HTTP;
-- missing loading, empty, error, disabled, keyboard, RTL, or responsive behavior;
-- design-token and contract violations.
-
-For UI work, include `Component Reuse Plan` in the handoff. For review work,
-include a `UI Component Reuse Verification Matrix` with concrete repository
-evidence. A passing build does not substitute for this audit.
-
-If the implementation violates a contract, fix it or report the exact blocker;
-do not silently weaken the contract or the tests.
+Git operations remain governed by `AGENTS.md`: do not create branches, commits,
+tags, pushes, resets, cleans, rebases, merges, checkouts, or other mutations
+unless the owner explicitly authorizes that operation. Verification success is
+not Git authorization.

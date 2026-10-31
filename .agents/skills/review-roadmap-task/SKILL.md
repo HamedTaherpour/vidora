@@ -519,6 +519,9 @@ JSDoc, and raw-markup substitutions in the actual diff. The skill's reuse
 workflow supplements this review; it does not replace the canonical
 instructions or the independent matrix required below.
 
+Build the matrix independently from the changed UI code and repository evidence;
+do not copy the implementer's reuse plan as proof.
+
 Check:
 
 - Server Components remain the default where appropriate;
