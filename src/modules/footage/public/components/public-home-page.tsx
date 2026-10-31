@@ -22,7 +22,7 @@ export function PublicHomePage(props: PublicHomePageProps) {
     <div className="min-h-screen bg-background">
       <div data-slot="homepage-hero-frame" className="relative">
         <HeroAtmosphere />
-        <PublicSiteHeader />
+        <PublicSiteHeader categories={categories} />
 
         <main className="relative">
           <section className="container-storefront flex flex-col items-center gap-8 py-16 text-center md:py-24">
