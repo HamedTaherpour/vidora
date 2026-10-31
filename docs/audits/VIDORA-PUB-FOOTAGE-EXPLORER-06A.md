@@ -173,3 +173,61 @@ recorded below.
 
 The task remains `READY_FOR_OWNER_REVIEW`; the broader Public review gate is
 still open.
+
+## 06E RTL price range slider fix
+
+### Root cause
+
+The document and storefront use `dir="rtl"`, but Base UI's slider direction
+context defaults to LTR unless a `DirectionProvider` is supplied. The explorer
+already maintained the correct logical value order `[minimum, maximum]` and the
+URL contract already used `minPrice` and `maxPrice` correctly. Without the
+provider, Base UI rendered and interpreted that logical array from left to
+right, making the minimum thumb appear on the left and reversing the expected
+pointer/keyboard relationship in the Persian UI.
+
+### Fix and mapping
+
+The existing shadcn/Base UI Slider now accepts its supported `direction` value,
+and the Explorer price control passes `direction="rtl"` through a
+`DirectionProvider`. Values remain `[minimum, maximum]` throughout the
+component, local draft state, commit handler, parser, serializer, and URL:
+
+- Right thumb: index 0, minimum/cheapest price, `minPrice`.
+- Left thumb: index 1, maximum/most expensive price, `maxPrice`.
+
+No CSS mirroring, arbitrary value swap, sidebar LTR override, or replacement
+slider library was introduced. Existing localized numeric labels and active
+price badges continue to read from the same logical values.
+
+### Regression coverage
+
+Added a focused Slider direction contract test asserting explicit RTL direction
+and minimum/maximum thumb label order. Existing Explorer utility and URL tests
+continue to cover clamping, crossing-range normalization, serialization, badge
+formatting, and independent filter removal.
+
+Browser verification on the mobile filter Sheet used actual pointer drags and
+keyboard input: dragging the right thumb changed only `minPrice` from 220000 to
+260000; dragging the left thumb changed only `maxPrice` from 450000 to 410000;
+ArrowLeft on the minimum thumb increased it from 280000 to 285000. URL commits
+occurred after interaction completion, and the active badge updated to match.
+Refresh, Back, and Forward restored the corresponding URL values and localized
+range badge. The available browser tooling exposed the mobile viewport; desktop
+behavior was verified through the shared responsive implementation, SSR
+markup, and production build, but no separate desktop pointer drag was
+available in this environment.
+
+## 06E verification
+
+- `pnpm format:check` — passed.
+- `pnpm lint` — passed with three existing `@next/next/no-img-element`
+  warnings outside this fix.
+- `pnpm typecheck` — passed.
+- `pnpm test` — passed: 55 files and 381 tests.
+- `pnpm build` — passed; `/search` remains present.
+- `pnpm check:agent-tooling` — passed.
+- `git diff --check` — passed.
+
+This task remains `READY_FOR_OWNER_REVIEW`. Changes are intentionally
+uncommitted and unpushed pending explicit owner approval.

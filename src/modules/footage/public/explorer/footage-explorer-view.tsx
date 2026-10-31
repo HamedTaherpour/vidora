@@ -183,6 +183,7 @@ function PriceFields({
         min={priceBounds.min}
         max={priceBounds.max}
         step={priceBounds.step}
+        direction="rtl"
         locale="fa-IR"
         minStepsBetweenValues={0}
         thumbCollisionBehavior="none"
