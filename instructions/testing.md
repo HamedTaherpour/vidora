@@ -1,6 +1,11 @@
 # Testing Instructions
 
-Read this file when implementing or reviewing behavior that requires automated verification.
+Read this file when implementing or reviewing behavior that requires automated
+verification. Tests belong to the logical unit they protect and follow the
+companion-file organization policy in `instructions/project-organization.md`.
+Use `<unit-name>.test.ts` or `<unit-name>.test.tsx` for focused unit-owned tests
+unless a framework-required test location or an established integration boundary
+requires otherwise.
 
 The purpose of testing is to protect important behavior, not maximize test count or coverage percentage.
 

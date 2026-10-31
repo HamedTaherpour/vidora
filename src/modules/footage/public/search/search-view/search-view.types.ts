@@ -1,14 +1,10 @@
 import type { PublicFootageCategoryOption } from "@/modules/footage/public/catalog/public-footage-catalog-store";
 import type { PublicFootageCatalogItem } from "@/modules/footage/public/catalog/public-footage-catalog-store";
-import type {
-  FootageExplorerQuery,
-  FootagePriceBounds,
-} from "./footage-explorer";
+import type { SearchQuery, FootagePriceBounds } from "../search";
 
-/** Props for the fixture-backed, URL-owned Footage Explorer view. */
-export type FootageExplorerViewProps = {
-  variant: "classic" | "modern" | "minimal";
-  query: FootageExplorerQuery;
+/** Props for the fixture-backed, URL-owned Search view. */
+export type SearchViewProps = {
+  query: SearchQuery;
   categories: PublicFootageCategoryOption[];
   priceBounds: FootagePriceBounds;
   footage: PublicFootageCatalogItem[];

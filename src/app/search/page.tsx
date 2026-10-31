@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 
 import { PublicSiteFooter } from "@/modules/footage/public/components/public-site-footer";
 import { PublicSiteHeader } from "@/modules/footage/public/components/public-site-header";
-import { FootageExplorerView } from "@/modules/footage/public/explorer/footage-explorer-view";
-import { preparePublicFootageExplorer } from "@/modules/footage/public/explorer/prepare-public-footage-explorer";
+import { prepareSearch } from "@/modules/footage/public/search/prepare-search";
+import { SearchView } from "@/modules/footage/public/search/search-view/search-view";
 
 export const dynamic = "force-dynamic";
 
@@ -18,14 +18,12 @@ type SearchPageProps = {
 
 export default async function SearchPage(props: SearchPageProps) {
   const params = await props.searchParams;
-  const { categories, priceBounds, query, result } =
-    preparePublicFootageExplorer(params);
+  const { categories, priceBounds, query, result } = prepareSearch(params);
 
   return (
     <div className="min-h-screen bg-background">
       <PublicSiteHeader categories={categories} />
-      <FootageExplorerView
-        variant="classic"
+      <SearchView
         query={query}
         categories={categories}
         priceBounds={priceBounds}

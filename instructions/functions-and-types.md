@@ -1,6 +1,8 @@
 # Functions and Types
 
-Read this file when creating or reviewing TypeScript functions, exported APIs, React component props, or shared types.
+Read this file when creating or reviewing TypeScript functions, exported APIs,
+React component props, or shared types. Apply the shared logical-unit ownership
+and companion-file policy in `instructions/project-organization.md`.
 
 The goal is consistent, readable types without type-file boilerplate.
 
@@ -130,7 +132,9 @@ Extract to a companion file when the type is:
 - complex enough to distract from implementation;
 - shared by multiple implementations.
 
-Do not create `*.types.ts` automatically for every component or function.
+Do not create `*.types.ts` automatically for every component or function. When a
+unit has multiple independently meaningful files, use the shared policy's
+unit-named directory and suffix conventions for all owned companions.
 
 ---
 
@@ -154,15 +158,16 @@ True cross-domain primitives may be shared when justified.
 
 # 7. React Props
 
-For application-owned reusable components, follow `instructions/components.md`:
+For every application-owned React component that accepts props, follow the strict
+rule in `instructions/components.md`:
 
 - use a named `*Props` type;
 - place public component props in a companion `*.types.ts` file;
 - accept props through a named `props` parameter and destructure inside the body.
 
-This convention is scoped to reusable UI components. It does not impose companion
-type files or a props-parameter style on unrelated backend functions or small private
-helpers.
+This applies to private and one-off components as well as exported components. It
+does not impose props contracts on components that accept no props, ordinary
+functions, hooks, utilities, or generated/vendor-managed shadcn primitives.
 
 Example:
 
@@ -179,8 +184,10 @@ export function FootageCard(props: FootageCardProps) {
 }
 ```
 
-Small private local components may use concise inline props when that improves
-readability. Generated shadcn primitives are intentional exceptions.
+Generated/vendor-managed shadcn primitives are the only implementation exception.
+Application-owned components may not use inline props, local props declarations,
+parent props types, `Pick`/intersection annotations, or unrecorded readability
+exceptions. Do not infer that TypeScript acceptance is contract compliance.
 
 Do not force every private helper type into a separate file or mass-refactor existing
 components solely to apply this convention.
@@ -456,7 +463,9 @@ Split when there are identifiable responsibilities that become easier to:
 - reuse;
 - own independently.
 
-Large files should trigger review, not automatic decomposition.
+Large files should trigger review, not automatic decomposition. Review cohesion,
+ownership, complexity, reuse, and test seams before extracting or retaining
+responsibilities in one unit.
 
 ---
 

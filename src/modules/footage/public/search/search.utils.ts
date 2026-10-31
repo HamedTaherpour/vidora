@@ -1,12 +1,15 @@
 import { formatTomanDisplay } from "@/modules/footage/format-toman-display";
-import type {
-  FootageExplorerQuery,
-  FootagePriceBounds,
-} from "./footage-explorer";
+import type { FootagePriceBounds, SearchQuery } from "./search";
+import { hasActiveSearchFilters } from "./search";
+
+/** Returns whether a query contains any visible active filter selection. */
+export function hasActiveSearchSelections(query: SearchQuery) {
+  return hasActiveSearchFilters(query) || query.sort !== "relevance";
+}
 
 /** Clamps and orders URL price values for the local dual-thumb slider. */
-export function getFootageExplorerSliderValues(
-  query: FootageExplorerQuery,
+export function getSearchSliderValues(
+  query: SearchQuery,
   priceBounds: FootagePriceBounds,
 ): [number, number] {
   const minimum = Math.min(
@@ -21,26 +24,24 @@ export function getFootageExplorerSliderValues(
 }
 
 /** Formats the visible Persian label for one logical price-range badge. */
-export function formatFootageExplorerPriceRange(query: FootageExplorerQuery) {
+export function formatSearchPriceRange(query: SearchQuery) {
   const minimum = query.minPrice;
   const maximum = query.maxPrice;
-  if (minimum !== undefined && maximum !== undefined) {
+  if (minimum !== undefined && maximum !== undefined)
     return `قیمت: ${formatTomanDisplay(minimum)} تا ${formatTomanDisplay(maximum)}`;
-  }
   if (minimum !== undefined) return `قیمت: از ${formatTomanDisplay(minimum)}`;
   return `قیمت: تا ${formatTomanDisplay(maximum ?? 0)}`;
 }
 
 /** Removes one active selection while preserving every unrelated URL filter. */
-export function removeFootageExplorerFilter(
-  query: FootageExplorerQuery,
+export function removeSearchFilter(
+  query: SearchQuery,
   filter: "query" | "category" | "minPrice" | "duration" | "sort",
-): FootageExplorerQuery {
+): SearchQuery {
   if (filter === "query") return { ...query, query: "", page: 1 };
   if (filter === "category") return { ...query, category: "", page: 1 };
-  if (filter === "minPrice") {
+  if (filter === "minPrice")
     return { ...query, minPrice: undefined, maxPrice: undefined, page: 1 };
-  }
   if (filter === "duration") return { ...query, duration: "all", page: 1 };
   return { ...query, sort: "relevance", page: 1 };
 }

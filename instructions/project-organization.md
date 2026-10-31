@@ -220,6 +220,51 @@ code is deliberately migrated through a reviewed refactor. They do not require
 unrelated file moves as part of ordinary feature work, and an existing module
 must not be described as compliant before it has been audited.
 
+## 6.1 Logical code-unit ownership and companion files
+
+This is the shared organization policy for all application-owned TypeScript and
+TSX code, including React components, hooks, frontend feature logic, backend
+modules, API handlers, domain functions, and standalone utilities. Apply it by
+logical ownership and responsibility, not by framework or file extension.
+
+Every logical code unit must have one clear primary responsibility. Before
+creating or changing a unit, identify its implementation, independently
+meaningful types or interfaces, constants/configuration, reusable pure utilities,
+tests, existing reusable code, and ownership boundary. Keep trivial local values,
+implementation-only types, and cohesive small helpers local when extraction would
+add noise; do not use that exception to preserve a large file with mixed
+responsibilities.
+
+When a unit has more than one associated file, colocate every file that belongs
+exclusively to that unit in a dedicated directory named after the unit:
+
+```text
+search-query/
+  search-query.ts
+  search-query.types.ts
+  search-query.constants.ts
+  search-query.utils.ts
+  search-query.test.ts
+```
+
+Use the appropriate suffixes when those concerns are independently meaningful:
+`*.types.ts`, `*.constants.ts`, `*.utils.ts`, `*.test.ts`, and `*.test.tsx`.
+Do not place unrelated feature-wide or domain-wide files inside a unit directory
+just to satisfy the convention, and do not create wrapper directories for
+single-file units. Framework-required files such as Next.js App Router
+`page.tsx`, `layout.tsx`, `loading.tsx`, and `route.ts` remain at their required
+locations; extracted implementation and support files should live under their
+actual owner.
+
+When a logical unit is renamed, review its directory, owned files, exported
+symbols, imports, tests, and relevant references together. Remove obsolete names
+from the previous implementation stage, while preserving meaningful domain
+terminology and framework conventions. Do not mechanically rename identifiers
+only to match a URL.
+
+This policy applies to future work and to existing code deliberately migrated in
+a reviewed refactor. It does not authorize unrelated repository-wide migrations.
+
 ---
 
 # 7. Server-Only Code

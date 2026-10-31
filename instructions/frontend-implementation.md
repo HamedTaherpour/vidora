@@ -1,6 +1,9 @@
 # Frontend Implementation
 
-Read this file for React and Next.js UI implementation.
+Read this file for React and Next.js UI implementation. Apply the shared
+logical-unit ownership, companion-file, and rename-consistency policy in
+`instructions/project-organization.md`; the component-specific props contract
+in `instructions/components.md` remains stricter where applicable.
 
 Pair it with:
 

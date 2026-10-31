@@ -54,6 +54,10 @@ For tasks that create, move, or reorganize application code, modules, routes, sh
 
 `instructions/project-organization.md`
 
+This is the canonical project-wide policy for logical TypeScript/TSX units,
+ownership boundaries, companion files and directories, test placement, and
+rename consistency across frontend and backend code.
+
 ### Frontend Implementation
 
 For React, Next.js pages, layouts, components, hooks, client/server boundaries, forms, loading/error states, RTL, or design implementation, read:
@@ -65,6 +69,11 @@ For React, Next.js pages, layouts, components, hooks, client/server boundaries, 
 For TypeScript APIs, exported functions, React props, shared types, provider-response types, or module contracts, read:
 
 `instructions/functions-and-types.md`
+
+Before implementation, identify the logical unit, implementation, independently
+meaningful types, constants, pure utilities, tests, ownership boundary, and any
+existing reusable code. Apply the companion suffix and unit-directory rules
+without extracting trivial implementation details or migrating unrelated code.
 
 Always read:
 
@@ -153,9 +162,10 @@ For every React/Next.js UI task, apply the project-local Skill:
 .agents/skills/vidora-frontend-contracts/SKILL.md
 ```
 
-It provides the mandatory preflight, component reuse, colocated-file naming,
-JSDoc, and final UI audit. Treat its `Component Reuse Plan` as part of the
-implementation workflow, not as optional report formatting.
+It provides the mandatory preflight, component architecture plan, component
+reuse, colocated-file naming, JSDoc, and final UI audit. Treat its
+`Component Architecture Plan` as part of the implementation workflow, not as
+optional report formatting.
 
 Do not edit UI files until that plan has been completed. Keep the plan in the
 completion report; do not create a separate planning artifact for it.
@@ -187,8 +197,9 @@ Do not begin by restructuring unrelated code.
 
 ### UI discovery gate
 
-For any task that implements or changes UI, complete a concise reuse plan before
-editing. Inspect the relevant Admin or Storefront feature/domain components,
+For any task that implements or changes UI, complete a concise component
+architecture plan before editing. Inspect the relevant Admin or Storefront
+feature/domain components,
 application-level components, `src/components/ui`, `components.json`, and nearby
 tests. Consult `.agents/skills/shadcn/SKILL.md` and current component
 documentation when shadcn usage or composition is relevant.
@@ -199,10 +210,25 @@ The plan must state:
 - components to reuse and how they compose;
 - components to add, if necessary;
 - ownership and responsibility of each new component; and
+- component boundaries, named props/types, constants, utilities, state/effect
+  ownership, test ownership, and repeated composition or handler wiring assessed;
+- every application-owned component accepting props, including private components,
+  mapped to a dedicated imported companion `*.types.ts` contract;
+- every multi-file application-owned component mapped to a dedicated
+  component-named directory;
+- when feature identity changes, a consistency review covers directories,
+  filenames, symbols, props, types, constants, hooks, utilities, tests, imports,
+  exports, documentation, and routes;
+- an evidence-backed decomposition assessment for large or multi-responsibility
+  files, without relying on line count alone;
 - unresolved design or architecture decisions;
 - for each relevant control pattern, the UI pattern, inspected existing
   component, installed primitive (if any), official shadcn candidate (if
   applicable), reuse/add/retain-native decision, and justification.
+
+Before declaring the task ready, inspect every application-owned component with
+props in the changed scope and verify the companion contract by exact file/line
+evidence. A passing TypeScript check does not prove this contract.
 
 When no suitable primitive is installed, perform the official shadcn candidate
 evaluation before modifying UI code. Do not treat an empty `src/components/ui`
@@ -219,7 +245,7 @@ checkpoint.
 Use this workflow for UI tasks:
 
 ```text
-Discover → Plan → Implement → Verify → Review
+Discover → Architecture Plan → Implement → Independent Verify → Remediate → Review
 ```
 
 ---
@@ -386,7 +412,10 @@ Files changed:
 Tests added/updated:
 - ...
 
-Component Reuse Plan (UI tasks only):
+Component Architecture Plan (UI tasks only):
+- Responsibilities, boundaries, and ownership map: ...
+- Props/types, constants, utilities, state/effects, and test ownership: ...
+- Decomposition and repeated-composition assessment: ...
 - Existing component paths inspected: ...
 - Components selected for reuse: ...
 - New components introduced and justification: ...

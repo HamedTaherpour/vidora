@@ -501,6 +501,14 @@ Check:
 - `src/lib` is not becoming a business-logic dumping ground;
 - unnecessary global technical layers were not introduced;
 - server-only dependencies do not leak into client import graphs.
+- every changed logical TypeScript/TSX unit has one clear primary responsibility;
+- independently meaningful types, constants, pure utilities, and tests use the
+  canonical companion suffixes and are colocated when the unit has multiple
+  files;
+- framework-required files remain at their required locations while extracted
+  implementations stay with their actual owner;
+- renamed units have no obsolete owned names in directories, files, symbols,
+  imports, tests, or relevant references.
 
 ## Frontend Review
 
@@ -514,9 +522,10 @@ Also apply:
 .agents/skills/vidora-frontend-contracts/SKILL.md
 ```
 
-Use it to audit component ownership, reuse, colocated support-file naming,
-JSDoc, and raw-markup substitutions in the actual diff. The skill's reuse
-workflow supplements this review; it does not replace the canonical
+Use it to audit component responsibility and decomposition, ownership, reuse,
+props/types/constants/utils/test placement, JSDoc, state/effect ownership, and
+raw-markup substitutions in the actual diff. The skill's workflow supplements
+this review; it does not replace the canonical
 instructions or the independent matrix required below.
 
 Build the matrix independently from the changed UI code and repository evidence;
@@ -533,6 +542,19 @@ Check:
 - RTL and accessibility requirements are preserved;
 - Design Contracts are followed where present.
 
+For each applicable category, review independently and cite file/line evidence;
+do not declare an entire category compliant from one example. Check focused
+responsibilities, substantial component file boundaries, named props in companion
+types, meaningful constants and utilities in owner-prefixed files, test naming,
+state/effect/timer ownership, repeated composition or handler wiring, dead or
+duplicated variants, and whether a large file has an evidence-backed decomposition
+assessment. For decomposition findings, apply the documented scope exclusions for
+generated/vendor-managed primitives, semantic native HTML, and cohesive stateful
+interactions. For props contracts, the only exclusions are components with no
+props and generated/vendor-managed primitives. Never exempt an application-owned
+component with props because it is private, small, one-off, or easier to read
+inline.
+
 For UI changes, also verify the implementation's discovery and reuse evidence:
 
 - independently identify every relevant UI control pattern from the changed
@@ -546,7 +568,7 @@ For UI changes, also verify the implementation's discovery and reuse evidence:
 - do not approve a UI review when the matrix is missing, omits a relevant
   control pattern, contains an inaccurate decision, or lacks repository evidence;
 
-- the completion report includes a `Component Reuse Plan` with existing component
+- the completion report includes a `Component Architecture Plan` with existing component
   paths inspected, selected components, new components and justification,
   ownership decisions, relevant bypass reasons, and a control-pattern decision
   for each relevant pattern containing the inspected component, installed
@@ -566,6 +588,14 @@ For UI changes, also verify the implementation's discovery and reuse evidence:
   native choices when their semantics are appropriate;
 - component responsibilities, state ownership, data ownership, and client
   boundaries remain understandable;
+- every application-owned component accepting props, including private components,
+  has a dedicated imported companion `*.types.ts` contract used directly in its
+  signature;
+- every multi-file application-owned component is colocated in a dedicated
+  component-named directory;
+- feature renames are checked consistently across directories, filenames,
+  symbols, props, types, constants, hooks, utilities, tests, imports, exports,
+  docs, and routes while valid domain terminology is preserved;
 - new shared abstractions have a demonstrated reusable responsibility;
 - form, table, feedback, and media presentation are separated where that improves
   clarity; and
@@ -577,8 +607,9 @@ Missing or materially inaccurate reuse evidence is grounds for
 `instructions/components.md`, verify that approval was obtained before
 implementation.
 
-Require concrete evidence for substantive findings. A successful build or
-passing tests does not substitute for this review.
+Require concrete file/line evidence for every props-contract finding. A successful
+build, passing TypeScript check, or compliant exported component does not substitute
+for independently inspecting all application-owned component signatures in scope.
 
 ## Functions and Types Review
 

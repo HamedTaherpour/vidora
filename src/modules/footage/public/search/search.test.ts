@@ -4,10 +4,10 @@ import { publicFootageFixtures } from "@/modules/ui-mock/fixtures/public-footage
 import {
   discoverPublicFootage,
   getFootagePriceBounds,
-  getExplorerActiveFilterCount,
-  parseFootageExplorerQuery,
-  serializeFootageExplorerQuery,
-} from "./footage-explorer";
+  getSearchActiveFilterCount,
+  parseSearchQuery,
+  serializeSearchQuery,
+} from "./search";
 
 const categories = publicFootageFixtures
   .map((item) => ({ value: item.category.slug }))
@@ -16,7 +16,7 @@ const categories = publicFootageFixtures
       all.findIndex((candidate) => candidate.value === item.value) === index,
   );
 
-describe("footage explorer query contract", () => {
+describe("Search query contract", () => {
   it("derives price bounds and a catalog-based slider step", () => {
     expect(getFootagePriceBounds(publicFootageFixtures)).toEqual({
       min: 220000,
@@ -27,7 +27,7 @@ describe("footage explorer query contract", () => {
 
   it("normalizes Persian text and rejects unsupported or invalid values", () => {
     expect(
-      parseFootageExplorerQuery(
+      parseSearchQuery(
         {
           q: "  كوهستان  ",
           category: "missing",
@@ -49,16 +49,13 @@ describe("footage explorer query contract", () => {
 
   it("normalizes crossing price bounds into a usable range", () => {
     expect(
-      parseFootageExplorerQuery(
-        { minPrice: "450000", maxPrice: "220000" },
-        categories,
-      ),
+      parseSearchQuery({ minPrice: "450000", maxPrice: "220000" }, categories),
     ).toMatchObject({ minPrice: 220000, maxPrice: 450000 });
   });
 
   it("serializes deterministically and omits defaults", () => {
     expect(
-      serializeFootageExplorerQuery({
+      serializeSearchQuery({
         query: "تهران",
         category: "urban",
         minPrice: 250000,
@@ -112,7 +109,7 @@ describe("discoverPublicFootage", () => {
 
   it("counts active filters without treating sorting as a filter", () => {
     expect(
-      getExplorerActiveFilterCount({
+      getSearchActiveFilterCount({
         query: "تهران",
         category: "urban",
         minPrice: undefined,

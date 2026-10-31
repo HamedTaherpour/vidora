@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  formatFootageExplorerPriceRange,
-  getFootageExplorerSliderValues,
-  removeFootageExplorerFilter,
-} from "./footage-explorer-view.utils";
+  formatSearchPriceRange,
+  getSearchSliderValues,
+  removeSearchFilter,
+} from "./search.utils";
 
 const query = {
   query: "طبیعت",
@@ -16,10 +16,10 @@ const query = {
   page: 3,
 };
 
-describe("Footage Explorer view behavior", () => {
+describe("Search view behavior", () => {
   it("clamps malformed slider state and orders crossing values", () => {
     expect(
-      getFootageExplorerSliderValues(
+      getSearchSliderValues(
         { ...query, minPrice: 600000, maxPrice: 100000 },
         { min: 220000, max: 450000, step: 5000 },
       ),
@@ -27,18 +27,18 @@ describe("Footage Explorer view behavior", () => {
   });
 
   it("formats a localized logical price badge", () => {
-    expect(formatFootageExplorerPriceRange(query)).toBe(
+    expect(formatSearchPriceRange(query)).toBe(
       "قیمت: ۲۲۰٬۰۰۰ تومان تا ۴۵۰٬۰۰۰ تومان",
     );
   });
 
   it("removes only one selection and resets pagination", () => {
-    expect(removeFootageExplorerFilter(query, "category")).toEqual({
+    expect(removeSearchFilter(query, "category")).toEqual({
       ...query,
       category: "",
       page: 1,
     });
-    expect(removeFootageExplorerFilter(query, "minPrice")).toEqual({
+    expect(removeSearchFilter(query, "minPrice")).toEqual({
       ...query,
       minPrice: undefined,
       maxPrice: undefined,

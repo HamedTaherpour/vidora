@@ -133,8 +133,8 @@ approval gate below.
 The product owner approved the final homepage combination on 2026-10-31:
 Balanced layout, Search First hero, Refined Gradient background, and the
 current owner-customized semantic palette in `src/app/globals.css`. This
-approval closes the homepage promotion task; it does not approve the future
-Footage Explorer or any backend catalog integration.
+approval closes the homepage promotion task; it does not approve backend catalog
+integration or other future public search scope.
 
 ### Public UI status reconciliation
 
@@ -748,15 +748,15 @@ screen or begin Admin work.
 
 ---
 
-## VIDORA-PUB-FOOTAGE-EXPLORER-06 — Public Footage Explorer — Search, Filters, Sorting & Listing
+## VIDORA-PUB-FOOTAGE-EXPLORER-06 — Public Search — Filters, Sorting & Listing
 
 **Status:** READY_FOR_REVIEW
 **Depends On:** VIDORA-PUB-HOME-FINAL-04, PUB-01, PUB-02, PUB-02R, PUB-02S,
 UI-MOCK-01.
 
-**Owner request:** Add a dedicated Public footage discovery page at `/search`.
-This task is registered for future implementation and is not implemented by
-the homepage closeout.
+**Owner request:** Add a dedicated Public Search page at `/search`.
+This task is registered for implementation and is owned by the Search feature
+module rather than the homepage closeout.
 
 **Scope / route:** Build a fixture-backed, Persian-first discovery page that
 supports text search, category and tag filtering, price-range filtering in
@@ -779,15 +779,13 @@ with localized active badges and result count. Sorting remains in the sidebar.
 Mobile uses a responsive grid, accessible filter Sheet, search and sorting
 controls, and automatic updates without an Apply action.
 
-**Review gate:** The first implementation phase provided three reviewable
-design variants: Classic Sidebar, Modern Explorer, and Minimal Marketplace.
-The owner selected Classic Sidebar; Modern Explorer and Minimal Marketplace
-were not selected. Classic is now promoted to production at `/search`, with
-sorting in the sidebar and Lucide section icons. The temporary preview routes
-were removed after production verification. The legacy `/footage` browse route
-permanently redirects to `/search` while detail routes remain under
-`/footage/[slug]`. This task remains subject to the
-comprehensive Public review gate and before Admin development begins.
+**Review gate:** The approved production design is Classic Sidebar at `/search`,
+with sorting in the sidebar and Lucide section icons. Modern Explorer and
+Minimal Marketplace variants are obsolete and must not be reintroduced. The
+temporary preview routes were removed after production verification. The legacy
+`/footage` browse route permanently redirects to `/search` while detail routes
+remain under `/footage/[slug]`. This task remains subject to the comprehensive
+Public review gate before Admin development begins.
 
 **Out of scope:** Production catalog/database integration, Admin work, and
 SEO-01. The owner-approved design-exploration amendment allowed temporary
@@ -1107,7 +1105,7 @@ verification.
 The UI-first sequence has now advanced through the approved fixture-backed
 homepage, homepage refinement, and Commerce detail work. **Next planned
 public-facing implementation task:** `VIDORA-PUB-FOOTAGE-EXPLORER-06 — Public
-Footage Explorer`. The comprehensive Public review gate remains mandatory
+Search`. The comprehensive Public review gate remains mandatory
 before Admin development. Production data integration, checkout, payment,
 entitlement, and protected media delivery remain separate work.
 

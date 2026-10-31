@@ -2,8 +2,8 @@ import type { PublicFootageCategoryOption } from "@/modules/footage/public/catal
 import {
   discoverPublicFootage,
   getFootagePriceBounds,
-  parseFootageExplorerQuery,
-} from "./footage-explorer";
+  parseSearchQuery,
+} from "./search";
 import { publicFootageFixtures } from "@/modules/ui-mock/fixtures/public-footage";
 
 function getPublicFootageCategories(): PublicFootageCategoryOption[] {
@@ -17,11 +17,11 @@ function getPublicFootageCategories(): PublicFootageCategoryOption[] {
   ).map(([value, labelFa]) => ({ value, labelFa }));
 }
 
-export function preparePublicFootageExplorer(
+export function prepareSearch(
   params: Record<string, string | string[] | undefined>,
 ) {
   const categories = getPublicFootageCategories();
-  const query = parseFootageExplorerQuery(params, categories);
+  const query = parseSearchQuery(params, categories);
   const result = discoverPublicFootage(publicFootageFixtures, query);
   const priceBounds = getFootagePriceBounds(publicFootageFixtures);
 

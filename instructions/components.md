@@ -3,6 +3,9 @@
 Read this file for application-owned UI components. Pair it with
 `instructions/frontend-implementation.md`, `instructions/project-organization.md`,
 the project-local shadcn Skill, and any applicable files under `docs/design/`.
+The project-wide logical-unit organization policy is canonical in
+`instructions/project-organization.md`; the rules below add stricter React
+component and props requirements.
 
 ## Component ownership
 
@@ -70,6 +73,28 @@ the components selected for reuse, any new components and their justification,
 important ownership decisions, and reasons for bypassing an available component
 when relevant. Do not create a separate documentation file solely for this plan.
 
+The reuse plan is also a component architecture plan. Before implementation, add
+the following decisions for each new or materially changed component:
+
+- the responsibility and owning module of each component;
+- the component boundary and the UI responsibilities intentionally kept together;
+- the named props type and its companion `*.types.ts` owner for every
+  application-owned component that accepts props;
+- meaningful static data or configuration and its `*.constants.ts` owner;
+- reusable pure helpers and their `*.utils.ts` owner;
+- state, effects, timers, refs, and event-handler ownership;
+- test ownership and the expected `<component-name>.test.tsx` or
+  `<component-name>.utils.test.ts` location; and
+- repeated composition or handler wiring that was evaluated for extraction.
+
+Do not use an arbitrary line-count threshold as a decomposition rule. A large or
+multi-responsibility file must, however, include an evidence-backed decomposition
+assessment in the implementation or review handoff. If state orchestration and UI
+composition have become independently understandable or testable responsibilities,
+separate them; if they form one cohesive interaction, record why they remain
+together. Do not satisfy this requirement by extracting wrappers that have no
+independent responsibility.
+
 Require approval before implementation only when the UI task involves one or more
 of these objective triggers:
 
@@ -133,6 +158,20 @@ application-level API, or a consistency benefit that would otherwise be repeated
 
 ## Component-local helpers, types, and constants
 
+When an application-owned component has more than one associated file, colocate
+all files belonging to that component in a dedicated directory named after the
+component. For example, `search-view/search-view.tsx`,
+`search-view/search-view.types.ts`, and `search-view/search-view.test.tsx`
+belong together. Feature-wide services, domain functions, shared types, and
+module-level utilities are not component-owned merely because they are nearby.
+
+When a feature, page, or route is renamed, include a naming-consistency review
+in the Component Architecture Plan. Check directories, filenames, exported and
+local symbols, props, types, constants, hooks, utilities, tests, fixtures,
+imports, exports, documentation, and route references. Rename obsolete
+feature-specific identifiers consistently while preserving independently valid
+domain terminology and framework-required route names.
+
 When a component needs an exported pure helper, place that helper in a colocated
 `<component-name>.utils.ts` file and import it into the component. Keep small
 private details local when they are not reused; do not create an empty or one-off
@@ -146,6 +185,23 @@ remain local. Utility tests use `<component-name>.utils.test.ts`; component test
 use `<component-name>.test.tsx`. A component-specific hook keeps its named
 `use-<feature-name>.ts` filename, with a matching `use-<feature-name>.test.ts`
 when it has dedicated tests.
+
+Every application-owned React component that accepts props must declare a
+dedicated, explicitly named `*Props` type or interface in the component's
+corresponding `*.types.ts` companion file, import that contract, and use it
+directly in the component signature. This applies equally to private, nested,
+one-off, presentational, stateful, small, and large components. Inline object or
+intersection annotations, props types declared in the implementation file, and
+reusing a parent component's props type are forbidden. Generated or
+vendor-managed shadcn/Base UI primitives are the only scope exclusion; a
+component with no props does not need a props file.
+
+Move meaningful static labels, option maps, lookup tables, defaults, or other
+component-specific configuration to the owning `*.constants.ts` file when doing
+so clarifies ownership or makes the values independently testable. Keep a single
+obvious one-off value local. Move reusable pure transformations to the owning
+`*.utils.ts`; lifecycle- or state-dependent handlers stay with the component or
+its cohesive custom hook.
 
 Every component-owned supporting file must begin with the exact kebab-case name
 of its owning component. Do not use ambiguous generic filenames such as
@@ -168,6 +224,11 @@ existing shared or module boundary rather than inside a component folder.
 Component files should remain focused on rendering and interaction. Split
 independently meaningful UI responsibilities into cohesive components, while
 avoiding extraction that only reduces line count or fragments a single behavior.
+When a file combines controls, layout, state synchronization, timers, pagination,
+and responsive variants, explicitly assess whether those responsibilities have
+separate owners and test seams. Repeated mobile/desktop composition or handler
+wiring is review evidence for a possible shared composition boundary, not an
+automatic mandate to abstract it.
 
 ## Editorial text highlights
 

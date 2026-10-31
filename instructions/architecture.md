@@ -10,6 +10,11 @@ Read this file for tasks that:
 - change persistence architecture;
 - change deployment architecture.
 
+For TypeScript code-unit ownership and companion-file organization across
+frontend and backend, use the shared policy in
+`instructions/project-organization.md`. This document defines architectural
+boundaries; it does not replace that ownership policy.
+
 Also read the relevant ADRs.
 
 ---

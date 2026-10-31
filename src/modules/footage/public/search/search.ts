@@ -1,6 +1,6 @@
 import type { PublicFootageCatalogItem } from "@/modules/footage/public/catalog/public-footage-catalog-store";
 
-export const EXPLORER_SORTS = [
+export const SEARCH_SORTS = [
   "relevance",
   "price-asc",
   "price-desc",
@@ -8,19 +8,19 @@ export const EXPLORER_SORTS = [
   "duration-desc",
 ] as const;
 
-export type ExplorerSort = (typeof EXPLORER_SORTS)[number];
+export type SearchSort = (typeof SEARCH_SORTS)[number];
 
-export type FootageExplorerQuery = {
+export type SearchQuery = {
   query: string;
   category: string;
   minPrice?: number;
   maxPrice?: number;
   duration: "all" | "short" | "medium" | "long";
-  sort: ExplorerSort;
+  sort: SearchSort;
   page: number;
 };
 
-export type FootageExplorerResult = {
+export type SearchResult = {
   items: PublicFootageCatalogItem[];
   filteredCount: number;
   page: number;
@@ -33,7 +33,7 @@ export type FootagePriceBounds = {
   step: number;
 };
 
-export const EXPLORER_PAGE_SIZE = 12;
+export const SEARCH_PAGE_SIZE = 12;
 
 /** Derives the slider bounds and a stable price increment from catalog prices. */
 export function getFootagePriceBounds(
@@ -89,24 +89,22 @@ function normalizePage(value: string | undefined) {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
 }
 
-function normalizeSort(value: string | undefined): ExplorerSort {
-  return EXPLORER_SORTS.includes(value as ExplorerSort)
-    ? (value as ExplorerSort)
+function normalizeSort(value: string | undefined): SearchSort {
+  return SEARCH_SORTS.includes(value as SearchSort)
+    ? (value as SearchSort)
     : "relevance";
 }
 
-function normalizeDuration(
-  value: string | undefined,
-): FootageExplorerQuery["duration"] {
-  return DURATION_OPTIONS.includes(value as FootageExplorerQuery["duration"])
-    ? (value as FootageExplorerQuery["duration"])
+function normalizeDuration(value: string | undefined): SearchQuery["duration"] {
+  return DURATION_OPTIONS.includes(value as SearchQuery["duration"])
+    ? (value as SearchQuery["duration"])
     : "all";
 }
 
-export function parseFootageExplorerQuery(
+export function parseSearchQuery(
   params: Record<string, string | string[] | undefined>,
   categories: ReadonlyArray<{ value: string }>,
-): FootageExplorerQuery {
+): SearchQuery {
   const category = firstValue(params.category);
   const minPrice = parseNonNegativeInteger(firstValue(params.minPrice));
   const maxPrice = parseNonNegativeInteger(firstValue(params.maxPrice));
@@ -140,7 +138,7 @@ export function parseFootageExplorerQuery(
 
 function matchesDuration(
   seconds: number | undefined,
-  duration: FootageExplorerQuery["duration"],
+  duration: SearchQuery["duration"],
 ) {
   if (duration === "all") return true;
   if (seconds === undefined) return false;
@@ -152,7 +150,7 @@ function matchesDuration(
 function compareFootage(
   first: PublicFootageCatalogItem,
   second: PublicFootageCatalogItem,
-  sort: ExplorerSort,
+  sort: SearchSort,
 ) {
   if (sort === "price-asc") return first.priceToman - second.priceToman;
   if (sort === "price-desc") return second.priceToman - first.priceToman;
@@ -167,8 +165,8 @@ function compareFootage(
 
 export function discoverPublicFootage(
   footage: ReadonlyArray<PublicFootageCatalogItem>,
-  query: FootageExplorerQuery,
-): FootageExplorerResult {
+  query: SearchQuery,
+): SearchResult {
   const normalizedQuery = normalizePersianText(query.query);
   const filtered = footage.filter((item) => {
     const searchableText = normalizePersianText(
@@ -186,21 +184,18 @@ export function discoverPublicFootage(
   const sorted = [...filtered].sort((first, second) =>
     compareFootage(first, second, query.sort),
   );
-  const totalPages = Math.max(1, Math.ceil(sorted.length / EXPLORER_PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(sorted.length / SEARCH_PAGE_SIZE));
   const page = Math.min(query.page, totalPages);
 
   return {
-    items: sorted.slice(
-      (page - 1) * EXPLORER_PAGE_SIZE,
-      page * EXPLORER_PAGE_SIZE,
-    ),
+    items: sorted.slice((page - 1) * SEARCH_PAGE_SIZE, page * SEARCH_PAGE_SIZE),
     filteredCount: sorted.length,
     page,
     totalPages,
   };
 }
 
-export function serializeFootageExplorerQuery(query: FootageExplorerQuery) {
+export function serializeSearchQuery(query: SearchQuery) {
   const params = new URLSearchParams();
   if (query.query) params.set("q", query.query);
   if (query.category) params.set("category", query.category);
@@ -214,16 +209,16 @@ export function serializeFootageExplorerQuery(query: FootageExplorerQuery) {
   return params.toString();
 }
 
-export function createFootageExplorerHref(
-  query: FootageExplorerQuery,
-  overrides: Partial<FootageExplorerQuery> = {},
+export function createSearchHref(
+  query: SearchQuery,
+  overrides: Partial<SearchQuery> = {},
 ) {
   const nextQuery = { ...query, ...overrides };
-  const serialized = serializeFootageExplorerQuery(nextQuery);
+  const serialized = serializeSearchQuery(nextQuery);
   return serialized ? `?${serialized}` : "";
 }
 
-export function hasActiveExplorerFilters(query: FootageExplorerQuery) {
+export function hasActiveSearchFilters(query: SearchQuery) {
   return Boolean(
     query.query ||
     query.category ||
@@ -233,7 +228,7 @@ export function hasActiveExplorerFilters(query: FootageExplorerQuery) {
   );
 }
 
-export function getExplorerActiveFilterCount(query: FootageExplorerQuery) {
+export function getSearchActiveFilterCount(query: SearchQuery) {
   return [
     query.query,
     query.category,

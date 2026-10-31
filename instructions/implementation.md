@@ -1,6 +1,9 @@
 # Implementation Instructions
 
-Read this file for every implementation task.
+Read this file for every implementation task. For TypeScript and TSX code, also
+apply the shared logical-unit ownership and companion-file policy in
+`instructions/project-organization.md`. This applies equally to frontend,
+backend, domain, API, and infrastructure modules.
 
 ---
 

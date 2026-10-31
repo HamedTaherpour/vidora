@@ -1,12 +1,14 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import ts from "typescript";
 
 /**
- * Checks the frontend skill contract without inspecting implementation intent.
+ * Checks the frontend skill contract and deterministic component conventions.
  *
  * The checker deliberately validates only deterministic references and metadata;
- * component reuse and semantic HTML remain review responsibilities.
+ * component reuse, semantic HTML, and the selected review scope remain review
+ * responsibilities.
  */
 export function collectFrontendContractErrors({
   skillContents,
@@ -46,12 +48,58 @@ export function collectFrontendContractErrors({
     "instructions/functions-and-types.md",
   ];
 
+  const requiredWorkflowPhases = [
+    "## Phase 1 — Repository discovery",
+    "## Phase 2 — Component architecture plan",
+    "## Phase 3 — Implementation against the plan",
+    "## Phase 4 — Independent contract verification",
+    "## Phase 5 — Remediation loop",
+  ];
+
+  const requiredStrictPropsLanguage = [
+    "every application-owned React component in the changed scope",
+    "corresponding\n`<component-name>.types.ts` file",
+    "private components",
+  ];
+
   for (const reference of requiredSkillReferences) {
     if (!skill.includes(reference)) {
       errors.push(
         `.agents/skills/vidora-frontend-contracts/SKILL.md must reference ${reference}`,
       );
     }
+  }
+
+  for (const phase of requiredWorkflowPhases) {
+    if (!skill.includes(phase)) {
+      errors.push(
+        `.agents/skills/vidora-frontend-contracts/SKILL.md must define ${phase}`,
+      );
+    }
+  }
+
+  for (const phrase of requiredStrictPropsLanguage) {
+    if (!skill.includes(phrase)) {
+      errors.push(
+        `.agents/skills/vidora-frontend-contracts/SKILL.md must state strict props rule: ${phrase}`,
+      );
+    }
+  }
+
+  if (!skill.includes("The shared organization policy in")) {
+    errors.push(
+      ".agents/skills/vidora-frontend-contracts/SKILL.md must reference the shared organization policy",
+    );
+  }
+  if (!implementationWorkflow.includes("logical TypeScript/TSX units")) {
+    errors.push(
+      ".agents/skills/implement-roadmap-task/SKILL.md must reference logical TypeScript/TSX unit organization",
+    );
+  }
+  if (!reviewWorkflow.includes("every changed logical TypeScript/TSX unit")) {
+    errors.push(
+      ".agents/skills/review-roadmap-task/SKILL.md must review logical TypeScript/TSX unit organization",
+    );
   }
 
   const skillPath = ".agents/skills/vidora-frontend-contracts/SKILL.md";
@@ -119,6 +167,261 @@ export function collectGenericComponentFileErrors(relativePaths) {
     }
   }
 
+  return errors;
+}
+
+/**
+ * Enforces the dedicated-directory convention for a supplied component scope.
+ * The scope is explicit so legacy flat components outside the current task do
+ * not force an unrelated repository-wide migration.
+ */
+export function collectComponentDirectoryErrors(relativePaths) {
+  const errors = [];
+  const normalizedPaths = relativePaths.map((path) =>
+    path.replaceAll("\\", "/"),
+  );
+  const pathSet = new Set(normalizedPaths);
+
+  for (const relativePath of normalizedPaths) {
+    if (!isApplicationComponentFile(relativePath)) continue;
+    const filename = relativePath.slice(relativePath.lastIndexOf("/") + 1);
+    const baseName = filename.slice(0, -".tsx".length);
+    const directory = relativePath.slice(0, relativePath.lastIndexOf("/"));
+    const associatedSuffixes = [
+      `.types.ts`,
+      `.constants.ts`,
+      `.utils.ts`,
+      `.test.tsx`,
+      `.test.ts`,
+    ];
+    const hasAssociatedFile = associatedSuffixes.some((suffix) =>
+      pathSet.has(`${directory}/${baseName}${suffix}`),
+    );
+    if (!hasAssociatedFile) continue;
+
+    const directoryName = directory.slice(directory.lastIndexOf("/") + 1);
+    if (directoryName !== baseName) {
+      errors.push(
+        `${relativePath} and its associated files must be colocated in a ${baseName}/ directory`,
+      );
+    }
+  }
+
+  return errors;
+}
+
+/** Rejects generic support filenames inside an explicitly scoped unit directory. */
+export function collectGenericOwnedFileErrors(relativePaths) {
+  const errors = [];
+  const normalizedPaths = relativePaths.map((path) =>
+    path.replaceAll("\\", "/"),
+  );
+  const pathSet = new Set(normalizedPaths);
+  const genericNames = new Set(["types.ts", "constants.ts", "utils.ts"]);
+
+  for (const relativePath of normalizedPaths) {
+    const filename = relativePath.slice(relativePath.lastIndexOf("/") + 1);
+    if (!genericNames.has(filename)) continue;
+    const directory = relativePath.slice(0, relativePath.lastIndexOf("/"));
+    const unitName = directory.slice(directory.lastIndexOf("/") + 1);
+    const hasUnitImplementation = [".ts", ".tsx"].some((extension) =>
+      pathSet.has(`${directory}/${unitName}${extension}`),
+    );
+    if (hasUnitImplementation) {
+      errors.push(
+        `${relativePath} must use an owner-prefixed support filename such as ${unitName}.${filename}`,
+      );
+    }
+  }
+
+  return errors;
+}
+
+function toKebabCase(value) {
+  return value
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+    .replace(/([A-Z])([A-Z][a-z])/g, "$1-$2")
+    .toLowerCase();
+}
+
+function hasJsx(node) {
+  let found = false;
+  function visit(current) {
+    if (
+      current.kind === ts.SyntaxKind.JsxElement ||
+      current.kind === ts.SyntaxKind.JsxSelfClosingElement ||
+      current.kind === ts.SyntaxKind.JsxFragment
+    ) {
+      found = true;
+      return;
+    }
+    ts.forEachChild(current, visit);
+  }
+  visit(node);
+  return found;
+}
+
+function isApplicationComponentFile(relativePath) {
+  const normalizedPath = relativePath.replaceAll("\\", "/");
+  return (
+    /\.tsx$/.test(normalizedPath) &&
+    !/\.test\.tsx$/.test(normalizedPath) &&
+    !/\.spec\.tsx$/.test(normalizedPath) &&
+    !normalizedPath.startsWith("src/components/ui/")
+  );
+}
+
+/**
+ * Audits application-owned component signatures in an explicitly supplied
+ * scope. The caller supplies the changed file set so legacy violations can be
+ * reported without making an unrelated full-repository refactor a prerequisite
+ * for the tooling gate.
+ */
+export function collectComponentPropsContractErrors({
+  relativePath,
+  sourceText,
+  availablePaths = [],
+}) {
+  const errors = [];
+  const normalizedPath = relativePath.replaceAll("\\", "/");
+
+  if (!isApplicationComponentFile(normalizedPath)) {
+    return errors;
+  }
+
+  const sourceFile = ts.createSourceFile(
+    normalizedPath,
+    sourceText,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  );
+  const importedTypes = new Map();
+  const localTypeNames = new Set();
+
+  for (const statement of sourceFile.statements) {
+    if (
+      ts.isTypeAliasDeclaration(statement) ||
+      ts.isInterfaceDeclaration(statement)
+    ) {
+      localTypeNames.add(statement.name.text);
+    }
+
+    if (!ts.isImportDeclaration(statement) || !statement.importClause) {
+      continue;
+    }
+
+    const moduleSpecifier = statement.moduleSpecifier;
+    if (!ts.isStringLiteral(moduleSpecifier)) {
+      continue;
+    }
+
+    const namedBindings = statement.importClause.namedBindings;
+    if (!namedBindings || !ts.isNamedImports(namedBindings)) {
+      continue;
+    }
+
+    for (const element of namedBindings.elements) {
+      importedTypes.set(element.name.text, moduleSpecifier.text);
+    }
+  }
+
+  const availablePathSet = new Set(
+    availablePaths.map((path) => path.replaceAll("\\", "/")),
+  );
+
+  function report(node, message) {
+    const line =
+      sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1;
+    errors.push(`${normalizedPath}:${line} ${message}`);
+  }
+
+  function inspectComponent(name, parameter) {
+    if (!parameter) {
+      return;
+    }
+
+    const typeNode = parameter.type;
+    const expectedTypeName = `${name}Props`;
+    const expectedModule = `./${toKebabCase(name)}.types`;
+    const expectedCompanion = `${normalizedPath.slice(
+      0,
+      normalizedPath.lastIndexOf("/") + 1,
+    )}${toKebabCase(name)}.types.ts`;
+
+    if (!typeNode) {
+      report(parameter, `component ${name} must use ${expectedTypeName}`);
+      return;
+    }
+
+    if (ts.isTypeLiteralNode(typeNode) || ts.isIntersectionTypeNode(typeNode)) {
+      report(parameter, `component ${name} must not use an inline props type`);
+      return;
+    }
+
+    if (!ts.isTypeReferenceNode(typeNode)) {
+      report(parameter, `component ${name} must use ${expectedTypeName}`);
+      return;
+    }
+
+    const typeName = typeNode.typeName.getText(sourceFile);
+    if (typeName !== expectedTypeName) {
+      report(
+        parameter,
+        `component ${name} must use the dedicated ${expectedTypeName} contract`,
+      );
+      return;
+    }
+
+    if (localTypeNames.has(expectedTypeName)) {
+      report(
+        parameter,
+        `component ${name} must import ${expectedTypeName} from ${expectedCompanion}`,
+      );
+      return;
+    }
+
+    if (importedTypes.get(expectedTypeName) !== expectedModule) {
+      report(
+        parameter,
+        `component ${name} must import ${expectedTypeName} from ${expectedModule}`,
+      );
+      return;
+    }
+
+    if (!availablePathSet.has(expectedCompanion)) {
+      report(parameter, `missing companion file ${expectedCompanion}`);
+    }
+  }
+
+  function visit(node) {
+    if (
+      ts.isFunctionDeclaration(node) &&
+      node.name &&
+      /^[A-Z]/.test(node.name.text)
+    ) {
+      if (hasJsx(node.body)) {
+        inspectComponent(node.name.text, node.parameters[0], node);
+      }
+    }
+
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name)) {
+      const initializer = node.initializer;
+      if (
+        /^[A-Z]/.test(node.name.text) &&
+        initializer &&
+        (ts.isArrowFunction(initializer) ||
+          ts.isFunctionExpression(initializer)) &&
+        hasJsx(initializer.body)
+      ) {
+        inspectComponent(node.name.text, initializer.parameters[0], node);
+      }
+    }
+
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
   return errors;
 }
 
@@ -228,6 +531,17 @@ export function collectAgentToolingErrors(root = process.cwd()) {
     assertNonEmpty(relativePath);
   }
 
+  assertContains(
+    "instructions/project-organization.md",
+    "## 6.1 Logical code-unit ownership and companion files",
+    "the shared logical code-unit organization policy",
+  );
+  assertContains(
+    "instructions/project-organization.md",
+    "When a unit has more than one associated file",
+    "the companion-directory rule",
+  );
+
   const frontendSkill = assertNonEmpty(
     ".agents/skills/vidora-frontend-contracts/SKILL.md",
   );
@@ -256,6 +570,16 @@ export function collectAgentToolingErrors(root = process.cwd()) {
   }
 
   errors.push(...collectGenericComponentFileErrors(listFiles(root, "src")));
+  errors.push(
+    ...collectComponentDirectoryErrors(
+      listFiles(root, "src/modules/footage/public/search"),
+    ),
+  );
+  errors.push(
+    ...collectGenericOwnedFileErrors(
+      listFiles(root, "src/modules/footage/public/search"),
+    ),
+  );
 
   const adrTitles = [
     ["docs/adr/0001-nextjs-modular-monolith.md", "# ADR-0001:"],
