@@ -149,7 +149,7 @@ export function HomepageSearchControls(props: HomepageSearchControlsProps) {
         <section
           aria-labelledby="suggested-categories-heading"
           id="homepage-categories"
-          className="mt-3 flex flex-col gap-3 border-t border-border/70 py-3"
+          className="mt-3 scroll-mt-20 flex flex-col gap-3 border-t border-border/70 py-3"
           data-slot="suggested-categories"
         >
           <div className="flex flex-row gap-x-2 items-center">
@@ -161,7 +161,7 @@ export function HomepageSearchControls(props: HomepageSearchControlsProps) {
               دسته‌بندی‌های پیشنهادی
             </h2>
           </div>
-          <ul className="grid grid-cols-4 gap-2 rounded-xl bg-muted py-1.5 border px-1.5">
+          <ul className="grid grid-cols-2 gap-2 rounded-xl border bg-muted px-1.5 py-1.5 sm:grid-cols-4">
             {suggestedCategories.map((option, index) => {
               const Icon = suggestedCategoryIcons[index];
               const isActive = category === option.value;

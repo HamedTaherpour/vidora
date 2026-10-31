@@ -76,10 +76,10 @@ Agents must not implement later roadmap tasks opportunistically.
 ## Status and authority
 
 This section is the authoritative execution order for unfinished V1 work. The
-existing application's visual design is **not approved** and must not be used
-as the target appearance. Existing UI may be inspected for functional behavior,
-product requirements, data contracts, security boundaries, and reusable logic;
-it does not dictate the new presentation. The execution order is: approve a
+existing application's unreconciled visual design is not a general approval
+target. Existing UI may be inspected for functional behavior, product
+requirements, data contracts, security boundaries, and reusable logic; it does
+not dictate future presentation. The execution order remains: approve a
 minimal MVP visual direction, approve public pages with deterministic fixtures,
 approve Admin pages with deterministic fixtures, connect approved pages to
 backend capabilities one at a time, complete production workflows, and finally
@@ -103,16 +103,48 @@ visual consistency. Passing tests alone does not complete a page.
 
 ### Routes discovered at restructuring time
 
-| Surface                             | Implemented route               | Planning status                                                                                                                          |
-| ----------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Public catalog/home                 | `/`                             | Implemented as a database-backed published-footage list; not yet an approved complete public home page.                                  |
-| Public footage detail               | `/footage/[slug]`               | Planned in the component contract; route/query do not exist.                                                                             |
-| Public browse/search                | `/`                             | Homepage hero owns fixture-backed search and category filtering; no dedicated browse route.                                              |
-| Customer session status             | `/session`, `/session/continue` | Implemented session-status surfaces; they are not a complete OTP UI.                                                                     |
-| Customer library, checkout, invoice | No routes                       | Planned product surfaces; dependent backend workflows are not implemented.                                                               |
-| Admin footage catalog               | `/admin/footage`                | Implemented operational surface.                                                                                                         |
-| Admin footage editor                | `/admin/footage/[id]/edit`      | Implemented operational surface.                                                                                                         |
-| Other Admin areas                   | No routes                       | Product requirements mention orders, payments/support, users, and blog, but their backend capability and routes are not yet implemented. |
+| Surface                             | Implemented route               | Planning status                                                                                                                                                                       |
+| ----------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Public catalog/home                 | `/`                             | Fixture-backed homepage with approved Hero/Header, search/category controls, responsive gallery, URL pagination, and preview interactions; not a database-backed catalog integration. |
+| Public footage detail               | `/footage/[slug]`               | Fixture-backed Commerce detail composition exists; production detail query and backend-connected integration remain pending.                                                          |
+| Public browse/search                | `/`                             | Homepage hero owns fixture-backed search and category filtering; no dedicated browse route.                                                                                           |
+| Customer session status             | `/session`, `/session/continue` | Implemented session-status surfaces; they are not a complete OTP UI.                                                                                                                  |
+| Customer library, checkout, invoice | No routes                       | Planned product surfaces; dependent backend workflows are not implemented.                                                                                                            |
+| Admin footage catalog               | `/admin/footage`                | Implemented operational surface.                                                                                                                                                      |
+| Admin footage editor                | `/admin/footage/[id]/edit`      | Implemented operational surface.                                                                                                                                                      |
+| Other Admin areas                   | No routes                       | Product requirements mention orders, payments/support, users, and blog, but their backend capability and routes are not yet implemented.                                              |
+
+### Current homepage approval boundary
+
+The implemented `/` surface is a deterministic fixture-backed homepage. The
+approved scope includes the Hero and Header, homepage search and category
+controls, the responsive footage gallery, URL-based pagination, footage preview
+interactions, and Footage-module ownership of catalog preparation. These are
+presentation approvals only; they do not authorize database-backed catalog
+integration or future public pages.
+
+The product owner visually approved the PUB-02S gallery/card refinement in the
+project discussion. The available browser surface could not exercise the
+requested 360px, 768px, 1280px, and 1920px viewport matrix, so that limitation
+remains recorded in the PUB-02S handoff and QA audit. Unapproved page states,
+future routes, and backend-connected variants remain subject to the page
+approval gate below.
+
+### Public UI status reconciliation
+
+The statuses below distinguish implementation evidence from independent review
+and product-owner approval. A passing build or commit is not treated as product
+approval.
+
+| Task           | Implemented scope and verification                                                                                                      | Independent review / approval evidence                                                                                                                                                | Reconciled status  |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| `UI-DESIGN-01` | Visual direction, tokens, RTL rules, and review checklist are documented.                                                               | No task-specific product-owner approval record was supplied.                                                                                                                          | `READY_FOR_REVIEW` |
+| `UI-MOCK-01`   | Typed deterministic fixture boundary and focused fixture evidence exist.                                                                | No task-specific product-owner approval record was supplied.                                                                                                                          | `READY_FOR_REVIEW` |
+| `PUB-01`       | Fixture-backed homepage shell, Hero/Header composition, states, and focused UI evidence exist.                                          | Product-owner approval of the Homepage Hero, Header, and Footage Gallery is recorded; viewport-matrix limitations remain documented.                                                  | `DONE`             |
+| `PUB-02`       | Homepage search/category controls use fixture data and URL-owned state; focused tests pass.                                             | Homepage search/category behavior is included in the product-owner-approved public UI; release verification preserves URL state and interaction coverage.                             | `DONE`             |
+| `PUB-02R`      | Browse/search relocation into the homepage Hero is implemented; focused interaction tests and QA-05 smoke evidence exist.               | Homepage Hero/search relocation is included in the product-owner-approved public UI; release verification confirms the final composition and preserved URL behavior.                  | `DONE`             |
+| `PUB-02S`      | Fixture-backed 12-item gallery, responsive grid, URL pagination, scroll behavior, and preview interaction are implemented and verified. | QA-05 provides independent final review evidence; the product owner visually approved the gallery/card refinement in the project discussion. The viewport matrix remains unavailable. | `DONE`             |
+| `PUB-03`       | Fixture-backed Commerce detail composition, states, focused tests, and card links exist.                                                | Product owner approved Commerce; release verification confirms the route, safe fixture states, invalid-slug handling, and absence of alternate detail variants.                       | `DONE`             |
 
 ## UI fixture strategy
 
@@ -298,13 +330,28 @@ into the homepage hero and the removal of the dedicated browse route.
 
 PUB-02R verification includes a narrow RTL browser check of the unified control
 and focused submit/category/clear interaction tests. Product-owner visual approval
-of the final homepage remains required before this task can be marked `DONE`.
+of the final homepage is recorded in the release reconciliation above.
+
+---
+
+### PUB-02R — Relocate browse/search interaction into homepage hero
+
+**Status:** DONE
+**Depends On:** PUB-02.
+
+**Scope:** Retain the fixture-backed browse/search interaction inside the
+homepage Hero, remove the dedicated browse route from the UI-first plan, and
+preserve URL-owned query/category state.
+
+**Evidence:** The relocation is implemented and covered by focused interaction
+tests, the QA-05 browser smoke check, and final release verification. The
+product owner approved the resulting homepage composition.
 
 ---
 
 ### PUB-02S — Homepage Footage Gallery
 
-**Status:** READY_FOR_REVIEW
+**Status:** DONE
 **Depends On:** PUB-01, PUB-02R.
 
 **Scope / route:** Refine the homepage footage listing at `/` with a fixture-backed
@@ -331,7 +378,9 @@ filters and search reset pagination; query state is shareable and Back/Forward
 safe; page changes scroll to the gallery section without obscuring its heading;
 only an intentional active preview loads/plays at a time; focused tests, lint,
 typecheck, build, diff checks, independent review, and desktop/mobile visual
-approval are recorded. Leave the task `READY_FOR_REVIEW` until visual approval.
+approval are recorded. The product-owner visual approval is recorded in the
+project discussion; the unavailable viewport matrix remains a documented
+verification limitation rather than an unsupported claim of coverage.
 
 **Explicit exclusions:** detail-route work, Hero/Header redesign, backend/API or
 database changes, purchasing/authentication, infinite scroll, media processing,
@@ -341,12 +390,12 @@ and a component-folder architecture refactor.
 
 ### PUB-03 — Footage Detail UI
 
-**Status:** TODO
+**Status:** DONE
 **Depends On:** PUB-01.
 
-**Scope / route:** Build the planned `/footage/[slug]` composition against a
-fixture-backed public detail view model. The route is planned, not currently
-implemented.
+**Scope / route:** Build the `/footage/[slug]` composition against a
+fixture-backed public detail view model. The route is implemented as the
+approved Commerce detail surface; it is not a production catalog integration.
 
 **Components and mock data:** compose primary cover, `VideoPreview`, metadata,
 category/tags, available-quality presentation, and `BuyNowArea` using ready,
@@ -366,8 +415,13 @@ controls, support keyboard actions and focus, and avoid overflow with Persian
 and LTR technical values.
 
 **Acceptance and verification:** detail behavior follows the approved component
-contract, has focused rendering/state tests, independent review, and recorded
-mobile/desktop visual approval.
+contract, has focused rendering/state tests, release verification, and recorded
+product-owner approval of the Commerce layout. Exact viewport-matrix coverage
+remains unavailable and is documented as a limitation.
+
+**Design finalization:** The product owner approved the Commerce layout. Cinema
+and Editorial are not implemented detail variants and are not part of the
+approved public UI.
 
 **Explicit exclusions:** slug/database resolution, real preview requests,
 order creation, payment, entitlement, or original download.
@@ -728,10 +782,39 @@ verification.
 - Account recovery/phone-change behavior, refund eligibility, and download
   limits remain undefined and must not be invented.
 - Image/media retention and cleanup policy remain unresolved.
+- Image delivery policy (`next/image` versus direct image sources) remains
+  unresolved; the existing raw-image lint warnings remain tracked.
+- Admin Cover Editor and Upload Panel lifecycle-hook extraction remains deferred
+  until workflow-level regression coverage justifies crossing the canvas and
+  object-storage boundaries.
+- Browser viewport verification remains limited by the available browser
+  surface; this is not an automatic blocker for `PUB-03`.
 
-**Recommended first implementation task:** `UI-DESIGN-01`. It resolves the
-visual target and review standard before fixture architecture or any page is
-rebuilt.
+The UI-first sequence has now advanced through the approved fixture-backed
+homepage, homepage refinement, and Commerce detail work. **Next planned
+public-facing implementation task:** `PUB-04 — Customer Authentication and
+Continuation UI`. Production data integration, checkout, payment, entitlement,
+and protected media delivery remain separate work.
+
+## Quality work reconciliation — VIDORA-QA-01 through QA-06
+
+The completed quality work is historical support for the product sequence, not
+a new set of roadmap implementation tasks. See the consolidated audit
+[`docs/audits/VIDORA-QA-01.md`](audits/VIDORA-QA-01.md) and reference commit
+`775e073` for the recorded evidence.
+
+- QA-01: architecture, module-boundary, and image-policy audit.
+- QA-01S: named event-handler and custom-hook standards.
+- QA-02: Footage Card preview architecture and focused interaction coverage.
+- QA-03: component-owned naming, JSDoc, and preview-test cleanup.
+- QA-04: typography-alias removal and architecture cleanup.
+- QA-05: final review, including the homepage smoke evidence and documented
+  viewport/image-policy limitations.
+- QA-06: local commit consolidation in `775e073`.
+
+These follow-ups remain documented rather than becoming redundant product tasks:
+raw-image warnings/image delivery policy, deferred Admin Cover Editor and Upload
+Panel hook extraction, and unavailable viewport-matrix verification.
 
 ## Roadmap status audit — baseline `17500a1`
 

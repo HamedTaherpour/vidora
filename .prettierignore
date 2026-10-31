@@ -8,4 +8,7 @@ package-lock.json
 yarn.lock
 *.tsbuildinfo
 src/generated
-.agents/skills/shadcn/
+
+# Vendored third-party skills are externally maintained and are not project source.
+.agents/skills/
+.claude/skills/

@@ -31,7 +31,7 @@ export function PublicHomePage(props: PublicHomePageProps) {
               data-slot="hero-copy"
               className="flex max-w-3xl flex-col items-center gap-5"
             >
-              <h1 className="text-3xl leading-10 font-extrabold tracking-tight text-background md:text-5xl md:leading-tight">
+              <h1 className="text-3xl leading-10 font-bold tracking-tight text-background md:text-5xl md:leading-tight">
                 برای هر ایده، <TextHighlight>فوتیج</TextHighlight>‌ مناسب رو
                 انتخاب کن و داستانت رو بساز
               </h1>
