@@ -55,6 +55,26 @@ describe("FootageCard", () => {
     expect(html).not.toContain("<button");
     expect(html).not.toContain("<video");
   });
+
+  it("renders a safe 16:9 fallback when the cover is unavailable", () => {
+    const html = renderToStaticMarkup(
+      <FootageCard
+        footage={{
+          ...footage,
+          cover: {
+            status: "unavailable",
+            altFa: "تصویر جلد در دسترس نیست",
+          },
+        }}
+      />,
+    );
+
+    expect(html).toContain("تصویر جلد در دسترس نیست");
+    expect(html).toContain("aspect-video");
+    expect(html).not.toContain("objectKey");
+    expect(html).not.toContain("signed");
+    expect(html).not.toContain("<img");
+  });
 });
 
 describe("PublicFootageListView", () => {
@@ -63,6 +83,15 @@ describe("PublicFootageListView", () => {
 
     expect(html).toContain("هنوز فوتیج منتشرشده‌ای برای نمایش وجود ندارد");
     expect(html).toContain('role="status"');
+  });
+
+  it("distinguishes a filtered no-match state from an empty catalog", () => {
+    const html = renderToStaticMarkup(
+      <PublicFootageListView footage={[]} query="وجود ندارد" />,
+    );
+
+    expect(html).toContain("با این جست‌وجو یا دسته‌بندی فوتیجی پیدا نشد");
+    expect(html).not.toContain("هنوز فوتیج منتشرشده‌ای برای نمایش وجود ندارد");
   });
 
   it("renders a responsive listing grid", () => {

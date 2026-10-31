@@ -7,7 +7,9 @@ export type PublicFootageCatalogItem = {
     slug: string;
     nameFa: string;
   };
-  cover: { status: "ready"; src: string; altFa: string };
+  cover:
+    | { status: "ready"; src: string; altFa: string }
+    | { status: "unavailable"; altFa: string };
   preview: {
     status: "ready" | "unavailable";
   };

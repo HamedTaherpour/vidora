@@ -1,5 +1,6 @@
 import { formatTomanDisplay } from "@/modules/footage/format-toman-display";
 import type { FootageCardProps } from "@/modules/footage/public/components/footage-card/footage-card.types";
+import Link from "next/link";
 
 export function FootageCard(props: FootageCardProps) {
   const { footage } = props;
@@ -17,11 +18,18 @@ export function FootageCard(props: FootageCardProps) {
         role="group"
         aria-label={`${footage.titleFa} — ${footage.category.nameFa} — ${previewLabel}`}
       >
-        <img
-          src={footage.cover.src}
-          alt={footage.cover.altFa}
-          className="h-full w-full object-cover"
-        />
+        {footage.cover.status === "ready" ? (
+          <img
+            src={footage.cover.src}
+            alt={footage.cover.altFa}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center gap-2 bg-muted px-6 text-center text-muted-foreground">
+            <span className="text-sm font-medium">تصویر جلد در دسترس نیست</span>
+            <span className="text-ui-small">{footage.category.nameFa}</span>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col gap-4 p-5">
@@ -30,12 +38,12 @@ export function FootageCard(props: FootageCardProps) {
             {footage.category.nameFa}
           </p>
           <h2 className="text-ui-h3 font-semibold">
-            <a
+            <Link
               className="rounded-sm underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               href={`/footage/${footage.slug}`}
             >
               {footage.titleFa}
-            </a>
+            </Link>
           </h2>
         </div>
 

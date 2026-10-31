@@ -1,0 +1,245 @@
+"use client";
+
+import { Building2, Cpu, Leaf, Plane, Search, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { type FormEvent, useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+
+type HomepageSearchControlsProps = {
+  query: string;
+  category: string;
+  categories: Array<{ value: string; labelFa: string }>;
+  scenario?: string;
+};
+
+const suggestedCategoryIcons = [Leaf, Building2, Plane, Cpu] as const;
+
+export function createHomepageSearchControlsKey(
+  query: string,
+  scenario?: string,
+) {
+  return `${query}\u0000${scenario ?? ""}`;
+}
+
+export function createHomepageUrl({
+  query,
+  category,
+  scenario,
+}: {
+  query: string;
+  category: string;
+  scenario?: string;
+}) {
+  const params = new URLSearchParams();
+  if (query.trim()) params.set("q", query.trim());
+  if (category) params.set("category", category);
+  if (scenario) params.set("scenario", scenario);
+  const search = params.toString();
+  return search ? `/?${search}` : "/";
+}
+
+export function createHomepageSearchUrl({
+  draftQuery,
+  category,
+  scenario,
+}: {
+  draftQuery: string;
+  category: string;
+  scenario?: string;
+}) {
+  return createHomepageUrl({ query: draftQuery, category, scenario });
+}
+
+export function createHomepageCategoryUrl({
+  query,
+  category,
+  scenario,
+}: {
+  query: string;
+  category: string;
+  scenario?: string;
+}) {
+  return createHomepageUrl({ query, category, scenario });
+}
+
+export function createHomepageClearUrl(scenario?: string) {
+  return createHomepageUrl({ query: "", category: "", scenario });
+}
+
+export function hasHomepageClearableState({
+  query,
+  category,
+  draftQuery,
+}: {
+  query: string;
+  category: string;
+  draftQuery: string;
+}) {
+  return Boolean(
+    category || query.trim().length > 0 || draftQuery.trim().length > 0,
+  );
+}
+
+export function HomepageSearchControls(props: HomepageSearchControlsProps) {
+  const { query, category, categories, scenario } = props;
+  const router = useRouter();
+  const [draftQuery, setDraftQuery] = useState(query);
+
+  const hasClearableState = hasHomepageClearableState({
+    query,
+    category,
+    draftQuery,
+  });
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    router.push(createHomepageSearchUrl({ draftQuery, category, scenario }));
+  }
+
+  function handleCategoryChange(value: string) {
+    router.push(
+      createHomepageCategoryUrl({ query, category: value, scenario }),
+    );
+  }
+
+  function handleClear() {
+    setDraftQuery("");
+    router.push(createHomepageClearUrl(scenario));
+  }
+
+  const suggestedCategories = categories.slice(0, 4);
+
+  return (
+    <Card className="w-full lg:w-4xl mx-auto block p-0">
+      <CardContent className="px-2.5">
+        <form
+          action="/"
+          method="get"
+          onSubmit={handleSubmit}
+          className="grid w-full pt-2.5 grid-cols-[auto_auto_minmax(0,1fr)] gap-2 sm:flex sm:items-center"
+          aria-label="جست‌وجو و فیلتر فوتیج"
+        >
+          <label className="order-4 col-span-full flex items-center gap-2 px-3 pt-2 text-sm font-medium sm:order-none sm:col-span-auto sm:pt-0">
+            <span className="sr-only">دسته‌بندی فوتیج</span>
+            <Select
+              value={category || "all"}
+              onValueChange={(value) =>
+                handleCategoryChange(
+                  value === null || value === "all" ? "" : value,
+                )
+              }
+            >
+              <SelectTrigger
+                data-control="category"
+                aria-label="دسته‌بندی فوتیج"
+                className="h-9 min-w-32 border-0 bg-transparent shadow-none"
+              >
+                <SelectValue placeholder="همه دسته‌بندی‌ها" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="all">همه دسته‌بندی‌ها</SelectItem>
+                  {categories.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.labelFa}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </label>
+          <Separator
+            orientation="vertical"
+            aria-hidden="true"
+            className="order-5 hidden h-8 sm:order-none sm:block my-auto"
+          />
+          <Input
+            id="homepage-search"
+            data-control="search-input"
+            name="q"
+            type="search"
+            value={draftQuery}
+            onChange={(event) => setDraftQuery(event.target.value)}
+            placeholder="مثلاً: خیابان بارانی تهران"
+            aria-label="جست‌وجوی فوتیج"
+            className="order-1 h-11 min-w-0 w-full border-0 bg-transparent px-3 shadow-none sm:order-none"
+          />
+          {hasClearableState && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-lg"
+              data-control="clear"
+              aria-label="پاک کردن جست‌وجو و فیلترها"
+              onClick={handleClear}
+              className="order-2 sm:order-none"
+            >
+              <X aria-hidden="true" />
+            </Button>
+          )}
+          <Button
+            type="submit"
+            data-control="submit"
+            size="lg"
+            className="order-3 gap-2 px-5 sm:order-none h-10"
+          >
+            <Search aria-hidden="true" data-icon="inline-start" />
+            جست‌وجو
+          </Button>
+        </form>
+        <section
+          aria-labelledby="suggested-categories-heading"
+          id="homepage-categories"
+          className="mt-3 flex flex-col gap-3 border-t border-border/70 pt-3 py-2.5"
+          data-slot="suggested-categories"
+        >
+          <h2
+            id="suggested-categories-heading"
+            className="text-sm font-bold text-muted-foreground text-right"
+          >
+            دسته‌بندی‌های پیشنهادی
+          </h2>
+          <ul className="grid grid-cols-4 gap-2 rounded-2xl bg-muted py-1.5">
+            {suggestedCategories.map((option, index) => {
+              const Icon = suggestedCategoryIcons[index];
+              const isActive = category === option.value;
+
+              return (
+                <li key={option.value}>
+                  <Button
+                    type="button"
+                    variant={isActive ? "default" : "ghost"}
+                    size="lg"
+                    data-control="suggested-category"
+                    data-category={option.value}
+                    aria-pressed={isActive}
+                    aria-label={`دسته‌بندی ${option.labelFa}`}
+                    onClick={() =>
+                      handleCategoryChange(isActive ? "" : option.value)
+                    }
+                    className="gap-2.5 w-full"
+                  >
+                    <Icon aria-hidden="true" data-icon="inline-start" />
+                    {option.labelFa}
+                  </Button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      </CardContent>
+    </Card>
+  );
+}

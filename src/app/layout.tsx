@@ -14,8 +14,8 @@ const vazirmatn = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "App",
-  description: "Application foundation",
+  title: "ویدورا | بازار فوتیج حرفه‌ای",
+  description: "فوتیج‌های حرفه‌ای و آماده استفاده برای پروژه‌های ویدیویی شما.",
 };
 
 type RootLayoutProps = {

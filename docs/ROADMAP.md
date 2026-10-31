@@ -107,7 +107,7 @@ visual consistency. Passing tests alone does not complete a page.
 | ----------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | Public catalog/home                 | `/`                             | Implemented as a database-backed published-footage list; not yet an approved complete public home page.                                  |
 | Public footage detail               | `/footage/[slug]`               | Planned in the component contract; route/query do not exist.                                                                             |
-| Public browse/search                | No dedicated route              | Planned; route must be selected from the catalog contract during implementation, without adding unsupported discovery behavior.          |
+| Public browse/search                | `/`                             | Homepage hero owns fixture-backed search and category filtering; no dedicated browse route.                                              |
 | Customer session status             | `/session`, `/session/continue` | Implemented session-status surfaces; they are not a complete OTP UI.                                                                     |
 | Customer library, checkout, invoice | No routes                       | Planned product surfaces; dependent backend workflows are not implemented.                                                               |
 | Admin footage catalog               | `/admin/footage`                | Implemented operational surface.                                                                                                         |
@@ -138,7 +138,7 @@ approach authorized for the two UI phases:
 
 ### UI-DESIGN-01 — Establish MVP Visual Direction
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 
 **Depends On:** UI-01, UI-02, AI-GOV-01.
 
@@ -186,7 +186,7 @@ Pexels/shadcn assets/layouts, API/schema/authentication/business-rule changes.
 
 ### UI-MOCK-01 — Establish Typed UI Fixture Boundary
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 **Depends On:** UI-DESIGN-01 approval, UI-01, UI-02.
 
 **Scope / route:** Shared fixture and local-loader convention for planned
@@ -227,7 +227,7 @@ catalog rules, and all authorization/media constraints remain unchanged.
 
 ### PUB-01 — Public Shell and Home Presentation
 
-**Status:** TODO
+**Status:** DONE
 **Depends On:** UI-MOCK-01.
 
 **Scope / route:** Complete the public page composition at `/` using fixtures.
@@ -262,17 +262,18 @@ commerce, and new public destinations without product support.
 
 ### PUB-02 — Browse, Search, and Filter UI
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 **Depends On:** PUB-01.
 
-**Scope / route:** Add the planned public catalog browse/search surface. The
-exact route is selected from the existing catalog contract during implementation
-and recorded; no currently implemented dedicated route is claimed.
+**Scope / route:** Add the planned public catalog browse/search surface inside
+the homepage hero at `/`, using URL-owned `q` and `category` parameters; no
+dedicated browse route or backend catalog query is introduced.
 
-**Components and mock data:** compose `SearchBar`, `FilterControls`, result
-list, and URL-state presentation with fixture-supplied approved options and
-results. Only category/tag/technical filters that the later catalog boundary
-can support may be visually represented.
+**Components and mock data:** compose the homepage
+`HomepageSearchControls`, existing result list/card components, and URL-state
+presentation with fixture-supplied approved options and results. Only
+category/tag/technical filters that the later catalog boundary can support may
+be visually represented.
 
 **Pexels-inspired presentation:** prominent practical search, clear result
 context, compact progressive filters, and uncluttered responsive discovery;
@@ -291,6 +292,13 @@ independent review passes, and visual approval covers narrow and wide screens.
 
 **Explicit exclusions:** relevance algorithm, autocomplete, unapproved sort or
 filter, external search service, and database search implementation.
+
+`PUB-02R` records the approved relocation of this fixture-backed interaction
+into the homepage hero and the removal of the dedicated browse route.
+
+PUB-02R verification includes a narrow RTL browser check of the unified control
+and focused submit/category/clear interaction tests. Product-owner visual approval
+of the final homepage remains required before this task can be marked `DONE`.
 
 ---
 

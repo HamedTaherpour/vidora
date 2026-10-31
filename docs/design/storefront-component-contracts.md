@@ -151,6 +151,11 @@ The rendered value is the current URL query. While editing, the input has local 
 
 Submit on Enter or the submit button. Trim leading/trailing whitespace. The server owns the final normalization, length limits, and validation. Clear removes only `q` and preserves compatible category, repeated tag, sort, and future pagination parameters.
 
+The homepage hero's unified `HomepageSearchControls` is a page-specific composition
+for `PUB-02R`: its compact clear action intentionally resets both the applied query
+and the homepage category. That behavior is an explicit exception to the standalone
+`SearchBar` contract above and does not change the future standalone component.
+
 ### Responsive behavior
 
 The form may become full-width on narrow screens and align with surrounding controls on larger screens. It must not require a horizontal toolbar that overflows on mobile.
