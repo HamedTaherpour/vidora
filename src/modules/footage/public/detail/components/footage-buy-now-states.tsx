@@ -14,7 +14,7 @@ type FootageBuyNowStatesProps = {
 
 export function FootageBuyNowStates(props: FootageBuyNowStatesProps) {
   const { footage } = props;
-  const authenticationHref = `/session?continue=${encodeURIComponent(`/footage/${footage.slug}`)}`;
+  const authenticationHref = `/login?returnTo=${encodeURIComponent(`/footage/${footage.slug}`)}`;
 
   return (
     <Card className="gap-0">

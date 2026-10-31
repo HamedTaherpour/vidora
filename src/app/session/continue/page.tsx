@@ -1,7 +1,7 @@
-import { CustomerSessionStatus } from "../customer-session-status";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default function RestoredSessionPage() {
-  return <CustomerSessionStatus heading="Customer session restored" />;
+  redirect("/login/continue");
 }

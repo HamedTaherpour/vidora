@@ -31,7 +31,7 @@ describe("PublicHomePage", () => {
 
     expect(html).toContain("پرواز پرندگان بر فراز کوهستان");
     expect(html).toContain('href="/footage/پرواز-پرندگان-بر-فراز-کوهستان"');
-    expect(html).toContain('href="/session"');
+    expect(html).toContain('href="/login"');
     expect(html).not.toContain("objectKey");
     expect(html).not.toContain("signedUrl");
     expect(html).toContain('aria-label="جست‌وجو و فیلتر فوتیج"');

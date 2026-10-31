@@ -103,16 +103,16 @@ visual consistency. Passing tests alone does not complete a page.
 
 ### Routes discovered at restructuring time
 
-| Surface                             | Implemented route               | Planning status                                                                                                                                                                       |
-| ----------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Public catalog/home                 | `/`                             | Fixture-backed homepage with approved Hero/Header, search/category controls, responsive gallery, URL pagination, and preview interactions; not a database-backed catalog integration. |
-| Public footage detail               | `/footage/[slug]`               | Fixture-backed Commerce detail composition exists; production detail query and backend-connected integration remain pending.                                                          |
-| Public browse/search                | `/`                             | Homepage hero owns fixture-backed search and category filtering; no dedicated browse route.                                                                                           |
-| Customer session status             | `/session`, `/session/continue` | Implemented session-status surfaces; they are not a complete OTP UI.                                                                                                                  |
-| Customer library, checkout, invoice | No routes                       | Planned product surfaces; dependent backend workflows are not implemented.                                                                                                            |
-| Admin footage catalog               | `/admin/footage`                | Implemented operational surface.                                                                                                                                                      |
-| Admin footage editor                | `/admin/footage/[id]/edit`      | Implemented operational surface.                                                                                                                                                      |
-| Other Admin areas                   | No routes                       | Product requirements mention orders, payments/support, users, and blog, but their backend capability and routes are not yet implemented.                                              |
+| Surface                             | Implemented route           | Planning status                                                                                                                                                                       |
+| ----------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Public catalog/home                 | `/`                         | Fixture-backed homepage with approved Hero/Header, search/category controls, responsive gallery, URL pagination, and preview interactions; not a database-backed catalog integration. |
+| Public footage detail               | `/footage/[slug]`           | Fixture-backed Commerce detail composition exists; production detail query and backend-connected integration remain pending.                                                          |
+| Public browse/search                | `/`                         | Homepage hero owns fixture-backed search and category filtering; no dedicated browse route.                                                                                           |
+| Customer authentication             | `/login`, `/login/continue` | Minimal fixture-backed phone/OTP presentation; `/session` compatibility routes redirect to the public login routes.                                                                   |
+| Customer library, checkout, invoice | No routes                   | Planned product surfaces; dependent backend workflows are not implemented.                                                                                                            |
+| Admin footage catalog               | `/admin/footage`            | Implemented operational surface.                                                                                                                                                      |
+| Admin footage editor                | `/admin/footage/[id]/edit`  | Implemented operational surface.                                                                                                                                                      |
+| Other Admin areas                   | No routes                   | Product requirements mention orders, payments/support, users, and blog, but their backend capability and routes are not yet implemented.                                              |
 
 ### Current homepage approval boundary
 
@@ -136,15 +136,16 @@ The statuses below distinguish implementation evidence from independent review
 and product-owner approval. A passing build or commit is not treated as product
 approval.
 
-| Task           | Implemented scope and verification                                                                                                      | Independent review / approval evidence                                                                                                                                                | Reconciled status  |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| `UI-DESIGN-01` | Visual direction, tokens, RTL rules, and review checklist are documented.                                                               | No task-specific product-owner approval record was supplied.                                                                                                                          | `READY_FOR_REVIEW` |
-| `UI-MOCK-01`   | Typed deterministic fixture boundary and focused fixture evidence exist.                                                                | No task-specific product-owner approval record was supplied.                                                                                                                          | `READY_FOR_REVIEW` |
-| `PUB-01`       | Fixture-backed homepage shell, Hero/Header composition, states, and focused UI evidence exist.                                          | Product-owner approval of the Homepage Hero, Header, and Footage Gallery is recorded; viewport-matrix limitations remain documented.                                                  | `DONE`             |
-| `PUB-02`       | Homepage search/category controls use fixture data and URL-owned state; focused tests pass.                                             | Homepage search/category behavior is included in the product-owner-approved public UI; release verification preserves URL state and interaction coverage.                             | `DONE`             |
-| `PUB-02R`      | Browse/search relocation into the homepage Hero is implemented; focused interaction tests and QA-05 smoke evidence exist.               | Homepage Hero/search relocation is included in the product-owner-approved public UI; release verification confirms the final composition and preserved URL behavior.                  | `DONE`             |
-| `PUB-02S`      | Fixture-backed 12-item gallery, responsive grid, URL pagination, scroll behavior, and preview interaction are implemented and verified. | QA-05 provides independent final review evidence; the product owner visually approved the gallery/card refinement in the project discussion. The viewport matrix remains unavailable. | `DONE`             |
-| `PUB-03`       | Fixture-backed Commerce detail composition, states, focused tests, and card links exist.                                                | Product owner approved Commerce; release verification confirms the route, safe fixture states, invalid-slug handling, and absence of alternate detail variants.                       | `DONE`             |
+| Task           | Implemented scope and verification                                                                                                                                       | Independent review / approval evidence                                                                                                                                                                                                                                                        | Reconciled status  |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| `UI-DESIGN-01` | Visual direction, tokens, RTL rules, and review checklist are documented.                                                                                                | No task-specific product-owner approval record was supplied.                                                                                                                                                                                                                                  | `READY_FOR_REVIEW` |
+| `UI-MOCK-01`   | Typed deterministic fixture boundary and focused fixture evidence exist.                                                                                                 | No task-specific product-owner approval record was supplied.                                                                                                                                                                                                                                  | `READY_FOR_REVIEW` |
+| `PUB-01`       | Fixture-backed homepage shell, Hero/Header composition, states, and focused UI evidence exist.                                                                           | Product-owner approval of the Homepage Hero, Header, and Footage Gallery is recorded; viewport-matrix limitations remain documented.                                                                                                                                                          | `DONE`             |
+| `PUB-02`       | Homepage search/category controls use fixture data and URL-owned state; focused tests pass.                                                                              | Homepage search/category behavior is included in the product-owner-approved public UI; release verification preserves URL state and interaction coverage.                                                                                                                                     | `DONE`             |
+| `PUB-02R`      | Browse/search relocation into the homepage Hero is implemented; focused interaction tests and QA-05 smoke evidence exist.                                                | Homepage Hero/search relocation is included in the product-owner-approved public UI; release verification confirms the final composition and preserved URL behavior.                                                                                                                          | `DONE`             |
+| `PUB-02S`      | Fixture-backed 12-item gallery, responsive grid, URL pagination, scroll behavior, and preview interaction are implemented and verified.                                  | QA-05 provides independent final review evidence; the product owner visually approved the gallery/card refinement in the project discussion. The viewport matrix remains unavailable.                                                                                                         | `DONE`             |
+| `PUB-03`       | Fixture-backed Commerce detail composition, states, focused tests, and card links exist.                                                                                 | Product owner approved Commerce; release verification confirms the route, safe fixture states, invalid-slug handling, and absence of alternate detail variants.                                                                                                                               | `DONE`             |
+| `PUB-04`       | Minimal fixture-backed customer phone/OTP presentation, continuation route, validation, resend/error states, safe return handling, and legacy redirects are implemented. | Product owner gave final approval for the Minimal design on 2026-10-31; `/login` and `/login/continue` are the approved routes, with no header/logo/navigation or alternate variants. Real OTP delivery, verification, and session creation remain deferred to AUTH-03, AUTH-04, and AUTH-05. | `DONE`             |
 
 ## UI fixture strategy
 
@@ -430,12 +431,12 @@ order creation, payment, entitlement, or original download.
 
 ### PUB-04 — Customer Authentication and Continuation UI
 
-**Status:** TODO
+**Status:** DONE
 **Depends On:** PUB-03, UI-MOCK-01.
 
-**Scope / route:** Complete the customer-facing OTP/session presentation using
-the existing `/session` and `/session/continue` surfaces plus a planned
-customer authentication entry route if required by the approved UI flow.
+**Scope / route:** Complete the customer-facing OTP/session presentation at
+`/login` and `/login/continue`. The legacy `/session` and
+`/session/continue` paths remain compatibility redirects only.
 
 **Components and mock data:** fixture-backed phone/OTP step presentation,
 continuation status, validation, resend/pending/error states, and a validated
@@ -455,6 +456,25 @@ flow, and Persian digits/text where designed.
 **Acceptance and verification:** no OTP value or internal error is rendered,
 continuation only represents a safe internal destination, focused tests pass,
 independent review passes, and visual approval is recorded.
+
+**PUB-04B finalization note:** The product-owner-approved Minimal design is the
+only customer login presentation. It has no shared public header, logo,
+navigation, or temporary variant selector. The `/login` UI preserves the
+fixture-backed phone/OTP interactions: Persian/Arabic digit normalization,
+phone validation, simulated request loading/failure, six-digit OTP validation,
+simulated verification loading/failure, resend cooldown, phone editing, safe
+internal return destinations, and explicit simulated success messaging. It does
+not request an OTP, verify a code, or create a real session; connecting this UI
+to the existing server OTP contracts remains a later integration boundary.
+
+**PUB-04C final approval record (2026-10-31):** The product owner approved the
+Minimal design as final. `/login` is the customer-facing entry route and
+`/login/continue` is the continuation route. Legacy `/session` and
+`/session/continue` remain compatibility redirects without redirect loops. The
+customer interactions remain fixture-backed: they do not deliver or verify a
+real OTP and do not create an authenticated session. Real OTP request/provider
+integration, OTP verification, session creation, and customer/Admin boundary
+integration remain deferred to `AUTH-03`, `AUTH-04`, and `AUTH-05`.
 
 **Explicit exclusions:** changing OTP policy, API behavior, cookies, account
 recovery, or enabling the development bypass for customer flows.

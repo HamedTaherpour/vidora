@@ -21,12 +21,12 @@ describe("PublicSiteHeader", () => {
     expect(html).toContain("data-sticky-header");
     expect(html).toContain("دسته‌بندی‌ها");
     expect(html).toContain('href="/#footage-listing"');
-    expect(html).toContain('href="/session"');
+    expect(html).toContain('href="/login"');
     expect(html).toContain("ورود به حساب");
     expect(html).toContain('aria-label="باز کردن منوی ناوبری"');
 
     const navigationIndex = html.indexOf('data-slot="navigation-menu"');
-    const loginIndex = html.indexOf('href="/session"');
+    const loginIndex = html.indexOf('href="/login"');
     expect(navigationIndex).toBeGreaterThan(-1);
     expect(navigationIndex).toBeLessThan(loginIndex);
   });

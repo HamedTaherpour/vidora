@@ -28,7 +28,7 @@ export { createPublicCategoryHref } from "./public-site-header.utils";
 function HeaderLoginButton() {
   return (
     <Button
-      render={<Link href="/session" />}
+      render={<Link href="/login" />}
       nativeButton={false}
       variant="outline"
     >
@@ -147,7 +147,7 @@ export function PublicSiteHeader({ categories }: PublicSiteHeaderProps) {
                   </SheetClose>
                 ))}
                 <SheetClose
-                  render={<Link href="/session" />}
+                  render={<Link href="/login" />}
                   nativeButton={false}
                   className="mt-4 flex items-center gap-2 rounded-lg px-3 py-2 text-start text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
