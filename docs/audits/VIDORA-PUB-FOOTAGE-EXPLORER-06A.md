@@ -132,3 +132,44 @@ or publication timestamp. No metadata or SEO-01 behavior was added.
 The remaining dependency is the comprehensive Public owner-review gate. The
 catalog is still fixture-backed; genuine featured/recent semantics and the
 database-backed public catalog remain deferred.
+
+## 06D public layout and filter badge refinement
+
+The Search-specific «پاک کردن همه» action was removed from the toolbar, desktop
+sidebar, mobile filter Sheet, and empty-results state. Independent active-filter
+badge removal and the price-range reset remain intact.
+
+The Search route did not inherit a shared public route-group layout: unlike the
+homepage and footage detail route, it rendered only `FootageExplorerView`.
+`src/app/search/page.tsx` now composes the existing `PublicSiteHeader` and
+`PublicSiteFooter` exactly once around the explorer. The root layout was not
+changed, so RTL direction, Vazirmatn, theme tokens, and existing public routes
+remain governed by the established composition.
+
+Active-filter badges were enlarged modestly with consistent height, horizontal
+padding, Persian-readable text sizing, clearer label/icon spacing, and 24px
+remove controls. Hover, active, and focus-visible states remain semantic and
+the toolbar keeps badges on the right and result count/filter access on the
+left while allowing wrapping.
+
+Focused tests cover the single public header/footer composition, complete
+absence of the Search clear-all action, localized active badge text, badge
+accessibility, and retained individual removal controls. Final verification is
+recorded below.
+
+## 06D verification
+
+- `pnpm format:check` — passed.
+- `pnpm lint` — passed with three existing `@next/next/no-img-element`
+  warnings outside this refinement.
+- `pnpm typecheck` — passed.
+- `pnpm test` — passed: 54 files and 380 tests.
+- `pnpm build` — passed; `/search` is present with the public layout and the
+  `/footage` compatibility redirect remains present.
+- `pnpm check:agent-tooling` — passed.
+- `git diff --check` — passed.
+- Browser smoke — passed for public chrome, localized active badges, and the
+  mobile filter Sheet with sorting present once.
+
+The task remains `READY_FOR_OWNER_REVIEW`; the broader Public review gate is
+still open.

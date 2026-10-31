@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { PublicSiteFooter } from "@/modules/footage/public/components/public-site-footer";
+import { PublicSiteHeader } from "@/modules/footage/public/components/public-site-header";
 import { FootageExplorerView } from "@/modules/footage/public/explorer/footage-explorer-view";
 import { preparePublicFootageExplorer } from "@/modules/footage/public/explorer/prepare-public-footage-explorer";
 
@@ -20,14 +22,18 @@ export default async function SearchPage(props: SearchPageProps) {
     preparePublicFootageExplorer(params);
 
   return (
-    <FootageExplorerView
-      variant="classic"
-      query={query}
-      categories={categories}
-      priceBounds={priceBounds}
-      footage={result.items}
-      filteredCount={result.filteredCount}
-      totalPages={result.totalPages}
-    />
+    <div className="min-h-screen bg-background">
+      <PublicSiteHeader categories={categories} />
+      <FootageExplorerView
+        variant="classic"
+        query={query}
+        categories={categories}
+        priceBounds={priceBounds}
+        footage={result.items}
+        filteredCount={result.filteredCount}
+        totalPages={result.totalPages}
+      />
+      <PublicSiteFooter />
+    </div>
   );
 }

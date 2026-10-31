@@ -489,7 +489,6 @@ function FilterPanel({
   idPrefix,
   onSubmit,
   className,
-  children,
   variant,
   ...handlers
 }: Pick<FootageExplorerViewProps, "query" | "categories" | "priceBounds"> &
@@ -498,7 +497,6 @@ function FilterPanel({
     idPrefix: string;
     onSubmit: (event: FormEvent<HTMLFormElement>) => void;
     className?: string;
-    children?: ReactNode;
     variant: FootageExplorerVariant;
   }) {
   return (
@@ -533,7 +531,6 @@ function FilterPanel({
           {...handlers}
         />
       )}
-      {children}
     </form>
   );
 }
@@ -552,18 +549,22 @@ function ActiveFilters({
     (item) => item.value === query.category,
   )?.labelFa;
   const removableBadge = (
-    filter: keyof FootageExplorerQuery,
+    filter: "query" | "category" | "minPrice" | "duration" | "sort",
     label: string,
   ) => (
-    <Badge key={filter} variant="secondary" className="gap-1 pe-1">
+    <Badge
+      key={filter}
+      variant="secondary"
+      className="min-h-9 gap-2 rounded-full px-3 py-1 pe-2 text-sm leading-6"
+    >
       <span>{label}</span>
       <button
         type="button"
         aria-label={`حذف ${label}`}
         onClick={() => onRemove(filter)}
-        className="inline-flex size-5 items-center justify-center rounded-full hover:bg-background/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="inline-flex size-6 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-background/70 active:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <X className="size-3" aria-hidden="true" />
+        <X className="size-3.5" aria-hidden="true" />
       </button>
     </Badge>
   );
@@ -589,8 +590,7 @@ function ActiveFilters({
   );
 }
 
-function EmptyResults({ query }: Pick<FootageExplorerViewProps, "query">) {
-  const router = useRouter();
+function EmptyResults() {
   return (
     <div
       className="rounded-2xl border border-dashed border-border bg-muted/40 px-6 py-16 text-center"
@@ -602,15 +602,6 @@ function EmptyResults({ query }: Pick<FootageExplorerViewProps, "query">) {
       <p className="mx-auto mt-2 max-w-md text-muted-foreground">
         فیلترها را کمی بازتر کن یا عبارت جست‌وجو را تغییر بده.
       </p>
-      <Button
-        type="button"
-        variant="outline"
-        className="mt-6"
-        onClick={() => router.push("?")}
-      >
-        پاک کردن فیلترها
-      </Button>
-      <span className="sr-only">{query.query}</span>
     </div>
   );
 }
@@ -728,13 +719,6 @@ export function FootageExplorerView(props: FootageExplorerViewProps) {
     }
   }
 
-  function handleClearAll() {
-    cancelPendingSearch();
-    setSearchDraft("");
-    setPriceDraft([priceBounds.min, priceBounds.max]);
-    if (serializeFootageExplorerQuery(query)) router.replace("?");
-  }
-
   return (
     <div
       className={`min-h-screen ${shellClass}`}
@@ -742,32 +726,19 @@ export function FootageExplorerView(props: FootageExplorerViewProps) {
     >
       <main className="container-storefront py-4 md:py-6">
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
-          <section
-            className="min-w-0"
-            aria-labelledby="explorer-results-heading"
-          >
-            <div className="mb-4 flex min-h-10 flex-wrap items-center justify-between gap-3">
-              <ActiveFilters
-                query={query}
-                categories={categories}
-                onRemove={handleRemoveFilter}
-              />
-              <div className="flex items-center gap-2">
+          <section className="min-w-0" aria-label="نتایج فوتیج">
+            <div className="mb-4 grid min-h-10 grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+              <div className="min-w-0">
+                <ActiveFilters
+                  query={query}
+                  categories={categories}
+                  onRemove={handleRemoveFilter}
+                />
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
                 <p className="text-sm text-muted-foreground">
                   {filteredCount.toLocaleString("fa-IR")} نتیجه
                 </p>
-                {hasActiveExplorerSelections(query) && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleClearAll}
-                  >
-                    پاک کردن همه
-                  </Button>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
                 <Sheet
                   open={mobileFiltersOpen}
                   onOpenChange={setMobileFiltersOpen}
@@ -816,19 +787,7 @@ export function FootageExplorerView(props: FootageExplorerViewProps) {
                       idPrefix="mobile-explorer"
                       className="flex flex-col gap-6 px-4"
                       variant={variant}
-                    >
-                      {hasActiveExplorerSelections(query) && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          onClick={() => {
-                            handleClearAll();
-                          }}
-                        >
-                          پاک کردن همه
-                        </Button>
-                      )}
-                    </FilterPanel>
+                    />
                     <SheetFooter>
                       <SheetClose render={<Button variant="outline" />}>
                         <X data-icon="inline-start" aria-hidden="true" />
@@ -840,7 +799,7 @@ export function FootageExplorerView(props: FootageExplorerViewProps) {
               </div>
             </div>
             {footage.length === 0 ? (
-              <EmptyResults query={query} />
+              <EmptyResults />
             ) : (
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
                 {footage.map((item) => (
@@ -908,22 +867,7 @@ export function FootageExplorerView(props: FootageExplorerViewProps) {
                     : "flex flex-col gap-3"
               }
               variant={variant}
-            >
-              <div
-                className={`flex flex-col gap-2 ${variant === "classic" ? "border-t border-border pt-5" : "pt-3"}`}
-              >
-                {hasActiveExplorerSelections(query) && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size={variant === "minimal" ? "sm" : "default"}
-                    onClick={handleClearAll}
-                  >
-                    پاک کردن همه
-                  </Button>
-                )}
-              </div>
-            </FilterPanel>
+            />
           </aside>
         </div>
       </main>

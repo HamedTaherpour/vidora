@@ -805,6 +805,44 @@ warnings), `pnpm typecheck`, `pnpm test` (52 files / 374 tests), `pnpm build`,
 `pnpm check:agent-tooling`, and `git diff --check` all pass. The task remains
 `READY_FOR_REVIEW` pending the comprehensive Public owner-review gate.
 
+## 06D public layout and filter badge refinement
+
+The owner-requested Search refinements remove the Search-specific «پاک کردن
+همه» action from the results toolbar, desktop sidebar, mobile filter Sheet, and
+empty-results state. Individual active-filter badges and the price-range reset
+remain available, and URL-owned auto-apply behavior is unchanged.
+
+The missing public chrome was caused by `/search` being a standalone App Router
+page that rendered only the explorer, while the homepage and footage detail
+pages explicitly composed `PublicSiteHeader` and `PublicSiteFooter`. The Search
+page now composes those existing shared public components once at its route
+boundary; the root layout remains unchanged, and no duplicate header or footer
+was introduced.
+
+Active-filter badges now use a slightly larger token-aligned height, padding,
+text size, remove-icon spacing, and 24px remove controls with hover, active, and
+focus-visible states. The compact toolbar keeps badges on the right and the
+result count/filter trigger on the left, with wrapping and no horizontal
+overflow on narrow screens.
+
+## 06D verification
+
+- `pnpm format:check` — passed.
+- `pnpm lint` — passed with three existing `@next/next/no-img-element`
+  warnings outside this refinement.
+- `pnpm typecheck` — passed.
+- `pnpm test` — passed: 54 files and 380 tests.
+- `pnpm build` — passed; `/search` includes the public header/footer
+  composition and `/footage` compatibility redirect remains present.
+- `pnpm check:agent-tooling` — passed.
+- `git diff --check` — passed.
+- Browser smoke — passed for public chrome, localized active badges, and the
+  mobile filter Sheet with sorting present once.
+
+The task remains `READY_FOR_OWNER_REVIEW`; the broader Public review gate is not
+complete, and no production catalog integration, Admin work, or SEO-01 work was
+started.
+
 ---
 
 ## Phase 2 — Admin UI with Mock Data
