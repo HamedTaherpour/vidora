@@ -86,3 +86,19 @@ Verdict after `VIDORA-HOMEPAGE-REFINE-01`: The three audited findings are
 resolved in source. Exact viewport-matrix rendering and 200% zoom remain
 unverified because the available browser surface does not expose viewport
 overrides. Ready for review.
+
+## Homepage footage collection decision — 07B
+
+The owner approved a single general homepage footage section titled
+`مرور فوتیج‌ها`. The former `فوتیج‌های منتخب` and `تازه‌اضافه‌شده‌ها` sections
+were removed; featured and recently added collection semantics are deferred
+until authoritative product metadata and domain behavior are approved.
+
+The general preview uses the existing fixture-backed catalog input,
+`FootageSection`, and `FootageCard`, with a deterministic four-card subset and
+`مشاهده همه` linked to `/search`. Individual cards retain their existing
+`/footage/[slug]` detail links, and the separate full public listing remains
+unchanged. No backend, Prisma, API, or domain-model changes were introduced.
+
+Focused tests cover the single section, localized title, absence of obsolete
+headings, `/search` navigation, detail links, and the empty-catalog state.

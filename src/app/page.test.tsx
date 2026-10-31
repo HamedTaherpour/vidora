@@ -22,7 +22,10 @@ describe("production homepage route", () => {
     expect(html).toContain('value="بارانی"');
     expect(html).toContain('id="homepage-categories"');
     expect(html).toContain('id="footage-listing"');
-    expect(html).toContain('id="homepage-recent"');
+    expect(html).toContain('id="homepage-footage-preview"');
+    expect(html).toContain("مرور فوتیج‌ها");
+    expect(html).not.toContain("فوتیج‌های منتخب");
+    expect(html).not.toContain("تازه‌اضافه‌شده‌ها");
     expect(html).toContain("homepage-blog-heading");
     expect(html).not.toContain("noindex / preview");
     expect(html).not.toContain("data-hero-atmosphere");

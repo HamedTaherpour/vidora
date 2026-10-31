@@ -240,16 +240,10 @@ export function HomeExploration({
         <CatalogStateNotice scenario={scenario} messageFa={messageFa} />
         <CategoryRail categories={categories} />
         <FootageSection
-          id="balanced-featured"
-          title="فوتیج‌های منتخب"
-          eyebrow="برای دیدن امروز"
+          id="homepage-footage-preview"
+          title="مرور فوتیج‌ها"
+          eyebrow="کتابخانه عمومی"
           footage={footage}
-        />
-        <FootageSection
-          id="homepage-recent"
-          title="تازه‌اضافه‌شده‌ها"
-          eyebrow="کشف بعدی"
-          footage={[...footage].reverse()}
         />
         <BlogSection />
         <section

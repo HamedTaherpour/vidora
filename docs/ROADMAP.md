@@ -732,8 +732,8 @@ approved treatment from the background exploration; no cinematic, editorial,
 baseline, blur, vector, or hybrid exploration remains production-selectable.
 
 **Scope / route:** Promote the exact approved combination to `/` while
-preserving the Balanced categories, featured footage, recent footage, and blog
-sections. Search and category state remain URL-owned, Persian RTL and
+preserving the Balanced categories, general footage preview, and blog sections.
+Search and category state remain URL-owned, Persian RTL and
 Vazirmatn remain in force, and the existing semantic palette in `globals.css`
 is preserved.
 
@@ -768,9 +768,9 @@ preserve filters across refresh and direct navigation.
 **URL contract:** The URL is the source of truth for search, filters, sort, and
 pagination. The implementation must define typed validation, canonical
 deterministic serialization, and pagination reset when relevant filters change.
-It must preserve homepage deep links: featured footage, recently added footage,
-category links, and hero search must navigate to `/search` with appropriate
-parameters. Do not invent popularity, ratings, sales statistics, technical
+It must preserve homepage deep links: the general footage preview, category
+links, and hero search must navigate to `/search` with appropriate parameters.
+Do not invent popularity, ratings, sales statistics, technical
 metadata, a backend API, or a database schema.
 
 **Layout / responsive behavior:** Desktop uses a viewport-safe sticky filter
@@ -842,6 +842,32 @@ overflow on narrow screens.
 The task remains `READY_FOR_OWNER_REVIEW`; the broader Public review gate is not
 complete, and no production catalog integration, Admin work, or SEO-01 work was
 started.
+
+---
+
+## VIDORA-PUB-HOMEPAGE-COLLECTIONS-07B — Simplify Homepage Footage Sections
+
+**Status:** READY_FOR_REVIEW
+**Depends On:** VIDORA-PUB-HOME-FINAL-04, VIDORA-PUB-FOOTAGE-EXPLORER-06.
+
+**Owner decision:** Replace the homepage’s `فوتیج‌های منتخب` and
+`تازه‌اضافه‌شده‌ها` sections with one general `مرور فوتیج‌ها` preview. Featured
+and recently added collection semantics are deferred until authoritative
+product metadata and domain behavior are approved.
+
+**Scope / route:** Update the production homepage at `/` to render a small,
+deterministic fixture-backed subset through the existing `FootageSection` and
+`FootageCard` components. The `مشاهده همه` link targets `/search`, and card
+links continue to target individual `/footage/[slug]` detail pages. The
+existing full public listing remains unchanged.
+
+**Out of scope:** No Prisma, database, API, Admin, search-filter, sorting,
+featured-metadata, or publication-date changes. No backend or domain-model
+changes were introduced by this task.
+
+**Review gate:** This task stops at `READY_FOR_REVIEW` / owner review. Featured
+and recent collections remain deferred and are not represented by the general
+homepage preview.
 
 ---
 
