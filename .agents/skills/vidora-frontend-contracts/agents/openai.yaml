@@ -1,0 +1,4 @@
+interface:
+  display_name: Vidora Frontend Contracts
+  short_description: Enforce Vidora component ownership, reuse, naming, and UI verification
+  default_prompt: Apply Vidora frontend contracts before implementing or reviewing React/Next.js UI.

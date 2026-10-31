@@ -147,6 +147,16 @@ For storefront/UI work, read:
 
 Do not invent missing product-level visual decisions when an approved Design Contract is required.
 
+For every React/Next.js UI task, apply the project-local Skill:
+
+```text
+.agents/skills/vidora-frontend-contracts/SKILL.md
+```
+
+It provides the mandatory preflight, component reuse, colocated-file naming,
+JSDoc, and final UI audit. Treat its `Component Reuse Plan` as part of the
+implementation workflow, not as optional report formatting.
+
 For storefront/UI work, read relevant approved files under:
 
 ```text

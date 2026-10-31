@@ -508,6 +508,17 @@ For React/Next.js changes, read:
 
 `instructions/frontend-implementation.md`
 
+Also apply:
+
+```text
+.agents/skills/vidora-frontend-contracts/SKILL.md
+```
+
+Use it to audit component ownership, reuse, colocated support-file naming,
+JSDoc, and raw-markup substitutions in the actual diff. The skill's reuse
+workflow supplements this review; it does not replace the canonical
+instructions or the independent matrix required below.
+
 Check:
 
 - Server Components remain the default where appropriate;
