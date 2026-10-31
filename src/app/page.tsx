@@ -1,5 +1,5 @@
-import { PublicHomePage } from "@/modules/footage/public/components/public-home-page";
 import { preparePublicHomeCatalog } from "@/modules/footage/public/catalog/prepare-public-home";
+import { HomeExploration } from "@/modules/footage/public/home-exploration/home-exploration";
 import {
   UI_MOCK_SCENARIOS,
   type UiMockScenario,
@@ -34,12 +34,13 @@ export default async function Home(props: HomeProps) {
   const catalog = preparePublicHomeCatalog(scenario, params);
 
   return (
-    <PublicHomePage
+    <HomeExploration
+      variant="balanced"
       footage={catalog.footage}
-      scenario={scenario}
       query={catalog.query}
       category={catalog.category}
       categories={catalog.categories}
+      scenario={scenario}
       scenarioParam={normalizedScenarioParam}
       messageFa={catalog.messageFa}
       requestedPage={Number.parseInt(params.page ?? "1", 10) || 1}

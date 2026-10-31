@@ -78,7 +78,7 @@ export function FootagePreview(props: FootagePreviewProps) {
       )}
       {previewPlaying && (
         <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-1 bg-slate-300 dir-ltr border-y"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-1 bg-muted dir-ltr border-y"
           aria-hidden="true"
         >
           <div

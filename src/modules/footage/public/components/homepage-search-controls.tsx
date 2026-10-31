@@ -69,7 +69,7 @@ export function HomepageSearchControls(props: HomepageSearchControlsProps) {
   const suggestedCategories = categories.slice(0, 4);
 
   return (
-    <Card className="w-full lg:w-4xl mx-auto block p-0">
+    <Card className="p-0">
       <CardContent className="px-3">
         <form
           action="/"

@@ -130,22 +130,29 @@ remains recorded in the PUB-02S handoff and QA audit. Unapproved page states,
 future routes, and backend-connected variants remain subject to the page
 approval gate below.
 
+The product owner approved the final homepage combination on 2026-10-31:
+Balanced layout, Search First hero, Refined Gradient background, and the
+current owner-customized semantic palette in `src/app/globals.css`. This
+approval closes the homepage promotion task; it does not approve the future
+Footage Explorer or any backend catalog integration.
+
 ### Public UI status reconciliation
 
 The statuses below distinguish implementation evidence from independent review
 and product-owner approval. A passing build or commit is not treated as product
 approval.
 
-| Task           | Implemented scope and verification                                                                                                                                       | Independent review / approval evidence                                                                                                                                                                                                                                                        | Reconciled status  |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| `UI-DESIGN-01` | Visual direction, tokens, RTL rules, and review checklist are documented.                                                                                                | No task-specific product-owner approval record was supplied.                                                                                                                                                                                                                                  | `READY_FOR_REVIEW` |
-| `UI-MOCK-01`   | Typed deterministic fixture boundary and focused fixture evidence exist.                                                                                                 | No task-specific product-owner approval record was supplied.                                                                                                                                                                                                                                  | `READY_FOR_REVIEW` |
-| `PUB-01`       | Fixture-backed homepage shell, Hero/Header composition, states, and focused UI evidence exist.                                                                           | Product-owner approval of the Homepage Hero, Header, and Footage Gallery is recorded; viewport-matrix limitations remain documented.                                                                                                                                                          | `DONE`             |
-| `PUB-02`       | Homepage search/category controls use fixture data and URL-owned state; focused tests pass.                                                                              | Homepage search/category behavior is included in the product-owner-approved public UI; release verification preserves URL state and interaction coverage.                                                                                                                                     | `DONE`             |
-| `PUB-02R`      | Browse/search relocation into the homepage Hero is implemented; focused interaction tests and QA-05 smoke evidence exist.                                                | Homepage Hero/search relocation is included in the product-owner-approved public UI; release verification confirms the final composition and preserved URL behavior.                                                                                                                          | `DONE`             |
-| `PUB-02S`      | Fixture-backed 12-item gallery, responsive grid, URL pagination, scroll behavior, and preview interaction are implemented and verified.                                  | QA-05 provides independent final review evidence; the product owner visually approved the gallery/card refinement in the project discussion. The viewport matrix remains unavailable.                                                                                                         | `DONE`             |
-| `PUB-03`       | Fixture-backed Commerce detail composition, states, focused tests, and card links exist.                                                                                 | Product owner approved Commerce; release verification confirms the route, safe fixture states, invalid-slug handling, and absence of alternate detail variants.                                                                                                                               | `DONE`             |
-| `PUB-04`       | Minimal fixture-backed customer phone/OTP presentation, continuation route, validation, resend/error states, safe return handling, and legacy redirects are implemented. | Product owner gave final approval for the Minimal design on 2026-10-31; `/login` and `/login/continue` are the approved routes, with no header/logo/navigation or alternate variants. Real OTP delivery, verification, and session creation remain deferred to AUTH-03, AUTH-04, and AUTH-05. | `DONE`             |
+| Task                       | Implemented scope and verification                                                                                                                                                                   | Independent review / approval evidence                                                                                                                                                                                                                                                        | Reconciled status  |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| `UI-DESIGN-01`             | Visual direction, tokens, RTL rules, and review checklist are documented.                                                                                                                            | No task-specific product-owner approval record was supplied.                                                                                                                                                                                                                                  | `READY_FOR_REVIEW` |
+| `UI-MOCK-01`               | Typed deterministic fixture boundary and focused fixture evidence exist.                                                                                                                             | No task-specific product-owner approval record was supplied.                                                                                                                                                                                                                                  | `READY_FOR_REVIEW` |
+| `PUB-01`                   | Fixture-backed homepage shell, Hero/Header composition, states, and focused UI evidence exist.                                                                                                       | Product-owner approval of the Homepage Hero, Header, and Footage Gallery is recorded; viewport-matrix limitations remain documented.                                                                                                                                                          | `DONE`             |
+| `PUB-02`                   | Homepage search/category controls use fixture data and URL-owned state; focused tests pass.                                                                                                          | Homepage search/category behavior is included in the product-owner-approved public UI; release verification preserves URL state and interaction coverage.                                                                                                                                     | `DONE`             |
+| `PUB-02R`                  | Browse/search relocation into the homepage Hero is implemented; focused interaction tests and QA-05 smoke evidence exist.                                                                            | Homepage Hero/search relocation is included in the product-owner-approved public UI; release verification confirms the final composition and preserved URL behavior.                                                                                                                          | `DONE`             |
+| `PUB-02S`                  | Fixture-backed 12-item gallery, responsive grid, URL pagination, scroll behavior, and preview interaction are implemented and verified.                                                              | QA-05 provides independent final review evidence; the product owner visually approved the gallery/card refinement in the project discussion. The viewport matrix remains unavailable.                                                                                                         | `DONE`             |
+| `PUB-03`                   | Fixture-backed Commerce detail composition, states, focused tests, and card links exist.                                                                                                             | Product owner approved Commerce; release verification confirms the route, safe fixture states, invalid-slug handling, and absence of alternate detail variants.                                                                                                                               | `DONE`             |
+| `PUB-04`                   | Minimal fixture-backed customer phone/OTP presentation, continuation route, validation, resend/error states, safe return handling, and legacy redirects are implemented.                             | Product owner gave final approval for the Minimal design on 2026-10-31; `/login` and `/login/continue` are the approved routes, with no header/logo/navigation or alternate variants. Real OTP delivery, verification, and session creation remain deferred to AUTH-03, AUTH-04, and AUTH-05. | `DONE`             |
+| `VIDORA-PUB-HOME-FINAL-04` | Balanced homepage with Search First hero, Refined Gradient background, URL-owned search/category state, fixture-backed gallery, pagination, and focused production-route assertions are implemented. | Product owner approved the exact combination on 2026-10-31. The approved palette is preserved; obsolete exploration routes and superseded hero code are removed.                                                                                                                              | `DONE`             |
 
 ## UI fixture strategy
 
@@ -645,6 +652,148 @@ public sitemap, and real publishing, CMS/backend integration, and SEO-01
 infrastructure remain deferred. PUB-07 UI acceptance is complete; SEO-01 is
 unchanged and remains a separate task.
 
+## VIDORA-PUB-HOME-REDESIGN-01 — Homepage Design Exploration
+
+**Status:** READY_FOR_REVIEW
+**Owner request:** Product-owner-requested Public homepage design exploration.
+
+**Scope / routes:** Add three isolated, fixture-backed, noindex preview variants
+at `/preview/home/cinematic`, `/preview/home/marketplace`, and
+`/preview/home/balanced`. Preserve the approved production homepage at `/` and
+do not begin Admin work.
+
+**Variants:** Cinematic is video-first and story-led; Marketplace is
+discovery-first with categories, featured footage, and recently added footage;
+Balanced combines a compact visual hero, discovery sections, featured/recent
+footage, and the existing educational blog fixtures.
+
+**Review gate:** This exploration stops at `READY_FOR_REVIEW`. The owner’s
+upcoming comprehensive review of the complete Public experience is a future
+review gate before Admin implementation begins. Previously approved Public
+screens remain eligible for explicit owner-requested revision during that gate.
+
+**Verification:** Focused variant tests, noindex metadata, fixture boundaries,
+and the repository quality commands are required. Browser checks should cover
+360px, 768px, and 1280px where tooling permits.
+
+---
+
+## VIDORA-PUB-HOME-HERO-02 — Balanced Homepage Hero Exploration
+
+**Status:** READY_FOR_REVIEW
+**Depends On:** VIDORA-PUB-HOME-REDESIGN-01.
+
+**Scope / routes:** Preserve the selected Balanced homepage sections and add
+three independently accessible hero explorations at
+`/preview/home/hero/cinematic`, `/preview/home/hero/search-first`, and
+`/preview/home/hero/editorial`. The production homepage and existing homepage
+exploration previews remain unchanged.
+
+**Variants:** Cinematic is image-led with compact search; Search First makes
+the existing search control the primary visual action; Editorial uses an
+asymmetric three-image fixture gallery with discovery CTA.
+
+**Review gate:** None of the hero variants is owner-approved by this task.
+This work stops at `READY_FOR_REVIEW` and does not authorize replacing the
+Balanced hero or beginning Admin work.
+
+---
+
+## VIDORA-PUB-HOME-HERO-BG-03 — Search First Hero Background Exploration
+
+**Status:** READY_FOR_REVIEW
+**Depends On:** VIDORA-PUB-HOME-HERO-02.
+
+**Scope / routes:** Preserve the approved Search First Hero composition and
+Balanced sections while exploring four background treatments at
+`/preview/home/hero/background/blur`, `/preview/home/hero/background/gradient`,
+`/preview/home/hero/background/vector`, and
+`/preview/home/hero/background/hybrid`.
+
+**Variants:** Soft Blur, Refined Gradient, Minimal Vector, and Hybrid. Only the
+background treatment varies; headline, supporting copy, search behavior,
+footage strip, dimensions, and lower sections remain shared.
+
+**Review gate:** This is design exploration only. No background variant is
+owner-approved, the production homepage remains unchanged, and Admin work is
+out of scope.
+
+---
+
+## VIDORA-PUB-HOME-FINAL-04 — Promote Approved Homepage to Production Route
+
+**Status:** DONE
+**Depends On:** VIDORA-PUB-HOME-REDESIGN-01, VIDORA-PUB-HOME-HERO-02,
+VIDORA-PUB-HOME-HERO-BG-03.
+
+**Final design decision:** The production homepage uses the Balanced layout with
+the Search First hero and the Refined Gradient background. The gradient is the
+approved treatment from the background exploration; no cinematic, editorial,
+baseline, blur, vector, or hybrid exploration remains production-selectable.
+
+**Scope / route:** Promote the exact approved combination to `/` while
+preserving the Balanced categories, featured footage, recent footage, and blog
+sections. Search and category state remain URL-owned, Persian RTL and
+Vazirmatn remain in force, and the existing semantic palette in `globals.css`
+is preserved.
+
+**Cleanup:** Remove the obsolete homepage, hero, and background exploration
+routes and their variant-only implementation code. Shared public components,
+deterministic fixtures, the production route, unrelated previews, and the
+design lab remain in scope only where still referenced.
+
+**Review gate:** The owner approved this combination on 2026-10-31. The
+homepage is now `DONE`; this task does not replace any other approved Public
+screen or begin Admin work.
+
+---
+
+## VIDORA-PUB-FOOTAGE-EXPLORER-06 — Public Footage Explorer — Search, Filters, Sorting & Listing
+
+**Status:** TODO
+**Depends On:** VIDORA-PUB-HOME-FINAL-04, PUB-01, PUB-02, PUB-02R, PUB-02S,
+UI-MOCK-01.
+
+**Owner request:** Add a dedicated Public footage discovery page at `/footage`.
+This task is registered for future implementation and is not implemented by
+the homepage closeout.
+
+**Scope / route:** Build a fixture-backed, Persian-first discovery page that
+supports text search, category and tag filtering, price-range filtering in
+Toman, only the technical filters represented by real fixture/domain metadata,
+sorting, pagination, active-filter indicators, clear filters, an empty-results
+state, and URL-driven state. Reuse the existing Footage card component and
+preserve filters across refresh and direct navigation.
+
+**URL contract:** The URL is the source of truth for search, filters, sort, and
+pagination. The implementation must define typed validation, canonical
+deterministic serialization, and pagination reset when relevant filters change.
+It must preserve homepage deep links: featured footage, recently added footage,
+category links, and hero search must navigate to `/footage` with appropriate
+parameters. Do not invent popularity, ratings, sales statistics, technical
+metadata, a backend API, or a database schema.
+
+**Layout / responsive behavior:** Desktop uses a viewport-safe sticky filter
+card on the right, a footage grid on the left, and a results toolbar with sort
+and result count. Mobile uses a responsive grid, accessible filter Sheet or
+Drawer, search and sorting controls, and clear/apply actions.
+
+**Review gate:** The first implementation phase must provide three reviewable
+design variants: Classic Sidebar, Modern Explorer, and Minimal Marketplace.
+Stop at `READY_FOR_REVIEW` until the owner selects and approves a variant and
+production verification is complete. This task must be completed before the
+comprehensive Public review gate and before Admin development begins.
+
+**Out of scope:** Production catalog/database integration, Admin work, SEO-01,
+Explorer preview routes, and promotion of an unapproved design variant.
+
+**ADR assessment:** No new ADR is created by this registration. The repository
+still records the canonical browse route and final filter set as unresolved;
+the selected URL-state ownership decision should be documented in an ADR only
+after the explorer contract is reviewed and sufficiently established.
+
+---
+
 ## Phase 2 — Admin UI with Mock Data
 
 ### ADM-01 — Admin Footage Catalog UI Completion
@@ -880,9 +1029,10 @@ verification.
 
 The UI-first sequence has now advanced through the approved fixture-backed
 homepage, homepage refinement, and Commerce detail work. **Next planned
-public-facing implementation task:** `PUB-04 — Customer Authentication and
-Continuation UI`. Production data integration, checkout, payment, entitlement,
-and protected media delivery remain separate work.
+public-facing implementation task:** `VIDORA-PUB-FOOTAGE-EXPLORER-06 — Public
+Footage Explorer`. The comprehensive Public review gate remains mandatory
+before Admin development. Production data integration, checkout, payment,
+entitlement, and protected media delivery remain separate work.
 
 ## Quality work reconciliation — VIDORA-QA-01 through QA-06
 
