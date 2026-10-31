@@ -47,6 +47,15 @@ describe("footage explorer query contract", () => {
     });
   });
 
+  it("normalizes crossing price bounds into a usable range", () => {
+    expect(
+      parseFootageExplorerQuery(
+        { minPrice: "450000", maxPrice: "220000" },
+        categories,
+      ),
+    ).toMatchObject({ minPrice: 220000, maxPrice: 450000 });
+  });
+
   it("serializes deterministically and omits defaults", () => {
     expect(
       serializeFootageExplorerQuery({

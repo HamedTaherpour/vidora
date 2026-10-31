@@ -111,14 +111,27 @@ export function parseFootageExplorerQuery(
   const minPrice = parseNonNegativeInteger(firstValue(params.minPrice));
   const maxPrice = parseNonNegativeInteger(firstValue(params.maxPrice));
 
+  const normalizedMinPrice = minPrice;
+  const normalizedMaxPrice = maxPrice;
+
   return {
     query: normalizePersianText(firstValue(params.q) ?? ""),
     category:
       category && categories.some((option) => option.value === category)
         ? category
         : "",
-    minPrice,
-    maxPrice,
+    minPrice:
+      normalizedMinPrice !== undefined &&
+      normalizedMaxPrice !== undefined &&
+      normalizedMinPrice > normalizedMaxPrice
+        ? normalizedMaxPrice
+        : normalizedMinPrice,
+    maxPrice:
+      normalizedMinPrice !== undefined &&
+      normalizedMaxPrice !== undefined &&
+      normalizedMinPrice > normalizedMaxPrice
+        ? normalizedMinPrice
+        : normalizedMaxPrice,
     duration: normalizeDuration(firstValue(params.duration)),
     sort: normalizeSort(firstValue(params.sort)),
     page: normalizePage(firstValue(params.page)),

@@ -50,24 +50,16 @@ import {
   getExplorerActiveFilterCount,
   hasActiveExplorerFilters,
   serializeFootageExplorerQuery,
-  type FootagePriceBounds,
   type FootageExplorerQuery,
   type ExplorerSort,
 } from "./footage-explorer";
-import type { PublicFootageCategoryOption } from "@/modules/footage/public/catalog/public-footage-catalog-store";
-import type { PublicFootageCatalogItem } from "@/modules/footage/public/catalog/public-footage-catalog-store";
+import type { FootageExplorerViewProps } from "./footage-explorer-view.types";
+import {
+  formatFootageExplorerPriceRange,
+  getFootageExplorerSliderValues,
+} from "./footage-explorer-view.utils";
 
-export type FootageExplorerVariant = "classic" | "modern" | "minimal";
-
-type FootageExplorerViewProps = {
-  variant: FootageExplorerVariant;
-  query: FootageExplorerQuery;
-  categories: PublicFootageCategoryOption[];
-  priceBounds: FootagePriceBounds;
-  footage: PublicFootageCatalogItem[];
-  filteredCount: number;
-  totalPages: number;
-};
+export type FootageExplorerVariant = FootageExplorerViewProps["variant"];
 
 type FilterHandlers = {
   onSearchChange: (value: string) => void;
@@ -93,31 +85,6 @@ const durationLabels = {
   medium: "متوسط؛ ۳۱ تا ۶۰ ثانیه",
   long: "بلند؛ بیشتر از ۶۰ ثانیه",
 } as const;
-
-function formatPriceRange(query: FootageExplorerQuery) {
-  const minimum = query.minPrice;
-  const maximum = query.maxPrice;
-  if (minimum !== undefined && maximum !== undefined) {
-    return `قیمت: ${formatTomanDisplay(minimum)} تا ${formatTomanDisplay(maximum)}`;
-  }
-  if (minimum !== undefined) return `قیمت: از ${formatTomanDisplay(minimum)}`;
-  return `قیمت: تا ${formatTomanDisplay(maximum ?? 0)}`;
-}
-
-function getSliderValues(
-  query: FootageExplorerQuery,
-  priceBounds: FootagePriceBounds,
-): [number, number] {
-  const minimum = Math.min(
-    priceBounds.max,
-    Math.max(priceBounds.min, query.minPrice ?? priceBounds.min),
-  );
-  const maximum = Math.min(
-    priceBounds.max,
-    Math.max(priceBounds.min, query.maxPrice ?? priceBounds.max),
-  );
-  return minimum <= maximum ? [minimum, maximum] : [maximum, minimum];
-}
 
 function hasActiveExplorerSelections(query: FootageExplorerQuery) {
   return hasActiveExplorerFilters(query) || query.sort !== "relevance";
@@ -610,7 +577,7 @@ function ActiveFilters({
       {categoryLabel &&
         removableBadge("category", `دسته‌بندی: ${categoryLabel}`)}
       {(query.minPrice !== undefined || query.maxPrice !== undefined) &&
-        removableBadge("minPrice", formatPriceRange(query))}
+        removableBadge("minPrice", formatFootageExplorerPriceRange(query))}
       {query.duration !== "all" &&
         removableBadge(
           "duration",
@@ -662,7 +629,7 @@ export function FootageExplorerView(props: FootageExplorerViewProps) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [searchDraft, setSearchDraft] = useState(query.query);
   const [priceDraft, setPriceDraft] = useState<[number, number]>(
-    getSliderValues(query, priceBounds),
+    getFootageExplorerSliderValues(query, priceBounds),
   );
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchRevisionRef = useRef(0);
@@ -676,7 +643,7 @@ export function FootageExplorerView(props: FootageExplorerViewProps) {
 
   useEffect(() => {
     const syncTimer = setTimeout(
-      () => setPriceDraft(getSliderValues(query, priceBounds)),
+      () => setPriceDraft(getFootageExplorerSliderValues(query, priceBounds)),
       0,
     );
     return () => clearTimeout(syncTimer);

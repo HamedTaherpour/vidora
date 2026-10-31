@@ -782,7 +782,7 @@ controls, and automatic updates without an Apply action.
 **Review gate:** The first implementation phase provided three reviewable
 design variants: Classic Sidebar, Modern Explorer, and Minimal Marketplace.
 The owner selected Classic Sidebar; Modern Explorer and Minimal Marketplace
-were not selected. Classic is now promoted to production at `/footage`, with
+were not selected. Classic is now promoted to production at `/search`, with
 sorting in the sidebar and Lucide section icons. The temporary preview routes
 were removed after production verification. The legacy `/footage` browse route
 permanently redirects to `/search` while detail routes remain under
@@ -799,6 +799,11 @@ promote Modern/Minimal.
 still records the canonical browse route and final filter set as unresolved;
 the selected URL-state ownership decision should be documented in an ADR only
 after the explorer contract is reviewed and sufficiently established.
+
+**06C verification:** `pnpm format:check`, `pnpm lint` (three existing image
+warnings), `pnpm typecheck`, `pnpm test` (52 files / 374 tests), `pnpm build`,
+`pnpm check:agent-tooling`, and `git diff --check` all pass. The task remains
+`READY_FOR_REVIEW` pending the comprehensive Public owner-review gate.
 
 ---
 

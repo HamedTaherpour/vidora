@@ -89,7 +89,8 @@ The temporary Classic, Modern, and Minimal preview routes were removed after
 production verification. The production Classic `/search` route keeps the shared parser,
 discovery engine, fixtures, card, URL state, pagination, empty state, and
 responsive behavior. On mobile the filter sidebar becomes an accessible shadcn
-Sheet with an active-filter count and explicit apply/clear/close actions. On
+Sheet with an active-filter count and clear/close actions; filter changes apply
+automatically. On
 desktop it is a right-side sticky, scrollable panel; results remain on the left
 in RTL reading order.
 
@@ -116,3 +117,18 @@ localized removable badges for every non-default search/filter/sort selection.
 Featured and recently-added homepage sections still use honest generic browse
 fallbacks because the current public domain model has no reliable featured flag
 or publication timestamp. No metadata or SEO-01 behavior was added.
+
+## 06C verification
+
+- `pnpm format:check` — passed.
+- `pnpm lint` — passed with three existing `@next/next/no-img-element`
+  warnings outside this refinement.
+- `pnpm typecheck` — passed.
+- `pnpm test` — passed: 52 files and 374 tests.
+- `pnpm build` — passed; `/search` and the `/footage` redirect are present.
+- `pnpm check:agent-tooling` — passed.
+- `git diff --check` — passed.
+
+The remaining dependency is the comprehensive Public owner-review gate. The
+catalog is still fixture-backed; genuine featured/recent semantics and the
+database-backed public catalog remain deferred.
