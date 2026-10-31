@@ -750,7 +750,7 @@ screen or begin Admin work.
 
 ## VIDORA-PUB-FOOTAGE-EXPLORER-06 — Public Footage Explorer — Search, Filters, Sorting & Listing
 
-**Status:** TODO
+**Status:** READY_FOR_REVIEW
 **Depends On:** VIDORA-PUB-HOME-FINAL-04, PUB-01, PUB-02, PUB-02R, PUB-02S,
 UI-MOCK-01.
 
@@ -778,14 +778,19 @@ card on the right, a footage grid on the left, and a results toolbar with sort
 and result count. Mobile uses a responsive grid, accessible filter Sheet or
 Drawer, search and sorting controls, and clear/apply actions.
 
-**Review gate:** The first implementation phase must provide three reviewable
+**Review gate:** The first implementation phase provided three reviewable
 design variants: Classic Sidebar, Modern Explorer, and Minimal Marketplace.
-Stop at `READY_FOR_REVIEW` until the owner selects and approves a variant and
-production verification is complete. This task must be completed before the
+The owner selected Classic Sidebar; Modern Explorer and Minimal Marketplace
+were not selected. Classic is now promoted to production at `/footage`, with
+sorting in the sidebar and Lucide section icons. The temporary preview routes
+were removed after production verification. This task remains subject to the
 comprehensive Public review gate and before Admin development begins.
 
-**Out of scope:** Production catalog/database integration, Admin work, SEO-01,
-Explorer preview routes, and promotion of an unapproved design variant.
+**Out of scope:** Production catalog/database integration, Admin work, and
+SEO-01. The owner-approved design-exploration amendment allowed temporary
+fixture-backed preview routes; those routes have now been removed after Classic
+promotion. This task does not introduce database-backed catalog integration or
+promote Modern/Minimal.
 
 **ADR assessment:** No new ADR is created by this registration. The repository
 still records the canonical browse route and final filter set as unresolved;

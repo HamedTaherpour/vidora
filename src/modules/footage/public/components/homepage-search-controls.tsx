@@ -36,7 +36,7 @@ export {
 const suggestedCategoryIcons = [Leaf, Building2, Plane, Cpu] as const;
 
 export function HomepageSearchControls(props: HomepageSearchControlsProps) {
-  const { query, category, categories, scenario } = props;
+  const { query, category, categories } = props;
   const router = useRouter();
   const [draftQuery, setDraftQuery] = useState(query);
 
@@ -48,18 +48,16 @@ export function HomepageSearchControls(props: HomepageSearchControlsProps) {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    router.push(createHomepageSearchUrl({ draftQuery, category, scenario }));
+    router.push(createHomepageSearchUrl({ draftQuery, category }));
   }
 
   function handleCategoryChange(value: string) {
-    router.push(
-      createHomepageCategoryUrl({ query, category: value, scenario }),
-    );
+    router.push(createHomepageCategoryUrl({ query, category: value }));
   }
 
   function handleClear() {
     setDraftQuery("");
-    router.push(createHomepageClearUrl(scenario));
+    router.push(createHomepageClearUrl());
   }
 
   function handleSuggestedCategoryClick(value: string, isActive: boolean) {

@@ -127,7 +127,7 @@ describe("HomepageSearchControls interactions", () => {
 
     expect(preventDefault).toHaveBeenCalledOnce();
     expect(routerPush).toHaveBeenLastCalledWith(
-      "/?q=%D8%A8%D8%A7%D8%B1%D8%A7%D9%86%DB%8C&category=urban&scenario=populated",
+      "/footage?q=%D8%A8%D8%A7%D8%B1%D8%A7%D9%86%DB%8C&category=urban",
     );
   });
 
@@ -143,7 +143,7 @@ describe("HomepageSearchControls interactions", () => {
     (select.props.onValueChange as (value: string) => void)("nature");
 
     expect(routerPush).toHaveBeenLastCalledWith(
-      "/?q=%D9%82%D8%AF%DB%8C%D9%85%DB%8C&category=nature&scenario=populated",
+      "/footage?q=%D9%82%D8%AF%DB%8C%D9%85%DB%8C&category=nature",
     );
   });
 
@@ -230,13 +230,13 @@ describe("HomepageSearchControls interactions", () => {
     (travelButton.props.onClick as () => void)();
 
     expect(routerPush).toHaveBeenLastCalledWith(
-      "/?q=%D9%82%D8%AF%DB%8C%D9%85%DB%8C&category=travel&scenario=populated",
+      "/footage?q=%D9%82%D8%AF%DB%8C%D9%85%DB%8C&category=travel",
     );
 
     (urbanButton.props.onClick as () => void)();
 
     expect(routerPush).toHaveBeenLastCalledWith(
-      "/?q=%D9%82%D8%AF%DB%8C%D9%85%DB%8C&scenario=populated",
+      "/footage?q=%D9%82%D8%AF%DB%8C%D9%85%DB%8C",
     );
   });
 
@@ -246,6 +246,6 @@ describe("HomepageSearchControls interactions", () => {
     (clearButton.props.onClick as () => void)();
 
     expect(setDraftQuery).toHaveBeenCalledWith("");
-    expect(routerPush).toHaveBeenLastCalledWith("/?scenario=populated");
+    expect(routerPush).toHaveBeenLastCalledWith("/footage");
   });
 });

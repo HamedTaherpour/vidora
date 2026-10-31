@@ -38,7 +38,7 @@ function CategoryRail({
         </div>
         <Link
           className="hidden items-center gap-1 text-sm font-medium text-primary sm:flex"
-          href="/#footage-listing"
+          href="/footage"
         >
           همه فوتیج‌ها{" "}
           <ArrowLeftIcon data-icon="inline-end" aria-hidden="true" />
@@ -96,7 +96,7 @@ function FootageSection({
           </h2>
         </div>
         <Link
-          href="/#footage-listing"
+          href="/footage"
           className="flex items-center gap-1 text-sm font-medium text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           مشاهده همه <ArrowLeftIcon data-icon="inline-end" aria-hidden="true" />

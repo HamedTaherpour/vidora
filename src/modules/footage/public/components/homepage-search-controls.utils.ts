@@ -6,53 +6,46 @@ export function createHomepageSearchControlsKey(
   return `${query}\u0000${scenario ?? ""}`;
 }
 
-/** Builds the canonical homepage URL from query, category, and mock scenario state. */
+/** Builds the production footage explorer URL from homepage search state. */
 export function createHomepageUrl({
   query,
   category,
-  scenario,
 }: {
   query: string;
   category: string;
-  scenario?: string;
 }) {
   const params = new URLSearchParams();
   if (query.trim()) params.set("q", query.trim());
   if (category) params.set("category", category);
-  if (scenario) params.set("scenario", scenario);
   const search = params.toString();
-  return search ? `/?${search}` : "/";
+  return search ? `/footage?${search}` : "/footage";
 }
 
 /** Builds the URL used when submitting the current draft search query. */
 export function createHomepageSearchUrl({
   draftQuery,
   category,
-  scenario,
 }: {
   draftQuery: string;
   category: string;
-  scenario?: string;
 }) {
-  return createHomepageUrl({ query: draftQuery, category, scenario });
+  return createHomepageUrl({ query: draftQuery, category });
 }
 
 /** Builds the URL used when changing the selected category. */
 export function createHomepageCategoryUrl({
   query,
   category,
-  scenario,
 }: {
   query: string;
   category: string;
-  scenario?: string;
 }) {
-  return createHomepageUrl({ query, category, scenario });
+  return createHomepageUrl({ query, category });
 }
 
 /** Builds the homepage URL with query and category filters cleared. */
-export function createHomepageClearUrl(scenario?: string) {
-  return createHomepageUrl({ query: "", category: "", scenario });
+export function createHomepageClearUrl() {
+  return createHomepageUrl({ query: "", category: "" });
 }
 
 /** Reports whether any committed or draft filter can be cleared. */

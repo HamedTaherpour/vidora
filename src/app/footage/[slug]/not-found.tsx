@@ -18,7 +18,7 @@ export default function FootageNotFound() {
           لینک فوتیج را بررسی کنید یا از مجموعه عمومی، یک فوتیج دیگر انتخاب
           کنید.
         </p>
-        <Button render={<Link href="/#footage-listing" />} nativeButton={false}>
+        <Button render={<Link href="/footage" />} nativeButton={false}>
           بازگشت به فوتیج‌ها
         </Button>
       </main>
