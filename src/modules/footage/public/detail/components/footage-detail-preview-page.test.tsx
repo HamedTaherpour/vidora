@@ -15,6 +15,8 @@ describe("FootageDetailPage", () => {
 
     expect(html).toContain("پرواز پرندگان بر فراز کوهستان");
     expect(html).toContain("controls");
+    expect(html).toContain("دانلود پیش‌نمایش");
+    expect(html).toContain('download=""');
     expect(html).toContain("خرید تکی فوتیج");
     expect(html).toContain("ورود و ادامه خرید");
     expect(html).toContain("returnTo=%2Fpurchase%2F");
@@ -22,6 +24,11 @@ describe("FootageDetailPage", () => {
     expect(html).toContain("وضعیت حساب نامشخص");
     expect(html).not.toContain("objectKey");
     expect(html).not.toContain("signedUrl");
+    expect(
+      html.match(
+        /پروازی آرام بر فراز خط کوهستان؛ مناسب برای آغاز روایت‌های سفر/g,
+      ),
+    ).toHaveLength(1);
   });
 
   it("renders an actionable fallback when the preview is unavailable", () => {

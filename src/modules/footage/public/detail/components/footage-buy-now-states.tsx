@@ -6,11 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatTomanDisplay } from "@/modules/footage/format-toman-display";
-import type { PublicFootageDetail } from "../public-footage-detail.types";
-
-type FootageBuyNowStatesProps = {
-  footage: PublicFootageDetail;
-};
+import type { FootageBuyNowStatesProps } from "./footage-buy-now-states.types";
 
 export function FootageBuyNowStates(props: FootageBuyNowStatesProps) {
   const { footage } = props;
@@ -21,7 +17,7 @@ export function FootageBuyNowStates(props: FootageBuyNowStatesProps) {
       <CardHeader className="gap-3 border-b">
         <div className="flex items-center justify-between gap-3">
           <CardTitle>خرید تکی فوتیج</CardTitle>
-          <Badge variant="accent">بدون اشتراک</Badge>
+          <Badge variant="info">بدون اشتراک</Badge>
         </div>
         <p className="text-2xl leading-9 font-bold tabular-nums">
           {formatTomanDisplay(footage.priceToman)}

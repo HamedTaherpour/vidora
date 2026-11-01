@@ -1,13 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDuration } from "@/modules/footage/format-duration";
-import type { PublicFootageDetail } from "../public-footage-detail.types";
+import type {
+  FootageDetailPageProps,
+  FootageMetadataProps,
+  FootageTitleProps,
+} from "./footage-detail-preview-page.types";
 import { FootageBuyNowStates } from "./footage-buy-now-states";
 import { FootageDetailPreview } from "./footage-detail-preview";
-
-type FootageDetailPageProps = {
-  footage: PublicFootageDetail;
-};
 
 export function FootageDetailPage(props: FootageDetailPageProps) {
   const { footage } = props;
@@ -24,15 +24,12 @@ export function FootageDetailPage(props: FootageDetailPageProps) {
       <div className="flex flex-col gap-6 lg:sticky lg:top-24">
         {metadata}
         {purchase}
-        <p className="max-w-prose text-sm leading-6 text-muted-foreground">
-          {footage.descriptionFa}
-        </p>
       </div>
     </div>
   );
 }
 
-function FootageTitle(props: { footage: PublicFootageDetail }) {
+function FootageTitle(props: FootageTitleProps) {
   const { footage } = props;
   return (
     <header className="flex flex-col gap-3">
@@ -50,7 +47,7 @@ function FootageTitle(props: { footage: PublicFootageDetail }) {
   );
 }
 
-function FootageMetadata(props: { footage: PublicFootageDetail }) {
+function FootageMetadata(props: FootageMetadataProps) {
   const { footage } = props;
   return (
     <Card>

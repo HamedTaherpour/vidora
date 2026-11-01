@@ -1,9 +1,7 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import type { PublicFootageDetail } from "../public-footage-detail.types";
-
-type FootageDetailPreviewProps = {
-  footage: PublicFootageDetail;
-};
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
+import type { FootageDetailPreviewProps } from "./footage-detail-preview.types";
 
 export function FootageDetailPreview(props: FootageDetailPreviewProps) {
   const { footage } = props;
@@ -37,9 +35,20 @@ export function FootageDetailPreview(props: FootageDetailPreviewProps) {
         <source src={footage.preview.videoUrl} type="video/mp4" />
         مرورگر شما امکان پخش این پیش‌نمایش را ندارد.
       </video>
-      <figcaption className="text-xs leading-5 text-muted-foreground">
-        پیش‌نمایش عمومی دارای واترمارک است و فقط برای بررسی قبل از خرید نمایش
-        داده می‌شود.
+      <figcaption className="flex flex-wrap items-center justify-between gap-3 text-xs leading-5 text-muted-foreground">
+        <span>
+          پیش‌نمایش عمومی دارای واترمارک است و فقط برای بررسی قبل از خرید نمایش
+          داده می‌شود.
+        </span>
+        <Button
+          render={<a href={footage.preview.videoUrl} download />}
+          nativeButton={false}
+          variant="outline"
+          size="sm"
+        >
+          <Download data-icon="inline-start" aria-hidden="true" />
+          دانلود پیش‌نمایش
+        </Button>
       </figcaption>
     </figure>
   );

@@ -2192,7 +2192,7 @@ Display published Footage to public users.
 
 ## STORE-02 — Implement Footage Detail Page
 
-**Status:** TODO
+**Status:** DONE
 
 ### Depends On
 
