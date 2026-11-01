@@ -222,6 +222,61 @@ independent review and product-owner approval before `UI-MOCK-01` begins.
 installation, a custom brand identity, a new design-system framework, copying
 Pexels/shadcn assets/layouts, API/schema/authentication/business-rule changes.
 
+## Engineering UI Component Workflow
+
+### VIDORA-ENG-SHARED-APP-COMPONENTS-11A — Establish Shared App Component Workflow and AppSelect
+
+**Status:** DONE
+
+**Depends On:** UI-02, AI-GOV-01.
+
+**Objective:** Establish a permanent repository-native workflow for introducing
+application-owned shared UI components on top of existing shadcn/Base UI
+primitives, then implement `AppSelect` as the first application-owned shared
+component.
+
+**Scope:**
+
+- extend canonical component instructions and existing implementation, frontend,
+  and review skills with the mandatory shared App component workflow;
+- inspect every Select consumer across the repository before finalizing the API;
+- add `AppSelect` under the shared application UI layer with a dedicated
+  component directory and companion props contract;
+- migrate the applicable Public Search Select consumers incrementally, preserving
+  their existing behavior and appearance;
+- record remaining Select consumers for future migration.
+
+**Acceptance criteria:**
+
+- the workflow requires repository-wide consumer discovery and analysis of props,
+  controlled/uncontrolled behavior, events, forms, validation, states,
+  accessibility, keyboard behavior, styling, responsive behavior, RTL, and tests;
+- the workflow requires a coherent shared API, existing primitive composition,
+  project organization/props/testing compliance, incremental scoped migration,
+  focused verification, independent review, and remediation;
+- shared App components are independent of Admin and Public business logic;
+- `AppSelect` composes the existing shadcn/Base UI Select primitive and preserves
+  accessibility, keyboard behavior, RTL, controlled/uncontrolled state, and
+  existing design conventions;
+- focused tests cover the shared component and migrated Search consumers retain
+  their current behavior;
+- only Search Select consumers are migrated; unrelated Admin, homepage, upload,
+  and other direct Select consumers remain unchanged and are documented;
+- required sequential verification passes; the task remains `IN_PROGRESS` until
+  owner approval and must not be marked `DONE` by the implementer.
+
+**Out of scope:** removing or changing the underlying Select primitive, globally
+prohibiting direct primitive imports, migrating Admin/homepage/upload consumers,
+introducing a new UI dependency, or changing product/business behavior.
+
+**Remaining Select consumers after this task:**
+
+- `src/modules/footage/admin/edit/admin-footage-metadata-form.tsx` — Admin
+  metadata form; retained outside the Search-only migration scope.
+- `src/modules/media/uploads/components/admin-footage-upload-panel.tsx` —
+  semantic native upload-kind selector; retained because this task does not
+  migrate unrelated Admin/upload controls.
+
 ## Phase 1 — Public UI with Mock Data
 
 ### UI-MOCK-01 — Establish Typed UI Fixture Boundary

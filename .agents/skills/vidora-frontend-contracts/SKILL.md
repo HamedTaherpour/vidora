@@ -81,6 +81,13 @@ planning artifact.
 
 ## Phase 3 — Implementation against the plan
 
+For a new or promoted shared `App*` component, apply the mandatory shared
+component workflow in `instructions/components.md`: complete repository-wide
+consumer discovery, design an API that covers legitimate existing patterns,
+compose the installed primitive, migrate only authorized consumers in verified
+groups, and record remaining consumers for future work. The shared component
+must not import Admin/Public business logic.
+
 Implement against the recorded architecture plan. Every application-owned
 component accepting props must have its dedicated imported companion contract
 before implementation is considered complete. When a new finding changes a

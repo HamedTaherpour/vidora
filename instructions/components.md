@@ -10,6 +10,9 @@ component and props requirements.
 ## Component ownership
 
 - `src/components/ui` contains official shadcn/Base UI primitives.
+- `src/components/app` contains application-owned shared UI components built by
+  composing those primitives. These components must remain independent of Admin,
+  Public, and business-domain modules.
 - Cross-domain reusable UI belongs in the existing shared component location or another explicitly approved shared boundary.
 - Capability-specific components belong in `src/modules/<capability>`.
 - Route-specific composition components may remain beside their routes.
@@ -155,6 +158,36 @@ application-level API, or a consistency benefit that would otherwise be repeated
 - `Responsive*` naming is not mandatory without a real responsive behavior contract.
 - Barrel exports are not required universally.
 - Use direct imports by default unless a deliberate public module boundary justifies a barrel.
+
+### Mandatory App component workflow
+
+When introducing an application-owned shared component, or promoting an existing
+primitive into an `App*` component, follow this workflow before implementation:
+
+1. Discover every relevant consumer of the underlying primitive across the
+   repository, including Admin, Public, shared modules, aliases, re-exports,
+   wrappers, and composed usage.
+2. Record each consumer's props/configuration, controlled and uncontrolled
+   behavior, events, form/validation integration, loading/disabled/error/empty
+   states, accessibility and keyboard behavior, styling, responsive behavior,
+   and RTL requirements. Record existing tests and behavioral assumptions.
+3. Design an application API that supports the legitimate discovered usage
+   patterns without importing Admin/Public business logic or inventing new
+   product behavior.
+4. Implement the component by composing the installed shadcn/Base UI primitive;
+   do not fork or duplicate the primitive's interaction behavior.
+5. Apply the props companion-file, dedicated component-directory, naming,
+   ownership, accessibility, RTL, and testing contracts in this document and in
+   `instructions/project-organization.md`.
+6. Migrate only the consumers authorized by the task. Migrate in coherent
+   groups, running focused verification after each group and preserving direct
+   primitive consumers outside scope.
+7. Perform an independent review against the discovery evidence and acceptance
+   criteria, then remediate confirmed issues before handoff.
+
+The implementation handoff must name the remaining primitive consumers and
+explain why each was not migrated. This workflow supplements, rather than
+duplicates, the general UI discovery plan above.
 
 ## Component-local helpers, types, and constants
 

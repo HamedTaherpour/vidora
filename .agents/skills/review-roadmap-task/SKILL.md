@@ -79,6 +79,16 @@ Inspect:
 
 Use the implementation report as supporting information, not as proof.
 
+For a task introducing or promoting an `App*` component, independently verify
+the repository-wide consumer inventory for the underlying primitive. Check that
+the shared API covers legitimate controlled/uncontrolled, event, form,
+validation, state, accessibility, keyboard, RTL, responsive, and styling
+patterns; that the component composes the installed shadcn/Base UI primitive;
+that it is independent of Admin/Public business logic; and that only authorized
+consumers were migrated. Confirm focused verification was run after each
+migration group and that remaining consumers are explicitly recorded. Request
+remediation for omissions or unsupported API assumptions.
+
 ---
 
 ## 4. Review Acceptance Criteria

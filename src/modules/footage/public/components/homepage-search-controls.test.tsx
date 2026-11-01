@@ -147,7 +147,7 @@ describe("HomepageSearchControls interactions", () => {
     );
   });
 
-  it("uses the installed Select and Separator primitives", () => {
+  it("uses AppSelect and the installed Separator primitive", () => {
     const { form } = getControlElements();
     const children = Children.toArray(form.props.children as ReactNode);
     const selectLabel = children.find(
@@ -166,6 +166,15 @@ describe("HomepageSearchControls interactions", () => {
     );
 
     expect(select).toBeDefined();
+    expect(select.type).toBeDefined();
+    expect(select.props.options).toEqual([
+      { value: "all", label: "همه دسته‌بندی‌ها" },
+      { value: "nature", label: "طبیعت" },
+      { value: "urban", label: "شهری" },
+      { value: "travel", label: "سفر" },
+      { value: "technology", label: "تکنولوژی" },
+      { value: "business", label: "کسب‌وکار" },
+    ]);
     expect(separator).toBeDefined();
     expect(separator?.props.orientation).toBe("vertical");
   });
@@ -188,15 +197,11 @@ describe("HomepageSearchControls interactions", () => {
       (child): child is ControlElement =>
         isControlElement(child) && "onValueChange" in child.props,
     )!;
-    const selectTrigger = Children.toArray(
-      select.props.children as ReactNode,
-    ).find(
-      (child): child is ControlElement =>
-        isControlElement(child) && child.props["data-control"] === "category",
-    )!;
-
     expect(input.props.className).not.toContain("focus-visible:ring-0");
-    expect(selectTrigger.props.className).not.toContain("focus-visible:ring-0");
+    expect(select.props.triggerVariant).toBe("ghost");
+    expect(select.props.className).toBe("h-9 min-w-32");
+    expect(select.props["data-control"]).toBe("category");
+    expect(select.props["aria-label"]).toBe("دسته‌بندی فوتیج");
   });
 
   it("renders the first four ordered categories and applies suggestions", () => {

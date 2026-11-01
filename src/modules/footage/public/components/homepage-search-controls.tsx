@@ -4,17 +4,10 @@ import { Building2, Cpu, Layers, Leaf, Plane, Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
+import { AppSelect } from "@/components/app/app-select/app-select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import type { HomepageSearchControlsProps } from "./homepage-search-controls.types";
 import {
@@ -78,32 +71,25 @@ export function HomepageSearchControls(props: HomepageSearchControlsProps) {
         >
           <label className="order-4 col-span-full flex items-center gap-2 px-3 pt-2 text-sm font-medium sm:order-none sm:col-span-auto sm:pt-0">
             <span className="sr-only">دسته‌بندی فوتیج</span>
-            <Select
+            <AppSelect
               value={category || "all"}
               onValueChange={(value) =>
                 handleCategoryChange(
                   value === null || value === "all" ? "" : value,
                 )
               }
-            >
-              <SelectTrigger
-                data-control="category"
-                aria-label="دسته‌بندی فوتیج"
-                className="h-9 min-w-32 border-0 bg-transparent shadow-none"
-              >
-                <SelectValue placeholder="همه دسته‌بندی‌ها" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="all">همه دسته‌بندی‌ها</SelectItem>
-                  {categories.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.labelFa}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+              options={[
+                { value: "all", label: "همه دسته‌بندی‌ها" },
+                ...categories.map((option) => ({
+                  value: option.value,
+                  label: option.labelFa,
+                })),
+              ]}
+              triggerVariant="ghost"
+              data-control="category"
+              aria-label="دسته‌بندی فوتیج"
+              className="h-9 min-w-32"
+            />
           </label>
           <Separator
             orientation="vertical"

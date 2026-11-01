@@ -1,12 +1,5 @@
 import { Field, FieldLabel } from "@/components/ui/field";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { AppSelect } from "@/components/app/app-select/app-select";
 
 import { SEARCH_SORTS, type SearchSort } from "../search";
 import { searchSortLabels } from "../search-filters/search-filters.constants";
@@ -24,20 +17,17 @@ export function SearchSortField(props: SearchSortFieldProps) {
   return (
     <Field>
       <FieldLabel htmlFor={id}>{icon}مرتب‌سازی</FieldLabel>
-      <Select name="sort" value={query.sort} onValueChange={handleChange}>
-        <SelectTrigger id={id} className="w-full">
-          <SelectValue>{searchSortLabels[query.sort]}</SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            {Object.entries(searchSortLabels).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
+      <AppSelect
+        name="sort"
+        id={id}
+        value={query.sort}
+        onValueChange={handleChange}
+        options={Object.entries(searchSortLabels).map(([value, label]) => ({
+          value,
+          label,
+        }))}
+        className="w-full"
+      />
     </Field>
   );
 }

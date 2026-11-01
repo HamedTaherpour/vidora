@@ -442,6 +442,12 @@ Split components when:
 
 Do not split components solely to reduce line count.
 
+When a shared application-owned control is introduced or a primitive is
+promoted into an `App*` component, follow the repository-wide discovery, API,
+scoped migration, focused verification, and independent review workflow in
+`instructions/components.md`. Keep the shared component independent of Admin,
+Public, and feature business logic.
+
 ---
 
 # 28. Handler Naming

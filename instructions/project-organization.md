@@ -324,6 +324,12 @@ Examples may include:
 - design-system primitives;
 - reusable application-wide UI.
 
+Application-owned shared controls belong under
+`src/components/app/<component-name>/`. They may compose
+`src/components/ui` primitives, but must not import Admin, Public, or feature
+business logic. The mandatory discovery and migration workflow for these
+controls is defined in `instructions/components.md`.
+
 Feature-specific components should normally stay near the owning feature/module or route.
 
 Do not move a component to `src/components` merely because it is rendered more than once inside the same feature.

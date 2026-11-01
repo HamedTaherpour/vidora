@@ -248,6 +248,24 @@ Use this workflow for UI tasks:
 Discover → Architecture Plan → Implement → Independent Verify → Remediate → Review
 ```
 
+### Shared App component workflow
+
+When the task introduces an application-owned shared component or promotes a
+primitive into an `App*` component, apply the mandatory workflow in
+`instructions/components.md` explicitly. In addition to the normal UI discovery
+gate, inspect every repository consumer of the underlying primitive, including
+Admin, Public, aliases, wrappers, re-exports, and composed usage. Analyze each
+consumer's API, state model, events, forms/validation, states, accessibility,
+keyboard behavior, RTL, responsive styling, and tests before finalizing the
+shared API.
+
+Implement the shared component only from existing shadcn/Base UI primitives and
+keep it free of feature or surface business logic. Migrate only the consumers
+authorized by the task, verifying each migration group before continuing. Record
+remaining consumers and their migration rationale in the handoff. The independent
+review must check the discovery inventory, API coverage, migration scope, and
+remediation of confirmed issues.
+
 ---
 
 ## 4. Check for Blockers
