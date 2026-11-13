@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 This skill takes one described piece of UI and builds three versions that differ on purpose. They go behind a picker in the real page, so you can flip between them and choose.
 
-It produces candidates and never ranks them. Reviewing existing UI is `interface-review` and `better-interface`, stress testing one component is `break` and working through a component's states is `state-machine`.
+It produces candidates and never ranks them. Reviewing existing UI is `interface-review` and `better-interface`, stress testing one component is `break`, and working through a component's states belongs in the task's focused test and review workflow.
 
 ## Different answers, not different tints
 

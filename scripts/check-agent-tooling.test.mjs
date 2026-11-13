@@ -6,6 +6,7 @@ import {
   collectGenericOwnedFileErrors,
   collectFrontendContractErrors,
   collectGenericComponentFileErrors,
+  collectSkillIntegrityErrors,
 } from "./check-agent-tooling.mjs";
 
 const validFixture = {
@@ -40,6 +41,10 @@ The shared organization policy in`,
 };
 
 describe("frontend contract tooling checks", () => {
+  it("keeps the retained skill tree reachable and library-independent", () => {
+    expect(collectSkillIntegrityErrors(process.cwd())).toEqual([]);
+  });
+
   it("accepts a complete skill and workflow wiring", () => {
     expect(collectFrontendContractErrors(validFixture)).toEqual([]);
   });

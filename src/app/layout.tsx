@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { cn } from "@/lib/utils";
 import "@/lib/env/server";
 import "./globals.css";
 
@@ -24,7 +23,7 @@ type RootLayoutProps = {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="fa" dir="rtl" className={cn("font-sans", vazirmatn.variable)}>
+    <html lang="fa" dir="rtl" className={vazirmatn.variable}>
       <body>{children}</body>
     </html>
   );

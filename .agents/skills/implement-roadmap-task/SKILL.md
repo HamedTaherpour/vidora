@@ -200,9 +200,10 @@ Do not begin by restructuring unrelated code.
 For any task that implements or changes UI, complete a concise component
 architecture plan before editing. Inspect the relevant Admin or Storefront
 feature/domain components,
-application-level components, `src/components/ui`, `components.json`, and nearby
-tests. Consult `.agents/skills/shadcn/SKILL.md` and current component
-documentation when shadcn usage or composition is relevant.
+application-level components, shared component directories, and nearby tests.
+Consult the chosen component library's official documentation only when the
+task explicitly depends on that library; otherwise use repository-owned
+components and semantic native HTML according to `instructions/components.md`.
 
 The plan must state:
 
@@ -223,17 +224,18 @@ The plan must state:
   files, without relying on line count alone;
 - unresolved design or architecture decisions;
 - for each relevant control pattern, the UI pattern, inspected existing
-  component, installed primitive (if any), official shadcn candidate (if
-  applicable), reuse/add/retain-native decision, and justification.
+  component, library candidate (if applicable), reuse/add/retain-native
+  decision, and justification.
 
 Before declaring the task ready, inspect every application-owned component with
 props in the changed scope and verify the companion contract by exact file/line
 evidence. A passing TypeScript check does not prove this contract.
 
-When no suitable primitive is installed, perform the official shadcn candidate
-evaluation before modifying UI code. Do not treat an empty `src/components/ui`
-directory as sufficient justification for custom-styled native controls. Follow
-the semantic-native exceptions and approval rule in `instructions/components.md`.
+When no suitable component is available, evaluate the repository's existing
+components and the official documentation for the selected library when one is
+in scope. Do not treat an empty shared-components directory as sufficient
+justification for custom-styled native controls. Follow the semantic-native
+exceptions and approval rule in `instructions/components.md`.
 
 Follow the ownership order in `instructions/components.md`. Do not recreate an
 existing component with raw styled HTML or add a shared abstraction without a
@@ -259,12 +261,12 @@ consumer's API, state model, events, forms/validation, states, accessibility,
 keyboard behavior, RTL, responsive styling, and tests before finalizing the
 shared API.
 
-Implement the shared component only from existing shadcn/Base UI primitives and
-keep it free of feature or surface business logic. Migrate only the consumers
-authorized by the task, verifying each migration group before continuing. Record
-remaining consumers and their migration rationale in the handoff. The independent
-review must check the discovery inventory, API coverage, migration scope, and
-remediation of confirmed issues.
+Implement the shared component from the repository's approved component source
+or semantic native HTML and keep it free of feature or surface business logic.
+Migrate only the consumers authorized by the task, verifying each migration
+group before continuing. Record remaining consumers and their migration
+rationale in the handoff. The independent review must check the discovery
+inventory, API coverage, migration scope, and remediation of confirmed issues.
 
 ---
 

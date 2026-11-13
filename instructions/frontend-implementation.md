@@ -20,7 +20,7 @@ docs/design/
 
 when Design Contracts exist.
 
-Component ownership, shadcn usage, props, accessibility, responsive contracts, and
+Component ownership, props, accessibility, responsive contracts, and
 component-test expectations are defined in `instructions/components.md`. Keep the
 React-specific rendering, state, hooks, and client-boundary rules here rather than
 duplicating the component policy.

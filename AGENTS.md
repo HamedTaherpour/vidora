@@ -29,7 +29,7 @@ Use the smallest context set that is sufficient to implement the task correctly.
 - [AI governance](instructions/ai-governance.md) for instruction precedence, risk classification, verification integrity, adversarial review, and AI-assisted change discipline.
 - [Architecture](instructions/architecture.md) for application boundaries, provider boundaries, Server Components, Route Handlers, and architectural change.
 - [Project organization](instructions/project-organization.md) for Next.js source placement, module ownership, server/client boundaries, and shared-code placement.
-- [Components](instructions/components.md) for application-owned UI ownership, shadcn/Base UI usage, props, accessibility, responsive behavior, and component tests.
+- [Components](instructions/components.md) for application-owned UI ownership, component discovery and reuse, props, accessibility, responsive behavior, and component tests.
 - [Frontend implementation](instructions/frontend-implementation.md) for React/Next.js implementation rules, Server Components, client boundaries, effects, state, accessibility, RTL, and design-contract compliance.
 - [Functions and types](instructions/functions-and-types.md) for TypeScript function signatures, props, type placement, inference, provider types, and naming conventions.
 - [Database](instructions/database.md), [security](instructions/security.md), [media](instructions/media.md), and [commerce](instructions/commerce.md) for tasks involving persistence, protected behavior, media, or purchasing.
@@ -403,6 +403,17 @@ When choosing between:
 prefer the simplest implementation that correctly satisfies the approved current requirement.
 
 Do not confuse additional architecture with additional quality.
+
+# 18. VibeFarsiUI UI Foundation
+
+For Persian storefront UI tasks, use `docs/VIBEFARSI-INTEGRATION.md` as the
+project integration guide. Read the route inventory and product requirements,
+then consult the relevant VibeFarsiUI skill and use the official VibeFarsi MCP
+for design rules and registry discovery before selecting components. Add only
+the registry items the page needs. Preserve Vidora's module ownership,
+companion type contracts, Server/Client boundaries, accessibility, responsive
+behavior, performance, and reduced-motion requirements. Decorative animation and
+backgrounds are optional. This foundation does not authorize page redesigns.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

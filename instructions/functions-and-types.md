@@ -167,7 +167,7 @@ rule in `instructions/components.md`:
 
 This applies to private and one-off components as well as exported components. It
 does not impose props contracts on components that accept no props, ordinary
-functions, hooks, utilities, or generated/vendor-managed shadcn primitives.
+functions, hooks, or utilities.
 
 Example:
 
@@ -184,7 +184,6 @@ export function FootageCard(props: FootageCardProps) {
 }
 ```
 
-Generated/vendor-managed shadcn primitives are the only implementation exception.
 Application-owned components may not use inline props, local props declarations,
 parent props types, `Pick`/intersection annotations, or unrecorded readability
 exceptions. Do not infer that TypeScript acceptance is contract compliance.

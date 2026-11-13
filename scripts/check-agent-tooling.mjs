@@ -1,5 +1,5 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import ts from "typescript";
 
@@ -443,6 +443,150 @@ function listFiles(root, relativeDirectory) {
   return files;
 }
 
+export function collectSkillIntegrityErrors(root = process.cwd()) {
+  const errors = [];
+  const skillsRoot = join(root, ".agents", "skills");
+  const requiredSkills = [
+    "better-accessibility",
+    "better-interface",
+    "code-review",
+    "implement-roadmap-task",
+    "review-roadmap-task",
+    "vidora-frontend-contracts",
+  ];
+  const skillDirectories = existsSync(skillsRoot)
+    ? readdirSync(skillsRoot, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name)
+    : [];
+  const skillNames = new Map();
+
+  for (const directory of skillDirectories) {
+    const relativeSkillPath = `.agents/skills/${directory}/SKILL.md`;
+    const absoluteSkillPath = join(root, relativeSkillPath);
+    if (!existsSync(absoluteSkillPath)) {
+      errors.push(`${relativeSkillPath} is missing its SKILL.md entrypoint`);
+      continue;
+    }
+
+    const contents = readFileSync(absoluteSkillPath, "utf8");
+    const frontmatterBlock = contents.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    const frontmatter = frontmatterBlock && {
+      name: frontmatterBlock[1].match(/^name:\s*([^\r\n]+)$/m)?.[1],
+      description: frontmatterBlock[1].match(
+        /^description:\s*([^\r\n]+)$/m,
+      )?.[1],
+    };
+    if (!frontmatter?.name || !frontmatter.description) {
+      errors.push(
+        `${relativeSkillPath} must have name and description frontmatter`,
+      );
+    } else {
+      const name = frontmatter.name.trim();
+      if (skillNames.has(name)) {
+        errors.push(
+          `${relativeSkillPath} duplicates skill name ${name} from ${skillNames.get(name)}`,
+        );
+      }
+      skillNames.set(name, relativeSkillPath);
+      if (name !== directory) {
+        errors.push(
+          `${relativeSkillPath} frontmatter name ${name} must match directory ${directory}`,
+        );
+      }
+    }
+
+    const links = [...contents.matchAll(/\]\(([^)]+)\)/g)].map(
+      (match) => match[1].split("#", 1)[0],
+    );
+    for (const link of links) {
+      if (!link || link.startsWith("http://") || link.startsWith("https://")) {
+        continue;
+      }
+      const target = link.startsWith("/")
+        ? join(root, link.slice(1))
+        : join(join(root, ".agents", "skills", directory), link);
+      if (!existsSync(target)) {
+        errors.push(`${relativeSkillPath} references missing file ${link}`);
+      }
+    }
+
+    for (const match of contents.matchAll(
+      /\.agents\/skills\/([\w-]+)(?:\/[^\s`)]*)?/g,
+    )) {
+      const referencedDirectory = match[1];
+      if (!skillDirectories.includes(referencedDirectory)) {
+        errors.push(
+          `${relativeSkillPath} references missing skill ${referencedDirectory}`,
+        );
+      }
+    }
+  }
+
+  for (const requiredSkill of requiredSkills) {
+    if (!skillDirectories.includes(requiredSkill)) {
+      errors.push(
+        `Missing required engineering skill .agents/skills/${requiredSkill}`,
+      );
+    }
+  }
+
+  for (const directory of skillDirectories) {
+    const skillFiles = listFiles(root, `.agents/skills/${directory}`);
+    for (const relativeFile of skillFiles) {
+      if (!/\.(?:md|mdx)$/i.test(relativeFile)) continue;
+      const absoluteFile = join(root, relativeFile);
+      const contents = readFileSync(absoluteFile, "utf8");
+      const prose = contents.replace(/```[\s\S]*?```/g, "");
+      for (const match of prose.matchAll(/\]\(([^)]+)\)/g)) {
+        const link = match[1].split("#", 1)[0];
+        if (
+          !link ||
+          link.startsWith("http://") ||
+          link.startsWith("https://") ||
+          link.startsWith("/")
+        ) {
+          continue;
+        }
+        if (!existsSync(join(dirname(absoluteFile), link))) {
+          errors.push(`${relativeFile} references missing file ${link}`);
+        }
+      }
+      if (/shadcn|base ui|components\.json/i.test(prose)) {
+        errors.push(
+          `${relativeFile} contains obsolete active shadcn/Base UI guidance`,
+        );
+      }
+    }
+  }
+
+  const activeGuidancePaths = [
+    "AGENTS.md",
+    ...listFiles(root, "instructions"),
+    ...skillDirectories.map(
+      (directory) => `.agents/skills/${directory}/SKILL.md`,
+    ),
+    ".cursor/rules/project-governance.mdc",
+    ".codex/config.toml",
+  ];
+  for (const relativePath of activeGuidancePaths) {
+    const absolutePath = join(root, relativePath);
+    if (!existsSync(absolutePath)) continue;
+    const contents = readFileSync(absolutePath, "utf8");
+    if (/shadcn|base ui|components\.json/i.test(contents)) {
+      errors.push(
+        `${relativePath} contains obsolete active shadcn/Base UI guidance`,
+      );
+    }
+  }
+
+  if (existsSync(join(root, ".agents", "skills", "shadcn"))) {
+    errors.push("Forbidden obsolete skill exists: .agents/skills/shadcn");
+  }
+
+  return errors;
+}
+
 export function collectAgentToolingErrors(root = process.cwd()) {
   const errors = [];
 
@@ -457,6 +601,8 @@ export function collectAgentToolingErrors(root = process.cwd()) {
   function fail(message) {
     errors.push(message);
   }
+
+  errors.push(...collectSkillIntegrityErrors(root));
 
   function assertExists(relativePath) {
     const absolutePath = resolve(relativePath);

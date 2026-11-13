@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { publicFootageFixtures } from "@/modules/ui-mock/fixtures/public-footage";
+import { publicFootageTestFixtures as publicFootageFixtures } from "@/modules/footage/public/catalog/public-footage-test-fixtures";
 import {
   discoverPublicFootage,
   getFootagePriceBounds,

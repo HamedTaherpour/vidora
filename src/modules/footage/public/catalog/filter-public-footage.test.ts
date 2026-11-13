@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { publicFootageFixtures } from "@/modules/ui-mock/fixtures/public-footage";
+import { publicFootageTestFixtures as publicFootageFixtures } from "./public-footage-test-fixtures";
 import {
   filterPublicFootage,
   normalizePublicCategory,
@@ -27,7 +27,7 @@ describe("filterPublicFootage", () => {
         query: "بارانی",
         category: "urban",
       }).map((item) => item.id),
-    ).toEqual(["ftg-public-002"]);
+    ).toEqual(["test-footage-2"]);
   });
 
   it("returns no matches for unknown text or category values", () => {

@@ -1,7 +1,7 @@
-import { CustomerSessionStatus } from "../../session/customer-session-status";
-
-export const dynamic = "force-dynamic";
-
 export default function LoginContinuePage() {
-  return <CustomerSessionStatus heading="Customer session restored" />;
+  return (
+    <main>
+      <h1>ادامه نشست مشتری</h1>
+    </main>
+  );
 }

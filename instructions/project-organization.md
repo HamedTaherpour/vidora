@@ -314,7 +314,7 @@ random helpers
 
 `src/components` is for UI that is genuinely reusable across business areas or belongs to the application-wide shell/design system.
 
-Application-owned component rules, including shadcn usage, shared-boundary decisions,
+Application-owned component rules, including shared-boundary decisions,
 props contracts, accessibility, responsive behavior, and component tests are defined
 in `instructions/components.md`.
 
@@ -325,10 +325,9 @@ Examples may include:
 - reusable application-wide UI.
 
 Application-owned shared controls belong under
-`src/components/app/<component-name>/`. They may compose
-`src/components/ui` primitives, but must not import Admin, Public, or feature
-business logic. The mandatory discovery and migration workflow for these
-controls is defined in `instructions/components.md`.
+`src/components/<component-name>/` and must not import Admin, Public, or feature
+business logic. The discovery and migration workflow for these controls is
+defined in `instructions/components.md`.
 
 Feature-specific components should normally stay near the owning feature/module or route.
 
@@ -336,12 +335,12 @@ Do not move a component to `src/components` merely because it is rendered more t
 
 ---
 
-# 10. shadcn/ui
+# 10. Shared UI components
 
-Generated or adapted shadcn primitives should live under the approved shared UI location, currently:
+Application-owned shared UI belongs under the approved shared component location:
 
 ```text
-src/components/ui/
+src/components/<component-name>/
 ```
 
 These components are implementation primitives, not business modules.
@@ -349,7 +348,7 @@ These components are implementation primitives, not business modules.
 Use direct imports by default. A barrel is appropriate only when it defines a
 deliberate public boundary; barrels are not required for every component directory.
 
-Do not place Footage-specific or commerce-specific business logic into shadcn primitives.
+Keep shared components independent of Admin, Public, and feature business logic.
 
 ---
 

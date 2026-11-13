@@ -2921,3 +2921,61 @@ rather than rewriting the entire roadmap.
 Completed task history should remain understandable.
 
 The roadmap is an execution tool, not a prediction of every future feature.
+
+# UI reset and redesign migration
+
+## VIDORA-UI-RESET-01 — Legacy UI Removal and Route Preservation
+
+Status: IN_PROGRESS
+
+Remove the retired shadcn/Base UI presentation implementation, preserve every
+existing page route and security boundary with semantic placeholders, record the
+route inventory, and retain backend/domain infrastructure. Do not install the
+replacement UI system in this task.
+
+## VIDORA-UI-FOUNDATION-02 — VibeFarsiUI Foundation
+
+Status: IN_PROGRESS
+
+Install and configure VibeFarsiUI, its MCP integration, and the project skills
+after the UI reset is reviewed.
+
+## VIDORA-AGENT-CLEANUP-01 — Skills and Agent Instructions Cleanup
+
+Status: IN_PROGRESS
+
+Remove obsolete shadcn/Base UI requirements from active agent workflows,
+preserve independent engineering and usability standards, inventory the
+retained skills, and add integrity checks for skill entrypoints, references,
+required workflows, and stale library-specific guidance. Research VibeFarsiUI
+for the later foundation task without installing or configuring it.
+
+**Depends On:** None. Coordinate with `VIDORA-UI-RESET-01` and preserve its
+concurrent changes.
+
+**Acceptance criteria:**
+
+- active agent guidance is UI-library-independent and no longer requires
+  shadcn, Base UI, `components.json`, or shadcn CLI/MCP usage;
+- the existing independent engineering, accessibility, design-review, testing,
+  roadmap, and review capabilities remain reachable and classified in
+  `docs/AGENT-TOOLING.md`;
+- the obsolete shadcn skill is removed without installing VibeFarsiUI skills or
+  configuring its MCP;
+- `check:agent-tooling` and its regression tests detect broken skill references,
+  missing required workflows, invalid skill entrypoints, and obsolete active
+  guidance;
+- required repository quality checks are run and failures or unavailable checks
+  are recorded in the handoff.
+
+**Out of scope:** VibeFarsiUI installation/configuration, application UI
+implementation, replacement component-library work, backend/business logic,
+and unrelated roadmap status changes.
+
+## VIDORA-UI-REDESIGN-03 — Incremental UI Rebuild
+
+Status: TODO
+
+Rebuild the inventoried pages incrementally using the approved VibeFarsiUI
+foundation while reconnecting preserved application capabilities one page at a
+time.

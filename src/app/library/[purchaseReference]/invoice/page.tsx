@@ -1,23 +1,10 @@
-import { CustomerLibraryScreen } from "@/modules/ui-mock/customer-library/customer-library-preview";
-import {
-  loadCustomerLibraryRouteData,
-  type CustomerLibrarySearchParams,
-} from "@/modules/ui-mock/customer-library/route-data";
+import { requireCurrentCustomer } from "@/modules/auth/authorization/require-current-customer";
 
-export const dynamic = "force-dynamic";
-
-export default async function LibraryInvoicePage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ purchaseReference: string }>;
-  searchParams: CustomerLibrarySearchParams;
-}) {
-  const { purchaseReference } = await params;
-  const data = await loadCustomerLibraryRouteData(
-    searchParams,
-    "invoice",
-    purchaseReference,
+export default async function LibraryInvoicePage() {
+  await requireCurrentCustomer();
+  return (
+    <main>
+      <h1>فاکتور خرید مشتری</h1>
+    </main>
   );
-  return <CustomerLibraryScreen {...data} />;
 }

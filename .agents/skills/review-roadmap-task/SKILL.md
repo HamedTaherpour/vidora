@@ -83,7 +83,8 @@ For a task introducing or promoting an `App*` component, independently verify
 the repository-wide consumer inventory for the underlying primitive. Check that
 the shared API covers legitimate controlled/uncontrolled, event, form,
 validation, state, accessibility, keyboard, RTL, responsive, and styling
-patterns; that the component composes the installed shadcn/Base UI primitive;
+patterns; that the component composes the approved existing component or uses
+semantic native HTML when appropriate;
 that it is independent of Admin/Public business logic; and that only authorized
 consumers were migrated. Confirm focused verification was run after each
 migration group and that remaining consumers are explicitly recorded. Request
@@ -409,7 +410,7 @@ Verification reviewed:
 - ...
 
 UI Component Reuse Verification Matrix (UI reviews only):
-| Control pattern | Actual file and component | Existing or candidate shadcn primitive | Decision (reuse/add/retain native) | Technical justification | Verification status | Concrete repository evidence |
+| Control pattern | Actual file and component | Existing or candidate component | Decision (reuse/add/retain native) | Technical justification | Verification status | Concrete repository evidence |
 |---|---|---|---|---|---|---|
 | ... | ... | ... | ... | ... | ... | ... |
 
@@ -454,7 +455,7 @@ Verification reviewed:
 - ...
 
 UI Component Reuse Verification Matrix (UI reviews only):
-| Control pattern | Actual file and component | Existing or candidate shadcn primitive | Decision (reuse/add/retain native) | Technical justification | Verification status | Concrete repository evidence |
+| Control pattern | Actual file and component | Existing or candidate component | Decision (reuse/add/retain native) | Technical justification | Verification status | Concrete repository evidence |
 |---|---|---|---|---|---|---|
 | ... | ... | ... | ... | ... | ... | ... |
 
@@ -572,7 +573,7 @@ For UI changes, also verify the implementation's discovery and reuse evidence:
   report;
 - include a `UI Component Reuse Verification Matrix` in the final review report;
   each row must record the control pattern, actual file and component, existing
-  or candidate shadcn primitive, decision (`reuse`, `add`, or `retain native`),
+or candidate component, decision (`reuse`, `add`, or `retain native`),
   technical justification, verification status, and concrete repository
   evidence;
 - do not approve a UI review when the matrix is missing, omits a relevant
@@ -582,18 +583,19 @@ For UI changes, also verify the implementation's discovery and reuse evidence:
   paths inspected, selected components, new components and justification,
   ownership decisions, relevant bypass reasons, and a control-pattern decision
   for each relevant pattern containing the inspected component, installed
-  primitive, official shadcn candidate, decision, and justification;
+component candidate, official documentation consulted when applicable, decision,
+and justification;
 - relevant Admin or Storefront feature/domain components were inspected and
   reused where appropriate;
-- application-level components and installed shadcn primitives were considered;
-- `.agents/skills/shadcn/SKILL.md` and current component documentation were
-  consulted when relevant;
-- each absent installed primitive has an evaluated official shadcn candidate or
+- application-level components and the repository's shared component source
+  were considered;
+- official component documentation was consulted when the task uses a named
+  component library;
+- each absent shared component has an evaluated existing/repository candidate or
   a documented reason that semantic native HTML is the correct choice;
 - raw styled controls did not unnecessarily replace available components or
-  semantic native HTML. Retaining a custom-styled control solely because no
-  shadcn primitive was installed is a review finding and requires
-  `CHANGES_REQUESTED` when an appropriate candidate was not evaluated;
+  semantic native HTML. Retaining a custom-styled control without evaluating
+  an appropriate existing candidate is a review finding;
 - forms, tables, native selects, live regions, and file inputs remain valid
   native choices when their semantics are appropriate;
 - component responsibilities, state ownership, data ownership, and client
