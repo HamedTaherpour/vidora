@@ -10,6 +10,178 @@
   }
 }
 
+.home-hero-grid {
+  background-image:
+    linear-gradient(
+      to bottom,
+      transparent 49%,
+      var(--border) 50%,
+      transparent 51%
+    ),
+    linear-gradient(
+      to right,
+      transparent 49%,
+      var(--border) 50%,
+      transparent 51%
+    );
+  background-size: 4rem 4rem;
+  mask-image: linear-gradient(to bottom, black, transparent 80%);
+}
+
+.home-hero-glow {
+  background:
+    radial-gradient(
+      circle at 22% 28%,
+      color-mix(in oklch, var(--brand) 18%, transparent),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 80% 30%,
+      color-mix(in oklch, var(--primary) 10%, transparent),
+      transparent 32%
+    );
+}
+
+@keyframes mesh-drift {
+  0%,
+  100% {
+    background-position:
+      0% 0%,
+      100% 0%,
+      50% 100%;
+  }
+  50% {
+    background-position:
+      18% 12%,
+      82% 8%,
+      42% 86%;
+  }
+}
+
+@keyframes shine {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes pulse-soft {
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes wipe-in {
+  from {
+    clip-path: inset(0 0 0 100%);
+    opacity: 0;
+    transform: translateY(0.35em);
+  }
+  to {
+    clip-path: inset(0);
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes blur-in {
+  from {
+    filter: blur(0.6em);
+    opacity: 0;
+    transform: translateY(0.2em);
+  }
+  to {
+    filter: blur(0);
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.home-gradient-mesh {
+  background-image:
+    radial-gradient(
+      60% 60% at 0% 0%,
+      color-mix(in oklch, var(--brand) 30%, transparent) 0,
+      transparent 70%
+    ),
+    radial-gradient(
+      50% 50% at 100% 0%,
+      color-mix(in oklch, var(--primary) 16%, transparent) 0,
+      transparent 70%
+    ),
+    radial-gradient(
+      60% 50% at 50% 100%,
+      color-mix(in oklch, var(--foreground) 12%, transparent) 0,
+      transparent 70%
+    );
+  background-size:
+    160% 160%,
+    160% 160%,
+    160% 160%;
+  background-repeat: no-repeat;
+  animation: mesh-drift 18s ease-in-out infinite;
+}
+
+.home-footage-poster {
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklch, var(--brand) 24%, var(--muted)),
+    var(--muted) 45%,
+    color-mix(in oklch, var(--primary) 10%, var(--background))
+  );
+}
+.home-footage-poster-warm {
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklch, var(--brand) 36%, var(--muted)),
+    var(--muted) 45%,
+    color-mix(in oklch, var(--foreground) 12%, var(--background))
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-gradient-mesh {
+    animation: none;
+  }
+
+  [style*="wipe-in"] {
+    animation: none !important;
+  }
+
+  [style*="blur-in"] {
+    animation: none !important;
+  }
+}
+
+.home-film-frame {
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklch, var(--brand) 30%, var(--card)),
+    var(--card) 48%,
+    color-mix(in oklch, var(--primary) 12%, var(--background))
+  );
+}
+
+.home-footage-placeholder {
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklch, var(--brand) 18%, var(--muted)),
+    var(--muted) 45%,
+    color-mix(in oklch, var(--primary) 8%, var(--background))
+  );
+}
+
 /* --- vibefarsi:theme-graphite --- */
 /* گرافیت، مینیمال فنی و تم پیش‌فرض. این بلوک را در :root بگذارید. */
 :root {
@@ -151,3 +323,18 @@
     system-ui, sans-serif;
 }
 /* --- vibefarsi:font-end --- */
+
+/* --- vibefarsi:text-reveal --- */
+@keyframes wipe-in {
+  from {
+    clip-path: inset(0 0 0 100%);
+    transform: translateY(0.35em);
+    opacity: 0;
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+/* --- vibefarsi:text-reveal-end --- */

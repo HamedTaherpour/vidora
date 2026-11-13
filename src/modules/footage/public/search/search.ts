@@ -68,8 +68,12 @@ function firstValue(value: string | string[] | undefined) {
 }
 
 function parseNonNegativeInteger(value: string | undefined) {
-  if (!value || !/^\d+$/.test(value)) return undefined;
-  const parsed = Number(value);
+  if (!value) return undefined;
+  const normalized = value.replace(/[۰-۹]/g, (digit) =>
+    String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)),
+  );
+  if (!/^\d+$/.test(normalized)) return undefined;
+  const parsed = Number(normalized);
   return Number.isSafeInteger(parsed) ? parsed : undefined;
 }
 
@@ -207,6 +211,14 @@ export function serializeSearchQuery(query: SearchQuery) {
   if (query.sort !== "relevance") params.set("sort", query.sort);
   if (query.page > 1) params.set("page", String(query.page));
   return params.toString();
+}
+
+/** Merges one URL-owned discovery update and resets pagination for filter changes. */
+export function mergeSearchQuery(
+  query: SearchQuery,
+  overrides: Partial<SearchQuery>,
+) {
+  return { ...query, ...overrides, page: overrides.page ?? 1 };
 }
 
 export function createSearchHref(

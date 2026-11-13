@@ -5,9 +5,11 @@ import {
   discoverPublicFootage,
   getFootagePriceBounds,
   getSearchActiveFilterCount,
+  mergeSearchQuery,
   parseSearchQuery,
   serializeSearchQuery,
 } from "./search";
+import { getSearchPriceInputValues } from "./search.utils";
 
 const categories = publicFootageFixtures
   .map((item) => ({ value: item.category.slug }))
@@ -67,6 +69,40 @@ describe("Search query contract", () => {
     ).toBe(
       "q=%D8%AA%D9%87%D8%B1%D8%A7%D9%86&category=urban&minPrice=250000&maxPrice=500000&duration=short&sort=price-desc&page=2",
     );
+  });
+
+  it("merges rapid updates from the latest committed filter state", () => {
+    const initial = parseSearchQuery(
+      { q: "تهران", category: "urban", sort: "price-desc" },
+      categories,
+    );
+    const withPrice = mergeSearchQuery(initial, { minPrice: 250000 });
+    const withAnotherPrice = mergeSearchQuery(withPrice, { maxPrice: 300000 });
+
+    expect(serializeSearchQuery(withAnotherPrice)).toBe(
+      "q=%D8%AA%D9%87%D8%B1%D8%A7%D9%86&category=urban&minPrice=250000&maxPrice=300000&sort=price-desc",
+    );
+  });
+
+  it("preserves explicit pagination updates while filters reset to page one", () => {
+    const initial = parseSearchQuery({}, categories);
+
+    expect(mergeSearchQuery(initial, { page: 3 }).page).toBe(3);
+    expect(
+      mergeSearchQuery({ ...initial, page: 3 }, { minPrice: 250000 }).page,
+    ).toBe(1);
+  });
+
+  it("commits the latest numeric input value on blur", () => {
+    expect(
+      getSearchPriceInputValues(
+        ["۲۵۰۰۰۰", "۴۳۰۰۰۰"],
+        [250000, 430000],
+        { min: 220000, max: 430000, step: 5000 },
+        1,
+        "۳۰۰۰۰۰",
+      ),
+    ).toEqual([250000, 300000]);
   });
 });
 

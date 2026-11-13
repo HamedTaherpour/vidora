@@ -46,7 +46,10 @@ describe("Prisma public footage catalog boundary", () => {
           src: "/api/footage/footage-1/cover",
           altFa: "طبیعت",
         },
-        preview: { status: "ready" },
+        preview: {
+          status: "ready",
+          videoUrl: "/api/footage/footage-1/preview",
+        },
       },
       {
         id: "footage-2",

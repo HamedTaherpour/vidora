@@ -23,6 +23,27 @@ export function getSearchSliderValues(
   return minimum <= maximum ? [minimum, maximum] : [maximum, minimum];
 }
 
+/** Converts the current numeric price fields into one ordered slider range. */
+export function getSearchPriceInputValues(
+  inputDrafts: [string, string],
+  fallback: [number, number],
+  priceBounds: FootagePriceBounds,
+  editedIndex?: 0 | 1,
+  editedValue?: string,
+): [number, number] {
+  const drafts = [...inputDrafts] as [string, string];
+  if (editedIndex !== undefined && editedValue !== undefined)
+    drafts[editedIndex] = editedValue;
+  const values = drafts.map((draft, index) => {
+    const normalized = draft
+      .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
+      .replace(/\D/g, "");
+    const value = normalized ? Number(normalized) : fallback[index];
+    return Math.min(priceBounds.max, Math.max(priceBounds.min, value));
+  }) as [number, number];
+  return [Math.min(values[0], values[1]), Math.max(values[0], values[1])];
+}
+
 /** Formats the visible Persian label for one logical price-range badge. */
 export function formatSearchPriceRange(query: SearchQuery) {
   const minimum = query.minPrice;

@@ -805,7 +805,7 @@ screen or begin Admin work.
 
 ## VIDORA-PUB-FOOTAGE-EXPLORER-06 — Public Search — Filters, Sorting & Listing
 
-**Status:** READY_FOR_REVIEW
+**Status:** IN_PROGRESS
 **Depends On:** VIDORA-PUB-HOME-FINAL-04, PUB-01, PUB-02, PUB-02R, PUB-02S,
 UI-MOCK-01.
 
@@ -895,6 +895,68 @@ overflow on narrow screens.
 The task remains `READY_FOR_OWNER_REVIEW`; the broader Public review gate is not
 complete, and no production catalog integration, Admin work, or SEO-01 work was
 started.
+
+## VIDORA-UI-SEARCH-02 — Search Filter UX & Visual Refinement
+
+**Status:** DONE
+**Depends On:** VIDORA-PUB-FOOTAGE-EXPLORER-06.
+
+Refine the approved `/search` foundation without changing its URL-driven
+catalog behavior or working price-filter implementation. Replace the category
+select with the official VibeFarsiUI searchable Combobox, align dropdown and
+icon-bearing controls for Persian RTL, present minimum/maximum price inputs
+alongside the existing range slider, tighten results spacing, and show subtle
+feedback during real filter transitions.
+
+**Acceptance criteria:**
+
+- Catalog-backed categories are searchable in Persian, selectable immediately,
+  clearable, keyboard-operable, URL-preserving, and usable in the mobile filter
+  drawer through the verified official `combobox` registry asset.
+- Category, duration, sort, search, and other icon-bearing controls have
+  consistent token-aligned sizing, logical RTL spacing, focus treatment, and no
+  icon/text overlap or clipping.
+- Minimum and maximum price inputs remain synchronized with the existing slider,
+  preserve digit normalization, URL serialization, debounce/commit behavior,
+  server filtering, result counts, badges, pagination, and Back/Forward behavior.
+- Results spacing is reduced without changing the approved two-column desktop,
+  responsive layout, cards, or mobile drawer; filter transitions retain the
+  existing results and expose accessible pending feedback.
+- Focused tests, full repository verification, and browser evidence are recorded
+  before owner approval. No backend, Prisma, migration, or public catalog
+  filtering service changes are introduced.
+
+Verification completed and owner approval was received on 2026-11-13.
+
+---
+
+## VIDORA-UI-SEARCH-03 — Preview Progress, Filter Summary & Search Page Polish
+
+**Status:** DONE
+**Depends On:** VIDORA-UI-SEARCH-02.
+
+Polish the approved `/search` surface by restoring visible playback progress on
+shared playable footage cards, giving the active-filter summary an intentional
+empty state, reusing the existing VibeFarsiUI `GridBackground` in the search
+intro, and removing the redundant price-range summary row. Preserve URL-owned
+filtering, preview lifecycle safeguards, Graphite tokens, RTL behavior, and
+responsive layout.
+
+**Acceptance criteria:**
+
+- Playable cards show accurate progress during hover preview, reset when
+  playback stops, and poster-only cards never show playback progress.
+- The filter summary preserves removable badges and clear-all behavior while
+  showing `فیلتر فعالی وجود ندارد` when empty without an empty bordered box.
+- The existing `GridBackground` is applied only to the search introduction and
+  remains subtle, non-interactive, readable, and reduced-motion safe.
+- The redundant price-range text row is absent while numeric inputs, slider
+  synchronization, URL state, filtering, badges, counts, and pagination remain
+  unchanged.
+- Focused tests, full repository verification, browser evidence, and an
+  independent review are recorded before owner approval.
+
+Verification completed and owner approval was received on 2026-11-13.
 
 ---
 
@@ -2979,3 +3041,208 @@ Status: TODO
 Rebuild the inventoried pages incrementally using the approved VibeFarsiUI
 foundation while reconnecting preserved application capabilities one page at a
 time.
+
+## VIDORA-UI-REDESIGN-03A — Cinematic Homepage Redesign
+
+Status: DONE
+
+Rebuild the public homepage as a dark, cinematic Persian RTL footage-commerce
+surface using the approved VibeFarsiUI Graphite foundation. Preserve the
+existing search route contract, public catalog data boundary, footage detail
+links, URL-driven pagination, real category navigation, confirmed product
+advantages, accessible FAQ interaction, and existing public destinations.
+
+**Depends On:** VIDORA-UI-FOUNDATION-02, VIDORA-UI-RESET-01.
+
+**Scope:** Homepage only. Search results, detail, checkout, authentication,
+library, blog, Admin, and backend business logic remain outside this task.
+
+## VIDORA-UI-REDESIGN-03B — VibeFarsiUI Adoption, Homepage Refinement & Component Architecture
+
+Status: DONE
+
+Adopt the approved VibeFarsiUI registry components, backgrounds, and animation
+primitives in the public homepage while preserving the 03A route and data
+contracts. Split the homepage into focused application-owned sections, add
+development-only catalog fixtures for local visual review, and verify desktop,
+tablet, and 390px mobile behavior without changing production catalog behavior.
+
+**Depends On:** VIDORA-UI-REDESIGN-03A.
+
+**Scope:** Homepage composition, homepage presentation components, explicit
+development fixture boundary, and related component tests. Search results,
+detail, checkout, authentication, library, blog, Admin, and backend business
+logic remain outside this task.
+
+### VIDORA-UI-REDESIGN-03C — Cinematic Polish, Interactive Footage Cards & Architecture Compliance
+
+Status: DONE
+
+Refine the 03B homepage foundation with the verified VibeFarsiUI Godrays
+background, restrained typography reveal, real development-only photography,
+Spotlight Card benefits, and a reusable footage card with visible prices,
+poster-first hover preview, and playback progress. Preserve the fixture boundary,
+production catalog contracts, navigation, RTL behavior, accessibility, and
+reduced-motion behavior.
+
+**Depends On:** VIDORA-UI-REDESIGN-03B.
+
+**Scope:** Homepage presentation components, development-only visual fixtures,
+focused media interaction tests, architecture/props audit, browser review, and
+related documentation. Search results, detail, checkout, authentication,
+library, blog, Admin, and backend business logic remain outside this task.
+
+**Acceptance criteria:**
+
+- `godrays`, `text-reveal`, and `spotlight-card` are verified registry assets
+  used from their installed source files.
+- Development fixtures use stable, contextually relevant imagery and clearly
+  identify example prices; production catalog data remains authoritative.
+- The shared footage card renders poster, title, duration, category, price, and
+  detail navigation; hover preview is lazy, muted, inline, reset on leave, and
+  reports actual playback progress with graceful fallback.
+- Touch, keyboard, RTL, accessibility, and reduced-motion behavior remain safe.
+- Focused tests, repository verification, browser review, and independent
+  review evidence are recorded before owner approval.
+
+Verification completed and owner approval was received on 2026-11-13.
+
+### VIDORA-UI-REDESIGN-03D — Homepage UX Refinement, Marquee Categories, Spotlight Fix & SEO Content
+
+Status: DONE
+
+Refine the 03C homepage foundation with a restrained Persian typography
+animation, stationary footage cards with centered playback affordances, a
+verified VibeFarsiUI category marquee, corrected Spotlight Card composition,
+one lower-page background, and useful Persian editorial content. Preserve the
+existing catalog boundary, preview lifecycle, navigation, RTL behavior,
+accessibility, reduced-motion behavior, and development-only fixtures.
+
+**Depends On:** VIDORA-UI-REDESIGN-03C.
+
+**Scope:** Homepage presentation components, VibeFarsiUI registry integrations,
+footage contract audit, focused homepage tests, browser review, and related
+documentation. Search results, detail, checkout, authentication, library,
+blog, Admin, Prisma schema, migrations, and backend business logic remain
+outside this task.
+
+**Acceptance criteria:**
+
+- The hero uses the verified `blur-text` registry asset without damaging
+  Persian shaping, and retains the official `godrays` background.
+- Footage cards remain stationary on hover, show a centered Play icon, and
+  preserve lazy muted preview playback, progress, fallback, touch, keyboard,
+  and reduced-motion behavior.
+- Categories use the verified `marquee` registry asset, navigate through the
+  existing `/search?category=` convention, use catalog-backed counts, pause on
+  hover/focus where supported, and hide duplicated decorative links from
+  assistive technology.
+- Benefits retain the official Spotlight Card with one clean surface per
+  benefit and use the verified `grid` background without harming contrast.
+- A server-rendered Persian SEO section appears after FAQ and before the
+  footer, with one primary H1 preserved and a correct H2/H3 hierarchy.
+- The audit reports persisted Footage, FootageFile, FootageCover, Category,
+  Tag, and relationship fields; distinguishes DTO, derived, and fixture-only
+  fields; and documents that duration is currently fixture/DTO data rather
+  than a persisted Prisma field.
+- Focused tests, repository verification, browser review, and independent
+  review evidence are recorded before owner approval.
+
+Verification completed and owner approval was received on 2026-11-13.
+
+### VIDORA-UI-REDESIGN-03E — Homepage Final Refinements & SEO Editorial Design
+
+Status: DONE
+
+Apply the owner's final homepage refinements to the 03D surface: remove the
+hero's decorative footage cards, make preview affordances deterministic,
+reverse the category marquee's actual movement to right-to-left, and present
+the Persian SEO guidance as a compact editorial article. Preserve the existing
+catalog, navigation, media lifecycle, accessibility, RTL, responsive, and
+reduced-motion contracts.
+
+**Depends On:** VIDORA-UI-REDESIGN-03D.
+
+**Scope:** Homepage presentation components, focused media/marquee tests,
+Persian editorial copy, browser review, and related documentation. Search,
+detail, checkout, authentication, library, blog, Admin, Prisma schema,
+migrations, and backend business logic remain outside this task.
+
+Verification completed and owner approval was received on 2026-11-13.
+
+### VIDORA-UI-REDESIGN-03F — Sticky Navigation, Footage Card Alignment & Homepage Final Polish
+
+Status: DONE
+
+Refine the 03E homepage following owner review: correct footage-card playback
+affordance alignment, repair the SEO article's sticky table of contents, add a
+sticky header with catalog-backed category navigation, tighten hero proportions,
+add active-section highlighting, and apply restrained footer and visual polish.
+Preserve the existing Graphite theme, VibeFarsiUI assets, fixture boundary,
+catalog routes, preview lifecycle, RTL behavior, accessibility, and responsive
+contracts.
+
+**Depends On:** VIDORA-UI-REDESIGN-03E.
+
+**Scope:** Homepage presentation components, focused interaction tests, browser
+review, independent review, and related documentation. Search, detail,
+checkout, authentication, library, blog, Admin, Prisma schema, migrations,
+and backend business logic remain outside this task.
+
+**Acceptance criteria:**
+
+- The Play affordance is centered within the media container, remains
+  non-interactive, appears only for playable previews, and follows the existing
+  preview lifecycle.
+- The SEO article remains server-rendered; its desktop table of contents is
+  sticky within the article section, avoids the sticky header, stops naturally,
+  uses correct anchor targets, and becomes non-sticky on smaller screens.
+- The table of contents uses a lightweight active-section observer with
+  `aria-current`, handles direct anchors, and respects reduced motion.
+- The header is sticky without layout shift and exposes real flat catalog
+  categories through the existing `/search?category=` contract on desktop and
+  mobile, with keyboard/Escape behavior and empty-state handling.
+- Hero whitespace is reduced without fixed-height mobile behavior, and the
+  concise footer uses only real destinations and catalog-backed categories.
+- Focused tests, full repository verification, browser review, and independent
+  review evidence are recorded before owner approval.
+
+**Owner approval:** The owner explicitly approved the completed homepage after
+review of the 03F implementation on 2026-11-13. The homepage redesign is
+closed; no further homepage redesign work is authorized by this task.
+
+### VIDORA-UI-REDESIGN-03G — Homepage Final Approval & Closure
+
+Status: DONE
+
+Formally close the approved homepage redesign after 03F. Preserve the approved
+homepage implementation and identify `VIDORA-PUB-FOOTAGE-EXPLORER-06` — Public
+Search — Filters, Sorting & Listing as the next UI milestone.
+
+**Closure record:** Owner approval was explicitly received on 2026-11-13.
+No homepage feature, Prisma model, migration, authentication, payment, or
+storage behavior is introduced by this closure task.
+
+## VIDORA-UI-SEARCH-04 — Fix Intermittent Price Filter & URL State Synchronization
+
+Status: DONE
+
+Investigate and permanently fix intermittent price-filter URL synchronization on
+`/search`, including rapid updates and combinations with text, category, sorting,
+duration, active badges, pagination, and browser navigation. Preserve the
+existing automatic filtering UX, fixture/catalog boundary, and search-page
+presentation. Do not modify Prisma schema or migrations.
+
+**Acceptance criteria:**
+
+- price slider and numeric inputs consistently commit to the URL after the
+  existing debounce/blur behavior;
+- unrelated active filters are preserved and filter changes reset pagination;
+- rapid updates cannot let stale URL state overwrite newer values;
+- badges, results, Back/Forward, reload, and responsive search controls remain
+  synchronized;
+- focused regression tests, browser verification, and repository quality checks
+  are recorded before owner review.
+
+**Scope:** Search URL-state ownership, price-control synchronization, focused
+tests, browser verification, independent review, and related documentation.

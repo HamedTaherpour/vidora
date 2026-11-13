@@ -4,11 +4,13 @@ import {
   useEffect,
   useRef,
   useState,
+  useTransition,
   type FormEvent,
 } from "react";
 
 import {
   getSearchActiveFilterCount,
+  mergeSearchQuery,
   serializeSearchQuery,
   type SearchQuery,
 } from "../search";
@@ -18,6 +20,7 @@ import type { UseSearchStateParams } from "./use-search-state.types";
 /** Owns Search draft state, URL synchronization, debounce, and filter actions. */
 export function useSearchState({ query, priceBounds }: UseSearchStateParams) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [searchDraft, setSearchDraft] = useState(query.query);
   const [priceDraft, setPriceDraft] = useState<[number, number]>(() =>
@@ -25,20 +28,31 @@ export function useSearchState({ query, priceBounds }: UseSearchStateParams) {
   );
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchRevisionRef = useRef(0);
+  const latestQueryRef = useRef(query);
+  const pendingQueryRef = useRef<string | null>(null);
   const activeFilterCount = getSearchActiveFilterCount(query);
 
   useEffect(() => {
-    const syncTimer = setTimeout(() => setSearchDraft(query.query), 0);
-    return () => clearTimeout(syncTimer);
-  }, [query.query]);
+    const serializedQuery = serializeSearchQuery(query);
+    if (
+      pendingQueryRef.current !== null &&
+      pendingQueryRef.current !== serializedQuery
+    ) {
+      return;
+    }
+    latestQueryRef.current = query;
+    pendingQueryRef.current = null;
+    setSearchDraft(query.query);
+    setPriceDraft(getSearchSliderValues(query, priceBounds));
+  }, [priceBounds, query]);
 
   useEffect(() => {
-    const syncTimer = setTimeout(
-      () => setPriceDraft(getSearchSliderValues(query, priceBounds)),
-      0,
-    );
-    return () => clearTimeout(syncTimer);
-  }, [priceBounds, query]);
+    const handlePopState = () => {
+      pendingQueryRef.current = null;
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   function cancelPendingSearch() {
     searchRevisionRef.current += 1;
@@ -51,16 +65,19 @@ export function useSearchState({ query, priceBounds }: UseSearchStateParams) {
   const replaceDiscoveryState = useCallback(
     (overrides: Partial<SearchQuery>) => {
       cancelPendingSearch();
-      const next = serializeSearchQuery({
-        ...query,
-        query: searchDraft,
-        ...overrides,
-        page: 1,
-      });
+      const nextQuery = mergeSearchQuery(
+        { ...latestQueryRef.current, query: searchDraft },
+        overrides,
+      );
+      const next = serializeSearchQuery(nextQuery);
       const current = serializeSearchQuery(query);
-      if (next !== current) router.replace(next ? `?${next}` : "?");
+      if (next !== current) {
+        latestQueryRef.current = nextQuery;
+        pendingQueryRef.current = next;
+        startTransition(() => router.replace(next ? `?${next}` : "?"));
+      }
     },
-    [query, router, searchDraft],
+    [query, router, searchDraft, startTransition],
   );
 
   useEffect(() => {
@@ -112,6 +129,7 @@ export function useSearchState({ query, priceBounds }: UseSearchStateParams) {
     handlePriceReset,
     handleRemoveFilter,
     mobileFiltersOpen,
+    isPending,
     priceDraft,
     replaceDiscoveryState,
     searchDraft,

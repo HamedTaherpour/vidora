@@ -51,6 +51,9 @@ export function createPrismaPublicFootageCatalogStore(
         },
         preview: {
           status: row.footageFiles.length > 0 ? "ready" : "unavailable",
+          ...(row.footageFiles.length > 0
+            ? { videoUrl: `/api/footage/${row.id}/preview` }
+            : {}),
         },
       }));
     },
