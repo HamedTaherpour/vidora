@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AccordionProps } from "./accordion.types";
+import { toggleAccordionOpenIds } from "./accordion.utils";
 
 /** Official VibeFarsiUI `accordion` registry component. */
 export function Accordion({
@@ -14,13 +15,7 @@ export function Accordion({
 }: AccordionProps) {
   const [open, setOpen] = useState(defaultOpen);
   const toggle = (id: string) =>
-    setOpen((current) =>
-      current.includes(id)
-        ? current.filter((item) => item !== id)
-        : multiple
-          ? [...current, id]
-          : [id],
-    );
+    setOpen((current) => toggleAccordionOpenIds(current, id, multiple));
 
   return (
     <div

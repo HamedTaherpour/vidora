@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "@/lib/env/server";
 import "./globals.css";
@@ -15,6 +15,10 @@ const vazirmatn = localFont({
 export const metadata: Metadata = {
   title: "ویدورا | بازار فوتیج حرفه‌ای",
   description: "فوتیج‌های حرفه‌ای و آماده استفاده برای پروژه‌های ویدیویی شما.",
+};
+
+export const viewport: Viewport = {
+  viewportFit: "cover",
 };
 
 type RootLayoutProps = {

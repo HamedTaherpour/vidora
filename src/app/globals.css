@@ -10,6 +10,10 @@
   }
 }
 
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 .home-hero-grid {
   background-image:
     linear-gradient(

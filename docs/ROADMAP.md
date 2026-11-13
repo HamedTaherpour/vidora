@@ -178,7 +178,7 @@ approach authorized for the two UI phases:
 
 ### UI-DESIGN-01 — Establish MVP Visual Direction
 
-**Status:** READY_FOR_REVIEW
+**Status:** DONE
 
 **Depends On:** UI-01, UI-02, AI-GOV-01.
 
@@ -488,6 +488,121 @@ approved public UI.
 
 **Explicit exclusions:** slug/database resolution, real preview requests,
 order creation, payment, entitlement, or original download.
+
+---
+
+### VIDORA-UI-FOOTAGE-DETAIL-01 — Premium Footage Detail Experience
+
+**Status:** DONE
+**Depends On:** PUB-03, PUB-04.
+
+**Scope / route:** Improve the fixture-safe `/footage/[slug]` storefront detail
+experience with a premium preview-first composition, typed public detail view
+model, technical metadata, quality presentation, purchase/download education,
+rights expectations, and deterministic related-footage discovery.
+
+**Data-field audit:** `Footage.descriptionFa`, `publishedAt`, category, tags,
+preview metadata, original quality labels, dimensions, FPS, codec, MIME type,
+price, cover, and preview availability are persisted or queryable. The existing
+listing DTO previously exposed only title, price, category, cover, preview, and
+duration; this task adds a public-safe detail query without object keys or
+original URLs. Development-only descriptions and technical values are marked
+fixture-backed.
+
+**Deferred backend / policy work:** real slug detail integration in all
+environments, protected original downloads, entitlement and library access,
+payment/order/invoice orchestration, and final legal license wording remain
+outside this UI task. The owner-approved future download-link requirement is a
+60-minute temporary URL lifetime; it is explained in the UI but not simulated.
+Download-count limits and access to files added after purchase remain
+unresolved.
+
+**Owner approval:** Product owner approved this experience for finalization in
+`VIDORA-UI-FOOTAGE-DETAIL-FINAL`.
+
+**Verification:** focused detail tests and repository checks passed. Narrow/mobile
+browser verification was completed for the current fixture-backed surface;
+desktop and tablet visual verification remained unavailable due to the
+browser-control limitation.
+
+---
+
+### VIDORA-UI-FOOTAGE-DETAIL-02 — Footage Detail UX Refinement & Visual Polish
+
+**Status:** DONE
+**Depends On:** VIDORA-UI-FOOTAGE-DETAIL-01.
+
+**Scope / route:** Refine `/footage/[slug]` without changing its public-safe
+media, purchase-continuation, fixture, or licensing contracts. Add the shared
+public header/footer, single-open purchase-policy accordion behavior, a more
+engaging purchase journey, a mobile sticky purchase action, stronger semantic
+description hierarchy, and clearer technical metadata.
+
+**Design decisions:** reuse `HomeHeader`, `HomeFooter`, `Accordion`, `Card`,
+`Button`, `FootageCard`, and the existing `SpotlightCard` composition. Keep the
+Graphite token system, native video controls, Persian RTL content, and a small
+server-rendered page with one mobile-only sticky action island.
+
+**Deferred work:** payment, entitlement, protected original delivery, final
+licensing/download-limit policy, and unsupported metadata remain outside this
+refinement. File size and publication date render only when present in the
+public-safe contract; no metadata is fabricated.
+
+**Owner approval:** Product owner approved this refinement for finalization in
+`VIDORA-UI-FOOTAGE-DETAIL-FINAL`.
+
+---
+
+### VIDORA-UI-FOOTAGE-DETAIL-03 — Fix Footage Detail Layout Spacing
+
+**Status:** DONE
+**Depends On:** VIDORA-UI-FOOTAGE-DETAIL-02.
+
+**Root cause:** the purchase card and purchase-conditions accordion were in
+separate desktop grid rows. The first row height was determined by the taller
+preview column, leaving the shorter purchase card separated from its accordion
+by the unused row height and the section gap.
+
+**Correction:** the purchase card and accordion now share one desktop-side
+column with the existing token-based vertical gap. Metadata and the purchase
+journey remain in their approved lower section. Mobile ordering, sticky
+purchase behavior, RTL structure, preview, related footage, header, and footer
+remain unchanged.
+
+**Verification:** narrow browser verification confirmed the corrected grouping,
+accordion behavior, RTL ordering, and sticky purchase compatibility. Automated
+repository checks passed. Desktop and tablet viewport verification remains a
+known tooling limitation for this task.
+
+**Owner approval:** Product owner approved this correction for finalization in
+`VIDORA-UI-FOOTAGE-DETAIL-FINAL`.
+
+---
+
+### VIDORA-UI-FOOTAGE-DETAIL-04 — Correct Desktop Grid Layout
+
+**Status:** DONE
+**Depends On:** VIDORA-UI-FOOTAGE-DETAIL-03.
+
+**Scope / route:** Final correction to the approved `/footage/[slug]` desktop
+composition.
+
+**Root cause:** the prior side-column stack did not establish the required
+two-row desktop relationship, allowing the preview row height to create excess
+space before the description and purchase conditions.
+
+**Correction:** explicit desktop grid placement now keeps the preview and
+purchase card in row one, description and purchase conditions in row two, and
+technical metadata, purchase journey, and related footage below as approved.
+The desktop purchase card is non-sticky; the mobile sticky purchase bar is
+preserved.
+
+**Verification:** repository quality gates passed. Narrow/mobile browser state
+was verified; desktop and tablet visual verification remained unavailable due
+to the browser-control limitation.
+
+**Owner approval:** Product owner approved this correction for finalization in
+`VIDORA-UI-FOOTAGE-DETAIL-FINAL`.
 
 ---
 
