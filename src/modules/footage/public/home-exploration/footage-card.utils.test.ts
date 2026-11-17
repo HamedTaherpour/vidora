@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
-  formatFootageCardPrice,
   getFootagePreviewProgress,
+  shouldCommitFootagePreviewStart,
   shouldShowFootagePreviewPlayIcon,
   shouldShowFootagePreviewProgress,
-  shouldCommitFootagePreviewStart,
   startFootagePreview,
   stopFootagePreview,
-} from "./footage-card.utils";
+} from "@/components/footage-media-preview/footage-media-preview.utils";
+import { formatFootageCardPrice } from "./footage-card.utils";
 
 describe("footage card media helpers", () => {
   it("shows the play affordance only for a preview that is not playing", () => {

@@ -47,6 +47,17 @@ export function requireAuthenticatedCustomer(
   return customer;
 }
 
+/** Allow the explicit local development identity to render customer pages. */
+export function requireCustomerPageAccess(
+  customer: ResolvedCustomer,
+): RequiredCustomer {
+  if (customer.status !== "authenticated") {
+    throw new CustomerAuthorizationError();
+  }
+
+  return customer;
+}
+
 /**
  * Admin-required gate.
  * A Customer session alone is not represented here and cannot satisfy this check.

@@ -40,7 +40,7 @@ export function HomeHeader(props: HomeHeaderProps) {
             مجله
           </Link>
           <Link
-            href="/library"
+            href="/dashboard/library"
             className="hidden min-h-11 items-center transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:inline-flex"
           >
             کتابخانهٔ من

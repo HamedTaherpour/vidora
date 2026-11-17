@@ -6,13 +6,23 @@ import {
 } from "@/modules/auth/development/dev-auth-bypass";
 import {
   requireAdminPageAccess,
+  requireAuthenticatedCustomer,
   requireAuthenticatedAdmin,
+  requireCustomerPageAccess,
 } from "@/modules/auth/authorization/authorization";
 
 const DEV_ADMIN = {
   status: "authenticated" as const,
   adminId: "dev-admin-bypass",
   phone: "+989000000000",
+  expiresAt: new Date("2026-10-29T13:00:00.000Z"),
+  isDevelopmentBypass: true,
+};
+
+const DEV_CUSTOMER = {
+  status: "authenticated" as const,
+  userId: "dev-user-bypass",
+  phone: "+989000000001",
   expiresAt: new Date("2026-10-29T13:00:00.000Z"),
   isDevelopmentBypass: true,
 };
@@ -51,5 +61,9 @@ describe("development authentication bypass", () => {
     expect(() => requireAuthenticatedAdmin(DEV_ADMIN)).toThrow(
       "Authenticated administrator required.",
     );
+    expect(() => requireAuthenticatedCustomer(DEV_CUSTOMER)).toThrow(
+      "Authenticated customer required.",
+    );
+    expect(requireCustomerPageAccess(DEV_CUSTOMER)).toEqual(DEV_CUSTOMER);
   });
 });

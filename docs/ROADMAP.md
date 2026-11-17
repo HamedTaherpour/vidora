@@ -103,16 +103,16 @@ visual consistency. Passing tests alone does not complete a page.
 
 ### Routes discovered at restructuring time
 
-| Surface                             | Implemented route           | Planning status                                                                                                                                                                       |
-| ----------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Public catalog/home                 | `/`                         | Fixture-backed homepage with approved Hero/Header, search/category controls, responsive gallery, URL pagination, and preview interactions; not a database-backed catalog integration. |
-| Public footage detail               | `/footage/[slug]`           | Fixture-backed Commerce detail composition exists; production detail query and backend-connected integration remain pending.                                                          |
-| Public browse/search                | `/search`                   | Fixture-backed Classic Sidebar search route with URL-owned filters, sorting, pagination, and legacy `/footage` browse redirect.                                                       |
-| Customer authentication             | `/login`, `/login/continue` | Minimal fixture-backed phone/OTP presentation; `/session` compatibility routes redirect to the public login routes.                                                                   |
-| Customer library, checkout, invoice | No routes                   | Planned product surfaces; dependent backend workflows are not implemented.                                                                                                            |
-| Admin footage catalog               | `/admin/footage`            | Implemented operational surface.                                                                                                                                                      |
-| Admin footage editor                | `/admin/footage/[id]/edit`  | Implemented operational surface.                                                                                                                                                      |
-| Other Admin areas                   | No routes                   | Product requirements mention orders, payments/support, users, and blog, but their backend capability and routes are not yet implemented.                                              |
+| Surface                                        | Implemented route                  | Planning status                                                                                                                                                                       |
+| ---------------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Public catalog/home                            | `/`                                | Fixture-backed homepage with approved Hero/Header, search/category controls, responsive gallery, URL pagination, and preview interactions; not a database-backed catalog integration. |
+| Public footage detail                          | `/footage/[slug]`                  | Fixture-backed Commerce detail composition exists; production detail query and backend-connected integration remain pending.                                                          |
+| Public browse/search                           | `/search`                          | Fixture-backed Classic Sidebar search route with URL-owned filters, sorting, pagination, and legacy `/footage` browse redirect.                                                       |
+| Customer authentication                        | `/login`, `/login/continue`        | Minimal fixture-backed phone/OTP presentation; `/session` compatibility routes redirect to the public login routes.                                                                   |
+| Customer dashboard, library, checkout, invoice | `/dashboard`, `/dashboard/library` | Shared customer dashboard shell is implemented; library/commerce data remain placeholder or dependent on backend workflows.                                                           |
+| Admin footage catalog                          | `/admin/footage`                   | Implemented operational surface.                                                                                                                                                      |
+| Admin footage editor                           | `/admin/footage/[id]/edit`         | Implemented operational surface.                                                                                                                                                      |
+| Other Admin areas                              | No routes                          | Product requirements mention orders, payments/support, users, and blog, but their backend capability and routes are not yet implemented.                                              |
 
 ### Current homepage approval boundary
 
@@ -767,6 +767,249 @@ three screens. Final route verification, fixture-state coverage, safe
 navigation checks passed. PUB-06 UI scope is complete; real authentication,
 customer-scoped lookup, entitlement verification, protected downloads, and
 official invoice issuance remain deferred to the listed dependencies.
+
+---
+
+### VIDORA-UI-ACCOUNT-01 — Shared Customer Panel Layout & Dashboard
+
+**Status:** DONE
+**Depends On:** PUB-04, PUB-06, AUTH-05.
+
+**Objective:** Establish one reusable authenticated customer-account layout and
+dashboard without introducing a second storefront shell or duplicating account
+navigation across customer routes.
+
+**Implemented scope:** `/account` dashboard, shared account navigation, existing
+`/library` routes integrated into the shared route-group, and clearly labelled
+placeholders for orders/invoices and profile. Dashboard data is server-bound to
+the current customer session; no purchase count or purchase record is invented
+when the customer-scoped purchase query is not available.
+
+**Acceptance criteria:**
+
+- one shared layout owns account navigation and common structure;
+- authenticated customer access is enforced server-side;
+- unauthenticated access redirects to the existing login route with a safe
+  internal continuation destination;
+- dashboard provides account context, data-safe purchase state, library/order/
+  profile navigation, and a responsive Persian RTL empty/unavailable state;
+- `/library` remains the canonical existing library route and is not duplicated;
+- no payment, entitlement, protected-download, invoice-generation, or schema
+  behavior is introduced;
+- focused tests, full quality gates, and independent review are completed before
+  owner approval.
+
+**Explicit exclusions:** real customer purchase queries, download
+authorization, invoice issuance, phone-number changes, OTP redesign, and
+production purchase fixtures.
+
+---
+
+### VIDORA-DEV-PREVIEW-01 — Restore and Reuse Existing Development Preview Access
+
+**Status:** DONE
+**Depends On:** VIDORA-UI-ACCOUNT-01.
+
+**Objective:** Reuse the existing explicit development authentication bypass so
+customer-facing pages can be visually reviewed locally without OTP, while real
+customer authorization and protected operations remain unchanged.
+
+**Implemented scope:** customer page access now accepts the existing
+development-only identity for account and library rendering. Operational
+customer authorization continues to reject that identity, and the shared
+account navigation no longer introduces mobile horizontal overflow.
+
+**Acceptance criteria:**
+
+- local development preview access is centralized and explicitly opt-in;
+- `/account` and `/library` render locally without OTP;
+- production and real customer authorization remain protected;
+- preview identity cannot grant entitlements, downloads, payments, invoices, or
+  access to real customer records;
+- existing account layout and fixture-safe dashboard states are preserved;
+- focused security/preview tests and full quality gates pass.
+
+**Explicit exclusions:** new authentication systems, OTP changes, schema
+changes, payment/entitlement work, protected download behavior, and account
+redesign.
+
+---
+
+### VIDORA-UI-ACCOUNT-02 — Customer Dashboard UX Refinement
+
+**Status:** DONE
+**Depends On:** VIDORA-UI-ACCOUNT-01, VIDORA-DEV-PREVIEW-01.
+
+**Objective:** Refine the existing `/account` customer dashboard into a
+customer-facing Persian RTL experience without changing the shared account
+architecture or authentication/data boundaries.
+
+**Scope:** Improve the shared account header/navigation presentation, clarify
+the dashboard information hierarchy, replace development-oriented copy with
+honest customer-facing unavailable/empty-state language, and remove redundant
+dashboard shortcuts while keeping the shared navigation as the primary route
+switcher.
+
+**Explicit exclusions:** real purchase queries, payment, entitlement,
+protected downloads, invoice generation, Prisma/schema changes, OTP changes,
+and new product features.
+
+---
+
+### VIDORA-UI-DASHBOARD-ROUTES-01 — Customer Dashboard Route Migration
+
+**Status:** DONE
+**Depends On:** VIDORA-UI-ACCOUNT-02.
+
+**Objective:** Make `/dashboard` the canonical root of the customer panel and
+move all customer-panel pages under `/dashboard/*` while preserving the shared
+shell, dashboard refinement, library behavior, authentication, and development
+preview boundaries.
+
+**Scope:** Migrate dashboard, library, order, profile, and existing library
+detail/invoice routes; remove the old `/account` and standalone `/library`
+customer pages; update internal links and safe login continuations; and verify
+the canonical route tree.
+
+**Explicit exclusions:** visual redesign, real payments, invoice issuance,
+entitlements, protected downloads, profile editing, authentication redesign,
+and new authorization bypasses.
+
+---
+
+### VIDORA-UI-DASHBOARD-SEARCH-01 — Customer Library Search
+
+**Status:** DONE
+**Depends On:** VIDORA-UI-DASHBOARD-ROUTES-01.
+
+**Objective:** Add one shared, Persian RTL search input to the customer panel
+that navigates to the canonical customer library with URL-owned query state.
+
+**Scope:** Reuse the VibeFarsiUI search input in the shared customer shell;
+submit and clear the `q` query parameter on `/dashboard/library`; preserve
+honest unavailable-data behavior until an authorized purchased-footage source
+exists; and add focused interaction/URL-state coverage.
+
+**Explicit exclusions:** public marketplace search, real purchase queries,
+entitlements, protected downloads, new backend search infrastructure, and any
+authentication or OTP changes.
+
+---
+
+### VIDORA-UI-DASHBOARD-LIBRARY-01 — Purchased Footage Library
+
+**Status:** DONE
+**Depends On:** VIDORA-UI-DASHBOARD-ROUTES-01.
+
+**Objective:** Establish the customer purchased-footage library at
+`/dashboard/library`, with library-only search and honest purchase-data states.
+
+**Scope:** Remove search from the shared customer header; place the existing
+VibeFarsiUI search input above the library collection; preserve the canonical
+library descendant routes and shared dashboard shell; and present authorized
+purchase/download states without fabricating footage, entitlements, or links.
+
+**Explicit exclusions:** public catalog search, production purchase queries,
+fake purchase fixtures, payment or entitlement changes, protected download
+delivery, download-count or licensing rules, and dashboard-layout duplication.
+
+---
+
+### VIDORA-UI-DASHBOARD-LIBRARY-02 — Library Footage Cards & Development Preview
+
+**Status:** DONE
+**Depends On:** VIDORA-UI-DASHBOARD-LIBRARY-01.
+
+**Objective:** Provide a deterministic development-only library preview with
+representative footage cards while keeping production purchase and download
+boundaries unchanged.
+
+**Scope:** Use the established development auth bypass and existing safe public
+footage fixtures to render a searchable library grid; show library-specific
+metadata and quality badges without price or Buy Now actions; preserve safe
+detail navigation and honest production unavailable states.
+
+**Explicit exclusions:** real purchase queries, production fixture fallback,
+payments, entitlements, protected download delivery, download-count or
+licensing rules, and shared dashboard search/layout changes.
+
+---
+
+### VIDORA-UI-SHARED-PREVIEW-01 — Shared Footage Card Video Preview
+
+**Status:** DONE
+**Depends On:** VIDORA-UI-DASHBOARD-LIBRARY-02, PUB-04.
+
+**Objective:** Reuse one shared footage-card media-preview component across
+public catalogue cards and purchased-library cards so hover playback,
+progress, failure fallback, reduced-motion behavior, and cleanup stay
+consistent.
+
+**Scope:** Extract the existing public-safe hover preview behavior into a
+shared application UI component and consume it from `FootageCard` and
+`CustomerLibraryCard`. Preserve each card's own metadata, actions, styling,
+navigation, and public/library responsibilities. Use only the existing
+public-safe preview URLs and development fixtures.
+
+**Explicit exclusions:** redesigning either card, production purchase or
+entitlement behavior, protected original media, autoplay across the grid,
+new preview infrastructure, or production fixture fallback.
+
+**Closure:** Owner approval, focused tests, full quality gates, browser
+verification, and independent review completed.
+
+---
+
+### VIDORA-UI-DASHBOARD-LIBRARY-03 — Simplify Library Page Header
+
+**Status:** DONE
+**Depends On:** VIDORA-UI-DASHBOARD-LIBRARY-02, VIDORA-UI-SHARED-PREVIEW-01.
+
+**Objective:** Simplify the `/dashboard/library` page header so the library
+collection is reached through one clear heading, one concise description, and
+the existing page-specific search input without changing cards or preview
+behavior.
+
+**Scope:** Consolidate the library page heading and supporting copy; remove the
+redundant collection heading and explanatory text; keep the existing search URL
+state and reset behavior directly above the footage collection; and present any
+collection count as subtle secondary information.
+
+**Explicit exclusions:** library-card redesign, shared dashboard-layout changes,
+video-preview changes, search-logic changes, authentication or development
+preview-boundary changes, backend or Prisma changes, and production purchase or
+entitlement behavior.
+
+**Closure:** Owner approval, focused verification, full quality gates, browser
+checks, and independent review completed.
+
+---
+
+### VIDORA-UI-DASHBOARD-LIBRARY-04 — Purchased Footage Details & Download Modal
+
+**Status:** DONE
+**Depends On:** VIDORA-UI-DASHBOARD-LIBRARY-03, VIDORA-UI-SHARED-PREVIEW-01.
+
+**Objective:** Open purchased-footage details inside an accessible modal from
+`/dashboard/library`, with a safe preview and available quality labels while
+preserving real entitlement and protected-download boundaries.
+
+**Scope:** Modal-based library card interaction, shared preview controls mode,
+development-only representative quality rows, and focused UI/data-contract
+coverage. Preserve the existing library search state, customer shell, invoice
+route, and unavailable production data behavior.
+
+**Explicit exclusions:** Production purchase queries, entitlement changes,
+protected download endpoints or signed URLs, Prisma/schema changes, fake
+download links, fixture fallback in production, and deletion of existing
+protected detail or invoice routes.
+
+**Closure:** Owner approval, focused verification, full quality gates, browser
+checks, and independent review completed.
+
+**Deferred backend dependencies:** Real customer-scoped library queries,
+verified entitlements, protected downloads with 60-minute temporary links, and
+real order/invoice data remain outside this UI commit.
 
 ---
 
