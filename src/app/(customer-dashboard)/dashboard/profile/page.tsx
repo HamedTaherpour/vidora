@@ -1,24 +1,11 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CUSTOMER_DASHBOARD_ROUTES } from "@/modules/dashboard/dashboard-navigation";
+import { CustomerProfile } from "@/modules/dashboard/customer-profile/customer-profile";
+import { createCustomerProfileView } from "@/modules/dashboard/customer-profile";
 import { requireDashboardCustomer } from "@/modules/dashboard/require-dashboard-customer";
 
 export default async function DashboardProfilePage() {
   const customer = await requireDashboardCustomer(
     CUSTOMER_DASHBOARD_ROUTES.profile,
   );
-  return (
-    <Card>
-      <CardHeader>
-        <h2 className="text-2xl font-bold">پروفایل</h2>
-      </CardHeader>
-      <CardContent>
-        <p className="text-muted-foreground">
-          شمارهٔ حساب: <bdi dir="ltr">{customer.phone}</bdi>
-        </p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          تغییر شمارهٔ تلفن در V1 تعریف نشده است.
-        </p>
-      </CardContent>
-    </Card>
-  );
+  return <CustomerProfile profile={createCustomerProfileView(customer)} />;
 }
