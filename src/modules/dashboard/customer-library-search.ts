@@ -1,4 +1,4 @@
-import { CUSTOMER_DASHBOARD_ROUTES } from "./account-navigation";
+import { CUSTOMER_DASHBOARD_ROUTES } from "./dashboard-navigation";
 
 /** Builds the customer-library destination while omitting an empty query. */
 export function createCustomerLibrarySearchHref(value: string) {

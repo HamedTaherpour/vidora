@@ -6,9 +6,9 @@ import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 
 import {
-  ACCOUNT_NAVIGATION,
-  isAccountNavigationItemCurrent,
-} from "@/modules/account/account-navigation";
+  CUSTOMER_DASHBOARD_NAVIGATION,
+  isDashboardNavigationItemCurrent,
+} from "@/modules/dashboard/dashboard-navigation";
 
 const navigationIcons: readonly LucideIcon[] = [
   LayoutDashboard,
@@ -18,7 +18,7 @@ const navigationIcons: readonly LucideIcon[] = [
 ];
 
 /** Renders the shared account routes with a reliable current-page state. */
-export function CustomerAccountNavigation() {
+export function CustomerDashboardNavigation() {
   const pathname = usePathname();
 
   return (
@@ -26,9 +26,9 @@ export function CustomerAccountNavigation() {
       aria-label="ناوبری حساب کاربری"
       className="grid grid-cols-2 gap-2 pb-1 lg:grid-cols-1"
     >
-      {ACCOUNT_NAVIGATION.map((item, index) => {
+      {CUSTOMER_DASHBOARD_NAVIGATION.map((item, index) => {
         const Icon = navigationIcons[index];
-        const isCurrent = isAccountNavigationItemCurrent(item.href, pathname);
+        const isCurrent = isDashboardNavigationItemCurrent(item.href, pathname);
 
         return (
           <Link

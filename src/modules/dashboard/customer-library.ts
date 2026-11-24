@@ -1,6 +1,6 @@
 import type { PublicFootageCatalogItem } from "@/modules/footage/public/catalog/public-footage-catalog-store";
 
-import { CUSTOMER_DASHBOARD_ROUTES } from "./account-navigation";
+import { CUSTOMER_DASHBOARD_ROUTES } from "./dashboard-navigation";
 
 export type CustomerLibraryDataState = "empty" | "unavailable" | "error";
 

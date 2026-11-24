@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { CUSTOMER_DASHBOARD_ROUTES } from "@/modules/account/account-navigation";
-import { requireAccountCustomer } from "@/modules/account/require-account-customer";
+import { CUSTOMER_DASHBOARD_ROUTES } from "@/modules/dashboard/dashboard-navigation";
+import { requireDashboardCustomer } from "@/modules/dashboard/require-dashboard-customer";
 
 export default async function DashboardInvoicePage() {
-  await requireAccountCustomer(CUSTOMER_DASHBOARD_ROUTES.library);
+  await requireDashboardCustomer(CUSTOMER_DASHBOARD_ROUTES.library);
   return (
     <Card>
       <CardHeader>

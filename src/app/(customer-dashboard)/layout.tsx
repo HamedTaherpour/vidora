@@ -1,8 +1,8 @@
-import { CustomerAccountShell } from "@/modules/account/components/customer-account-shell";
+import { CustomerDashboardShell } from "@/modules/dashboard/components/customer-dashboard-shell";
 import type { CustomerDashboardLayoutProps } from "./layout.types";
 
 export default function CustomerDashboardLayout(
   props: CustomerDashboardLayoutProps,
 ) {
-  return <CustomerAccountShell>{props.children}</CustomerAccountShell>;
+  return <CustomerDashboardShell>{props.children}</CustomerDashboardShell>;
 }

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
 
-export type CustomerAccountShellProps = {
+export type CustomerDashboardShellProps = {
   children: ReactNode;
 };

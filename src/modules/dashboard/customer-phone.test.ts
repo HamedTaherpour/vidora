@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { maskCustomerPhone } from "./account-phone";
+import { maskCustomerPhone } from "./customer-phone";
 
 describe("maskCustomerPhone", () => {
   it("masks the customer phone and uses Persian digits", () => {

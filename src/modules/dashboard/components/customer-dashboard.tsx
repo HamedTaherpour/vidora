@@ -3,7 +3,7 @@ import { ArrowLeft, CircleUserRound, ReceiptText } from "lucide-react";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { maskCustomerPhone } from "@/modules/account/account-phone";
+import { maskCustomerPhone } from "@/modules/dashboard/customer-phone";
 import type {
   CustomerDashboardProps,
   CustomerPurchaseState,

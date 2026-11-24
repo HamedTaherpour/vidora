@@ -1,20 +1,35 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { CUSTOMER_DASHBOARD_ROUTES } from "@/modules/account/account-navigation";
-import { requireAccountCustomer } from "@/modules/account/require-account-customer";
+import { CUSTOMER_DASHBOARD_ROUTES } from "@/modules/dashboard/dashboard-navigation";
+import {
+  getCustomerOrdersPage,
+  getCustomerOrdersSearchQuery,
+  getCustomerOrdersStatus,
+} from "@/modules/dashboard/customer-orders";
+import { getCustomerOrdersPreview } from "@/modules/dashboard/customer-orders-preview";
+import { CustomerOrdersPage } from "@/modules/dashboard/customer-orders-page";
+import { requireDashboardCustomer } from "@/modules/dashboard/require-dashboard-customer";
 
-export default async function DashboardOrdersPage() {
-  await requireAccountCustomer(CUSTOMER_DASHBOARD_ROUTES.orders);
+type DashboardOrdersPageProps = {
+  searchParams: Promise<{
+    q?: string | string[];
+    status?: string | string[];
+    page?: string | string[];
+  }>;
+};
+
+export default async function DashboardOrdersPage(
+  props: DashboardOrdersPageProps,
+) {
+  const customer = await requireDashboardCustomer(
+    CUSTOMER_DASHBOARD_ROUTES.orders,
+  );
+  const params = await props.searchParams;
+
   return (
-    <Card>
-      <CardHeader>
-        <h2 className="text-2xl font-bold">سفارش‌ها و فاکتورها</h2>
-      </CardHeader>
-      <CardContent>
-        <p className="text-muted-foreground">
-          سوابق سفارش و فاکتور پس از آماده‌شدن دادهٔ واقعی خرید در این بخش نمایش
-          داده می‌شود.
-        </p>
-      </CardContent>
-    </Card>
+    <CustomerOrdersPage
+      source={getCustomerOrdersPreview(customer)}
+      initialQuery={getCustomerOrdersSearchQuery(params.q)}
+      initialStatus={getCustomerOrdersStatus(params.status)}
+      initialPage={getCustomerOrdersPage(params.page)}
+    />
   );
 }

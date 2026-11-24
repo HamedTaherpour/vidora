@@ -1013,6 +1013,78 @@ real order/invoice data remain outside this UI commit.
 
 ---
 
+### VIDORA-UI-DASHBOARD-ORDERS-01 — Customer Orders & Invoice Experience
+
+**Status:** DONE
+**Depends On:** VIDORA-UI-ACCOUNT-01, VIDORA-DEV-PREVIEW-01.
+
+**Objective:** Provide the customer-facing `/dashboard/orders` experience with
+a searchable, filterable responsive order-history preview and an accessible
+order details/invoice modal without introducing commerce persistence.
+
+**Implemented scope:** URL-owned search, provisional payment-state filtering,
+deterministic newest-first development-only order fixtures, responsive table
+and mobile cards, accessible order details modal, historical invoice fields
+from documented contracts, and unavailable production-data presentation.
+
+**Explicit exclusions:** Order or OrderItem persistence, payment integration or
+verification, purchase completion, entitlements, official invoice generation,
+PDF/print endpoints, protected footage downloads, Prisma/schema changes, and
+production fixture fallback.
+
+**Deferred backend dependencies:** COM-02, PAY-01–PAY-03, LIB-01, INV-01,
+INV-02, and the unresolved legal/tax invoice contract.
+
+**Review gate:** Owner approval remains required after focused tests, full
+quality gates, browser verification, and independent contract review.
+
+---
+
+### VIDORA-UI-DASHBOARD-ORDERS-02 — Total Orders Count
+
+**Status:** DONE
+**Depends On:** VIDORA-UI-DASHBOARD-ORDERS-01.
+
+**Objective:** Refine the existing customer orders page and order details modal
+without changing its data, authorization, or commerce boundaries.
+
+**Implemented scope:** Removed the previously rejected total-order count,
+compactified the order details modal to a local approximately 640px maximum,
+consolidated shared order and invoice fields, preserved invoice-specific
+information and disabled invoice actions, and retained responsive scrolling.
+
+**Explicit exclusions:** Backend order queries, commerce persistence, schema
+changes, PDF/print/download implementation, global Dialog changes, and
+unrelated dashboard changes.
+
+**Review gate:** Owner approval remains required after focused tests, full
+quality gates, browser verification, and independent contract review.
+
+---
+
+### VIDORA-UI-DASHBOARD-ORDERS-03 — Simplify Order and Invoice Modal
+
+**Status:** DONE
+**Depends On:** VIDORA-UI-DASHBOARD-ORDERS-02.
+
+**Objective:** Refine the existing `/dashboard/orders` order details dialog into
+a compact, continuous two-column key-value layout without changing data,
+authorization, commerce, or invoice-action boundaries.
+
+**Implemented scope:** One label/value row per available order or invoice field,
+minimal payment-status presentation above the table, compact local modal sizing,
+preserved conditional invoice fields and existing disabled actions, and mobile-
+safe RTL wrapping.
+
+**Explicit exclusions:** Backend order queries, commerce persistence, schema
+changes, PDF/print/download implementation, global Dialog changes, and unrelated
+dashboard changes.
+
+**Review gate:** Owner approval remains required after focused tests, full
+quality gates, browser verification, and independent contract review.
+
+---
+
 ### PUB-07 — Public Blog Presentation UI
 
 **Status:** DONE
@@ -3391,6 +3463,31 @@ concurrent changes.
 **Out of scope:** VibeFarsiUI installation/configuration, application UI
 implementation, replacement component-library work, backend/business logic,
 and unrelated roadmap status changes.
+
+## VIDORA-REFACTOR-DASHBOARD-01 — Account-to-Dashboard Module Migration
+
+**Status:** DONE
+
+Move dashboard-specific implementation from `src/modules/account/` to
+`src/modules/dashboard/`, rename legacy dashboard-specific files and symbols,
+and preserve the canonical `/dashboard/*` routes, customer authentication
+boundaries, development-preview safeguards, and existing UI behavior.
+
+This is a behavior-preserving architectural refactoring. Generic customer
+authentication, identity, session, OTP, and authorization primitives remain in
+`src/modules/auth/`. Historical task identifiers such as
+`VIDORA-UI-ACCOUNT-01` and `VIDORA-UI-ACCOUNT-02` are preserved.
+
+**Depends On:** `VIDORA-UI-DASHBOARD-LIBRARY-04`.
+
+**Acceptance criteria:**
+
+- dashboard-specific functionality resides under `src/modules/dashboard/`;
+- legacy dashboard-specific account naming and obsolete imports are removed;
+- legitimate account and authentication terminology remains intact;
+- canonical dashboard routes and existing behavior remain unchanged;
+- required quality checks and review evidence are recorded;
+- no Git stage, commit, push, or unrelated roadmap status change is performed.
 
 ## VIDORA-UI-REDESIGN-03 — Incremental UI Rebuild
 

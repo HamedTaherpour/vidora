@@ -1,4 +1,4 @@
-import { CUSTOMER_DASHBOARD_ROUTES } from "./account-navigation";
+import { CUSTOMER_DASHBOARD_ROUTES } from "./dashboard-navigation";
 
 function canonicalizeCustomerReturnTo(returnTo: string): string {
   const legacyRouteMap: Record<string, string> = {
@@ -19,7 +19,7 @@ function canonicalizeCustomerReturnTo(returnTo: string): string {
   return returnTo;
 }
 
-export function accountLoginHref(returnTo: string): string {
+export function dashboardLoginHref(returnTo: string): string {
   const isInternalPath = returnTo.startsWith("/") && !returnTo.startsWith("//");
   const destination = isInternalPath
     ? canonicalizeCustomerReturnTo(returnTo)

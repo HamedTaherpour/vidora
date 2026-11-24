@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-import { CustomerAccountNavigation } from "./customer-account-navigation";
-import type { CustomerAccountShellProps } from "./customer-account-shell.types";
+import { CustomerDashboardNavigation } from "./customer-dashboard-navigation";
+import type { CustomerDashboardShellProps } from "./customer-dashboard-shell.types";
 
-export function CustomerAccountShell(props: CustomerAccountShellProps) {
+export function CustomerDashboardShell(props: CustomerDashboardShellProps) {
   const { children } = props;
 
   return (
@@ -41,7 +41,7 @@ export function CustomerAccountShell(props: CustomerAccountShellProps) {
             <p className="text-sm text-muted-foreground">حساب کاربری</p>
             <h1 className="mt-1 text-xl font-bold">پنل شخصی ویدورا</h1>
           </div>
-          <CustomerAccountNavigation />
+          <CustomerDashboardNavigation />
         </aside>
 
         <main className="min-w-0">{children}</main>

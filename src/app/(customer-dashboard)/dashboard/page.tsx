@@ -1,9 +1,9 @@
-import { CustomerDashboard } from "@/modules/account/components/customer-dashboard";
-import { CUSTOMER_DASHBOARD_ROUTES } from "@/modules/account/account-navigation";
-import { requireAccountCustomer } from "@/modules/account/require-account-customer";
+import { CustomerDashboard } from "@/modules/dashboard/components/customer-dashboard";
+import { CUSTOMER_DASHBOARD_ROUTES } from "@/modules/dashboard/dashboard-navigation";
+import { requireDashboardCustomer } from "@/modules/dashboard/require-dashboard-customer";
 
 export default async function DashboardPage() {
-  const customer = await requireAccountCustomer(
+  const customer = await requireDashboardCustomer(
     CUSTOMER_DASHBOARD_ROUTES.dashboard,
   );
   return <CustomerDashboard customer={customer} purchaseState="unavailable" />;
