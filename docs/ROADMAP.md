@@ -1015,7 +1015,7 @@ real order/invoice data remain outside this UI commit.
 
 ### VIDORA-UI-DASHBOARD-ORDERS-01 — Customer Orders & Invoice Experience
 
-**Status:** READY_FOR_REVIEW
+**Status:** DONE
 **Depends On:** VIDORA-UI-ACCOUNT-01, VIDORA-DEV-PREVIEW-01.
 
 **Objective:** Provide the customer-facing `/dashboard/orders` experience with
@@ -1035,14 +1035,17 @@ production fixture fallback.
 **Deferred backend dependencies:** COM-02, PAY-01–PAY-03, LIB-01, INV-01,
 INV-02, and the unresolved legal/tax invoice contract.
 
-**Review gate:** Owner approval remains required after focused tests, full
-quality gates, browser verification, and independent contract review.
+**Closure evidence:** Focused tests, full repository quality gates, browser
+verification, and independent contract review were completed. The product
+owner approved this fixture-backed customer orders experience on 2026-11-24.
+The approval covers presentation only; COM-02, PAY-01–PAY-03, LIB-01,
+INV-01, and INV-02 remain deferred backend work.
 
 ---
 
 ### VIDORA-UI-DASHBOARD-ORDERS-02 — Total Orders Count
 
-**Status:** READY_FOR_REVIEW
+**Status:** DONE
 **Depends On:** VIDORA-UI-DASHBOARD-ORDERS-01.
 
 **Objective:** Refine the existing customer orders page and order details modal
@@ -1057,14 +1060,16 @@ information and disabled invoice actions, and retained responsive scrolling.
 changes, PDF/print/download implementation, global Dialog changes, and
 unrelated dashboard changes.
 
-**Review gate:** Owner approval remains required after focused tests, full
-quality gates, browser verification, and independent contract review.
+**Closure evidence:** Focused tests, full repository quality gates, browser
+verification, and independent contract review were completed. The product
+owner approved this refinement on 2026-11-24. No commerce persistence,
+invoice generation, PDF, print, or download behavior is promoted by this task.
 
 ---
 
 ### VIDORA-UI-DASHBOARD-ORDERS-03 — Simplify Order and Invoice Modal
 
-**Status:** READY_FOR_REVIEW
+**Status:** DONE
 **Depends On:** VIDORA-UI-DASHBOARD-ORDERS-02.
 
 **Objective:** Refine the existing `/dashboard/orders` order details dialog into
@@ -1080,8 +1085,10 @@ safe RTL wrapping.
 changes, PDF/print/download implementation, global Dialog changes, and unrelated
 dashboard changes.
 
-**Review gate:** Owner approval remains required after focused tests, full
-quality gates, browser verification, and independent contract review.
+**Closure evidence:** Focused tests, full repository quality gates, browser
+verification, and independent contract review were completed. The product
+owner approved this modal refinement on 2026-11-24. Responsive RTL wrapping
+and the existing disabled invoice actions remain preserved.
 
 ---
 
@@ -1261,7 +1268,7 @@ screen or begin Admin work.
 
 ## VIDORA-PUB-FOOTAGE-EXPLORER-06 — Public Search — Filters, Sorting & Listing
 
-**Status:** READY_FOR_REVIEW
+**Status:** DONE
 **Depends On:** VIDORA-PUB-HOME-FINAL-04, PUB-01, PUB-02, PUB-02R, PUB-02S,
 UI-MOCK-01.
 
@@ -1290,13 +1297,14 @@ with localized active badges and result count. Sorting remains in the sidebar.
 Mobile uses a responsive grid, accessible filter Sheet, search and sorting
 controls, and automatic updates without an Apply action.
 
-**Review gate:** The approved production design is Classic Sidebar at `/search`,
-with sorting in the sidebar and Lucide section icons. Modern Explorer and
-Minimal Marketplace variants are obsolete and must not be reintroduced. The
-temporary preview routes were removed after production verification. The legacy
-`/footage` browse route permanently redirects to `/search` while detail routes
-remain under `/footage/[slug]`. This task remains subject to the comprehensive
-Public review gate before Admin development begins.
+**Closure evidence:** The approved production design is Classic Sidebar at
+`/search`, with sorting in the sidebar and Lucide section icons. Modern Explorer
+and Minimal Marketplace variants are obsolete and must not be reintroduced.
+The temporary preview routes were removed after production verification. The
+legacy `/footage` browse route permanently redirects to `/search` while detail
+routes remain under `/footage/[slug]`. Focused tests, full repository quality
+gates, browser smoke verification, and independent review evidence are
+recorded. The product owner approved the public search UI on 2026-11-24.
 
 **Out of scope:** Production catalog/database integration, Admin work, and
 SEO-01. The owner-approved design-exploration amendment allowed temporary
@@ -1348,9 +1356,10 @@ overflow on narrow screens.
 - Browser smoke — passed for public chrome, localized active badges, and the
   mobile filter Sheet with sorting present once.
 
-The task remains `READY_FOR_OWNER_REVIEW`; the broader Public review gate is not
-complete, and no production catalog integration, Admin work, or SEO-01 work was
-started.
+The task was pending owner review until the approval recorded above. No
+production catalog integration, Admin work, or SEO-01 work was started. The
+documented mobile viewport limitation remains applicable to release-level
+verification.
 
 ## VIDORA-UI-SEARCH-02 — Search Filter UX & Visual Refinement
 
@@ -1676,11 +1685,11 @@ verification.
   surface; this is not an automatic blocker for `PUB-03`.
 
 The UI-first sequence has now advanced through the approved fixture-backed
-homepage, homepage refinement, and Commerce detail work. **Next planned
-public-facing implementation task:** `VIDORA-PUB-FOOTAGE-EXPLORER-06 — Public
-Search`. The comprehensive Public review gate remains mandatory
-before Admin development. Production data integration, checkout, payment,
-entitlement, and protected media delivery remain separate work.
+homepage, Commerce detail, customer orders, and public search work. **Next
+recommended task:** `ADM-01 — Admin Footage Catalog UI Completion`, after the
+remaining Admin prerequisites are reviewed. Production data integration,
+checkout, payment, entitlement, and protected media delivery remain separate
+work.
 
 ## Quality work reconciliation — VIDORA-QA-01 through QA-06
 
@@ -1759,23 +1768,26 @@ This audit compares the current source tree, tests, recent commits, acceptance
 criteria, and recorded approvals. It does not promote fixture-backed UI to
 production functionality or treat passing tests as owner approval.
 
-| Area                   | Reconciled state                                                                | Evidence / dependency                                                                                                                                                                      |
-| ---------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Customer profile       | `DONE`                                                                          | `f83e31b`, `src/app/(customer-dashboard)/dashboard/profile/page.tsx`, focused identity tests, full gates, desktop browser verification, and current owner approval.                        |
-| Customer orders UI     | `READY_FOR_REVIEW`                                                              | Fixture-backed orders/modal implementation exists, but each task's review gate still requires independent review and owner approval; COM-02, PAY-01–03, LIB-01, INV-01–02 remain deferred. |
-| Customer library UI    | `DONE` for approved presentation scope                                          | Development preview is isolated; real library queries, entitlement, protected downloads, and invoice persistence remain backend work.                                                      |
-| Public storefront      | Mixed: approved completed pages plus `READY_FOR_REVIEW` search/exploration work | Homepage, detail, authentication, and blog presentation have recorded approvals where noted; dedicated search remains fixture-backed and pending review.                                   |
-| Admin panel            | `TODO` presentation phase                                                       | Footage routes and backend boundaries exist, but the planned Admin UI completion tasks are not implemented/approved; order, support, and blog Admin routes are absent.                     |
-| Backend commerce/media | Pending                                                                         | Catalog/media/auth foundations exist, while orders, payment verification, idempotent completion, entitlements, protected downloads, and invoice production workflows remain unimplemented. |
+| Area                   | Reconciled state                                                  | Evidence / dependency                                                                                                                                                                      |
+| ---------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Customer profile       | `DONE`                                                            | `f83e31b`, `src/app/(customer-dashboard)/dashboard/profile/page.tsx`, focused identity tests, full gates, desktop browser verification, and current owner approval.                        |
+| Customer orders UI     | `DONE`                                                            | Fixture-backed orders/modal implementation has focused/full verification, independent review, and explicit owner approval; COM-02, PAY-01–03, LIB-01, INV-01–02 remain deferred.           |
+| Customer library UI    | `DONE` for approved presentation scope                            | Development preview is isolated; real library queries, entitlement, protected downloads, and invoice persistence remain backend work.                                                      |
+| Public storefront      | Approved presentation scope complete; backend integration pending | Homepage, detail, authentication, blog, and dedicated search presentation have recorded approvals; catalog integration and SEO remain separate work.                                       |
+| Admin panel            | `TODO` presentation phase                                         | Footage routes and backend boundaries exist, but the planned Admin UI completion tasks are not implemented/approved; order, support, and blog Admin routes are absent.                     |
+| Backend commerce/media | Pending                                                           | Catalog/media/auth foundations exist, while orders, payment verification, idempotent completion, entitlements, protected downloads, and invoice production workflows remain unimplemented. |
 
 Status changes in this audit:
 
 - `VIDORA-UI-DASHBOARD-PROFILE-01`: `BLOCKED` → `DONE`, supported by the
   approved requirements and completed available verification; mobile viewport
   control remains a release-level limitation, not an unreported pass.
-- `VIDORA-UI-DASHBOARD-ORDERS-01`, `-02`, and `-03`: `DONE` →
-  `READY_FOR_REVIEW`, because their own roadmap entries explicitly retain an
-  owner-approval/review gate and the implementation is fixture-backed.
+- `VIDORA-UI-DASHBOARD-ORDERS-01`, `-02`, and `-03`: `READY_FOR_REVIEW` →
+  `DONE`, supported by existing verification/review evidence and explicit
+  product-owner approval recorded on 2026-11-24.
+- `VIDORA-PUB-FOOTAGE-EXPLORER-06`: `READY_FOR_REVIEW` → `DONE`, supported by
+  the recorded 06C/06D verification, browser smoke evidence, independent
+  review, and explicit product-owner approval recorded on 2026-11-24.
 
 No backend task was promoted. Existing `TODO`, `READY_FOR_REVIEW`, and
 `IN_PROGRESS` foundation/backend statuses remain unchanged unless listed above.
