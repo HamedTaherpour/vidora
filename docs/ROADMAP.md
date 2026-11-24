@@ -1015,7 +1015,7 @@ real order/invoice data remain outside this UI commit.
 
 ### VIDORA-UI-DASHBOARD-ORDERS-01 — Customer Orders & Invoice Experience
 
-**Status:** DONE
+**Status:** READY_FOR_REVIEW
 **Depends On:** VIDORA-UI-ACCOUNT-01, VIDORA-DEV-PREVIEW-01.
 
 **Objective:** Provide the customer-facing `/dashboard/orders` experience with
@@ -1042,7 +1042,7 @@ quality gates, browser verification, and independent contract review.
 
 ### VIDORA-UI-DASHBOARD-ORDERS-02 — Total Orders Count
 
-**Status:** DONE
+**Status:** READY_FOR_REVIEW
 **Depends On:** VIDORA-UI-DASHBOARD-ORDERS-01.
 
 **Objective:** Refine the existing customer orders page and order details modal
@@ -1064,7 +1064,7 @@ quality gates, browser verification, and independent contract review.
 
 ### VIDORA-UI-DASHBOARD-ORDERS-03 — Simplify Order and Invoice Modal
 
-**Status:** DONE
+**Status:** READY_FOR_REVIEW
 **Depends On:** VIDORA-UI-DASHBOARD-ORDERS-02.
 
 **Objective:** Refine the existing `/dashboard/orders` order details dialog into
@@ -1082,6 +1082,32 @@ dashboard changes.
 
 **Review gate:** Owner approval remains required after focused tests, full
 quality gates, browser verification, and independent contract review.
+
+---
+
+### VIDORA-UI-DASHBOARD-PROFILE-01 — Customer Profile Experience
+
+**Status:** DONE
+**Depends On:** VIDORA-UI-ACCOUNT-01, VIDORA-DEV-PREVIEW-01.
+
+**Objective:** Provide a minimal authenticated customer profile page at
+`/dashboard/profile` using only the existing customer identity contract.
+
+**Implemented scope:** Read-only complete phone presentation with Persian digits,
+no profile development-preview banner, shared dashboard composition, and focused
+identity-mapping tests. The underlying development-preview safeguards remain
+unchanged.
+
+**Explicit exclusions:** Phone-number changes, account recovery, email or
+password management, account deletion, new OTP/session operations, profile
+fields, Prisma/schema changes, and production customer fallback fixtures.
+
+**Closure evidence:** The product owner approved the profile requirements in
+the 2026-11-24 audit request. Focused tests, full repository quality gates,
+desktop browser verification, and independent contract review passed. The
+available browser surface does not expose a controllable mobile viewport; the
+profile uses the existing responsive dashboard composition and this limitation
+remains recorded for release-level responsive verification.
 
 ---
 
@@ -1235,7 +1261,7 @@ screen or begin Admin work.
 
 ## VIDORA-PUB-FOOTAGE-EXPLORER-06 — Public Search — Filters, Sorting & Listing
 
-**Status:** IN_PROGRESS
+**Status:** READY_FOR_REVIEW
 **Depends On:** VIDORA-PUB-HOME-FINAL-04, PUB-01, PUB-02, PUB-02R, PUB-02S,
 UI-MOCK-01.
 
@@ -1724,6 +1750,38 @@ does not by itself promote a task from `READY_FOR_REVIEW` to `DONE`.
 `FND-01`, `FND-03`, and `UI-02` remain `DONE` unchanged. All `TODO` tasks
 remain `TODO`; no missing product feature was implemented or promoted by this
 audit.
+
+---
+
+# Current roadmap reconciliation — 2026-11-24
+
+This audit compares the current source tree, tests, recent commits, acceptance
+criteria, and recorded approvals. It does not promote fixture-backed UI to
+production functionality or treat passing tests as owner approval.
+
+| Area                   | Reconciled state                                                                | Evidence / dependency                                                                                                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Customer profile       | `DONE`                                                                          | `f83e31b`, `src/app/(customer-dashboard)/dashboard/profile/page.tsx`, focused identity tests, full gates, desktop browser verification, and current owner approval.                        |
+| Customer orders UI     | `READY_FOR_REVIEW`                                                              | Fixture-backed orders/modal implementation exists, but each task's review gate still requires independent review and owner approval; COM-02, PAY-01–03, LIB-01, INV-01–02 remain deferred. |
+| Customer library UI    | `DONE` for approved presentation scope                                          | Development preview is isolated; real library queries, entitlement, protected downloads, and invoice persistence remain backend work.                                                      |
+| Public storefront      | Mixed: approved completed pages plus `READY_FOR_REVIEW` search/exploration work | Homepage, detail, authentication, and blog presentation have recorded approvals where noted; dedicated search remains fixture-backed and pending review.                                   |
+| Admin panel            | `TODO` presentation phase                                                       | Footage routes and backend boundaries exist, but the planned Admin UI completion tasks are not implemented/approved; order, support, and blog Admin routes are absent.                     |
+| Backend commerce/media | Pending                                                                         | Catalog/media/auth foundations exist, while orders, payment verification, idempotent completion, entitlements, protected downloads, and invoice production workflows remain unimplemented. |
+
+Status changes in this audit:
+
+- `VIDORA-UI-DASHBOARD-PROFILE-01`: `BLOCKED` → `DONE`, supported by the
+  approved requirements and completed available verification; mobile viewport
+  control remains a release-level limitation, not an unreported pass.
+- `VIDORA-UI-DASHBOARD-ORDERS-01`, `-02`, and `-03`: `DONE` →
+  `READY_FOR_REVIEW`, because their own roadmap entries explicitly retain an
+  owner-approval/review gate and the implementation is fixture-backed.
+
+No backend task was promoted. Existing `TODO`, `READY_FOR_REVIEW`, and
+`IN_PROGRESS` foundation/backend statuses remain unchanged unless listed above.
+Unresolved payment-provider, legal/tax invoice, licensing, entitlement-after-
+purchase, refund, download-limit, account-recovery, and media-retention
+decisions remain unresolved.
 
 ---
 
